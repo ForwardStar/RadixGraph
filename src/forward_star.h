@@ -1,6 +1,9 @@
+#ifndef FORWARDSTAR
+#define FORWARDSTAR
+
 #include "headers.h"
 
-class forward_star {
+class ForwardStar {
     private:
     public:
         typedef struct _weighted_edge {
@@ -11,5 +14,9 @@ class forward_star {
             _weighted_edge* next;
         } WeightedEdge;
 
-        std::map<uint64_t, WeightedEdge*> vertex_index;
+        std::map<uint64_t, std::pair<WeightedEdge*, WeightedEdge*>> vertex_index;
+
+        bool InsertEdge(uint64_t src, uint64_t des, double weight);
 };
+
+#endif
