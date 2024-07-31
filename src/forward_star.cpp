@@ -13,3 +13,22 @@ bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     auto tmp = vertex_index[src].second;
     tmp->next = new WeightedEdge{src, des, false, weight, vertex_index[des].first, nullptr};
 }
+
+void ForwardStar::BFS(uint64_t src) {
+    std::unordered_set<uint64_t> visited_vertices;
+    std::queue<WeightedEdge*> Q;
+    visited_vertices.insert(src);
+    Q.push(vertex_index[src].first);
+    while (!Q.empty()) {
+        auto u = Q.front();
+        Q.pop();
+        auto e = u->next;
+        while (e) {
+            if (visited_vertices.find(e->des) == visited_vertices.end()) {
+                visited_vertices.insert(e->des);
+                Q.push(e->forward);
+            }
+            e = e->next;
+        }
+    }
+}
