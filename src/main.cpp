@@ -4,14 +4,55 @@
 
 int main() {
     std::ios::sync_with_stdio(false);
-    freopen("graph.txt", "r", stdin);
-    std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
-    uint64_t u, v;
-    double w;
-    while (std::cin >> u >> v >> w) {
-        edges.push_back(std::make_pair(std::make_pair(u, v), w));
+    srand((int)time(NULL));
+    double duration_insert_edge_adjlist = 0;
+    double duration_insert_edge_fstar = 0;
+    double duration_bfs_adjlist = 0;
+    double duration_bfs_fstar = 0;
+
+    for (int i = 0; i < 10; i++) {
+        std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
+        uint64_t u, v;
+        double w;
+        for (int i = 0; i < 2560000; i++) {
+            u = rand() % 100000;
+            v = rand() % 100000;
+            edges.push_back(std::make_pair(std::make_pair(u, v), 0.5));
+        }
+
+        AdjacencyList G_adj;
+        auto start = std::chrono::high_resolution_clock::now();
+        for (auto e : edges) {
+            G_adj.InsertEdge(e.first.first, e.first.second, e.second);
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = end - start;
+        duration_insert_edge_adjlist += duration.count();
+
+        ForwardStar G_fstar;
+        start = std::chrono::high_resolution_clock::now();
+        for (auto e : edges) {
+            G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
+        }
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        duration_insert_edge_fstar += duration.count();
+
+        start = std::chrono::high_resolution_clock::now();
+        G_adj.BFS(1);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        duration_bfs_adjlist += duration.count();
+
+        start = std::chrono::high_resolution_clock::now();
+        G_fstar.BFS(1);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        duration_bfs_fstar += duration.count();
     }
 
-    AdjacencyList G_adj;
-    ForwardStar G_fstar;
+    std::cout << "Average insertion time for adjacency list: " << duration_insert_edge_adjlist / 10 << "s" << std::endl;
+    std::cout << "Average insertion time for forward star: " << duration_insert_edge_fstar / 10 << "s" << std::endl;
+    std::cout << "Average BFS time for adjacency list: " << duration_bfs_adjlist / 10 << "s" << std::endl;
+    std::cout << "Average BFS time for forward star: " << duration_bfs_fstar / 10 << "s" << std::endl;
 }
