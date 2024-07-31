@@ -10,9 +10,9 @@ bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
         vertex_index[des] = std::make_pair(tmp, tmp);
     }
 
-    auto tmp = vertex_index[src].second;
-    tmp->next = new WeightedEdge{src, des, false, weight, vertex_index[des].first, nullptr};
-    vertex_index[src].second = tmp->next;
+    auto& tmp = vertex_index[src];
+    tmp.second->next = new WeightedEdge{src, des, false, weight, vertex_index[des].first, nullptr};
+    tmp.second = tmp.second->next;
 }
 
 void ForwardStar::BFS(uint64_t src) {
