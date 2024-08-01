@@ -8,7 +8,6 @@ class AdjacencyList {
     public:
         typedef struct _weighted_edge {
             uint64_t src, des;
-            bool deleted;
             double weight;
             _weighted_edge* next;
         } WeightedEdge;
@@ -18,6 +17,9 @@ class AdjacencyList {
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
 
         void BFS(uint64_t src);
+
+        AdjacencyList() {}
+        ~AdjacencyList();
 };
 
 #endif
