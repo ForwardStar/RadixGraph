@@ -3,7 +3,7 @@
 
 #include "headers.h"
 
-class ForwardStar {
+class ChainedForwardStar {
     private:
     public:
         typedef struct _weighted_edge;
@@ -28,8 +28,36 @@ class ForwardStar {
 
         void BFS(uint64_t src);
 
-        ForwardStar() {}
-        ~ForwardStar();
+        ChainedForwardStar() {}
+        ~ChainedForwardStar();
+};
+
+class ArrayForwardStar {
+    private:
+    public:
+        typedef struct _weighted_edge;
+        typedef struct _dummy_node;
+
+        typedef struct _weighted_edge {
+            uint64_t des;
+            double weight;
+            _dummy_node* forward;
+        } WeightedEdge;
+
+        typedef struct _dummy_node {
+            bool obsolete;
+            std::vector<WeightedEdge>* next;
+        } DummyNode;
+
+        std::map<uint64_t, DummyNode*> vertex_index;
+        std::vector<DummyNode*> dummy_nodes;
+
+        bool InsertEdge(uint64_t src, uint64_t des, double weight);
+
+        void BFS(uint64_t src);
+
+        ArrayForwardStar() {}
+        ~ArrayForwardStar();
 };
 
 #endif

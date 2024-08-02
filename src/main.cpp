@@ -5,10 +5,14 @@
 int main() {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
-    double duration_insert_edge_adjlist = 0;
-    double duration_insert_edge_fstar = 0;
-    double duration_bfs_adjlist = 0;
-    double duration_bfs_fstar = 0;
+    double duration_insert_edge_adjlinkedlist = 0;
+    double duration_insert_edge_adjarraylist = 0;
+    double duration_insert_edge_chainedfstar = 0;
+    double duration_insert_edge_arrayfstar = 0;
+    double duration_bfs_adjlinkedlist = 0;
+    double duration_bfs_adjarraylist = 0;
+    double duration_bfs_chainedfstar = 0;
+    double duration_bfs_arrayfstar = 0;
 
     for (int n = 10; n <= 100000; n *= 10) {
         std::cout << "n = " << n << ", m = " << 256000 << std::endl;
@@ -22,40 +26,74 @@ int main() {
                 edges.push_back(std::make_pair(std::make_pair(u, v), 0.5));
             }
 
-            AdjacencyList G_adj;
+            AdjacencyLinkedList G_adj_linked;
             auto start = std::chrono::high_resolution_clock::now();
             for (auto e : edges) {
-                G_adj.InsertEdge(e.first.first, e.first.second, e.second);
+                G_adj_linked.InsertEdge(e.first.first, e.first.second, e.second);
             }
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> duration = end - start;
-            duration_insert_edge_adjlist += duration.count();
+            duration_insert_edge_adjlinkedlist += duration.count();
 
-            ForwardStar G_fstar;
+            ChainedForwardStar G_chained_fstar;
             start = std::chrono::high_resolution_clock::now();
             for (auto e : edges) {
-                G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
+                G_chained_fstar.InsertEdge(e.first.first, e.first.second, e.second);
             }
             end = std::chrono::high_resolution_clock::now();
             duration = end - start;
-            duration_insert_edge_fstar += duration.count();
+            duration_insert_edge_chainedfstar += duration.count();
 
+            AdjacencyArrayList G_adj_array;
             start = std::chrono::high_resolution_clock::now();
-            G_adj.BFS(1);
+            for (auto e : edges) {
+                G_adj_array.InsertEdge(e.first.first, e.first.second, e.second);
+            }
             end = std::chrono::high_resolution_clock::now();
             duration = end - start;
-            duration_bfs_adjlist += duration.count();
+            duration_insert_edge_adjarraylist += duration.count();
 
+            ArrayForwardStar G_array_fstar;
             start = std::chrono::high_resolution_clock::now();
-            G_fstar.BFS(1);
+            for (auto e : edges) {
+                G_array_fstar.InsertEdge(e.first.first, e.first.second, e.second);
+            }
             end = std::chrono::high_resolution_clock::now();
             duration = end - start;
-            duration_bfs_fstar += duration.count();
+            duration_insert_edge_arrayfstar += duration.count();
+
+            start = std::chrono::high_resolution_clock::now();
+            G_adj_linked.BFS(1);
+            end = std::chrono::high_resolution_clock::now();
+            duration = end - start;
+            duration_bfs_adjlinkedlist += duration.count();
+
+            start = std::chrono::high_resolution_clock::now();
+            G_chained_fstar.BFS(1);
+            end = std::chrono::high_resolution_clock::now();
+            duration = end - start;
+            duration_bfs_chainedfstar += duration.count();
+
+            start = std::chrono::high_resolution_clock::now();
+            G_adj_array.BFS(1);
+            end = std::chrono::high_resolution_clock::now();
+            duration = end - start;
+            duration_bfs_adjarraylist += duration.count();
+
+            start = std::chrono::high_resolution_clock::now();
+            G_array_fstar.BFS(1);
+            end = std::chrono::high_resolution_clock::now();
+            duration = end - start;
+            duration_bfs_arrayfstar += duration.count();
         }
 
-        std::cout << "Average insertion time for adjacency list: " << duration_insert_edge_adjlist / 10 << "s" << std::endl;
-        std::cout << "Average insertion time for forward star: " << duration_insert_edge_fstar / 10 << "s" << std::endl;
-        std::cout << "Average BFS time for adjacency list: " << duration_bfs_adjlist / 10 << "s" << std::endl;
-        std::cout << "Average BFS time for forward star: " << duration_bfs_fstar / 10 << "s" << std::endl;
+        std::cout << "Average insertion time for adjacency linked list: " << duration_insert_edge_adjlinkedlist / 10 << "s" << std::endl;
+        std::cout << "Average insertion time for chained forward star: " << duration_insert_edge_chainedfstar / 10 << "s" << std::endl;
+        std::cout << "Average insertion time for adjacency array list: " << duration_insert_edge_adjarraylist / 10 << "s" << std::endl;
+        std::cout << "Average insertion time for array forward star: " << duration_insert_edge_arrayfstar / 10 << "s" << std::endl;
+        std::cout << "Average BFS time for adjacency linked list: " << duration_bfs_adjlinkedlist / 10 << "s" << std::endl;
+        std::cout << "Average BFS time for chained forward star: " << duration_bfs_chainedfstar / 10 << "s" << std::endl;
+        std::cout << "Average BFS time for adjacency array list: " << duration_bfs_adjarraylist / 10 << "s" << std::endl;
+        std::cout << "Average BFS time for array forward star: " << duration_bfs_arrayfstar / 10 << "s" << std::endl;
     }
 }
