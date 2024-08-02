@@ -8,9 +8,9 @@ class ForwardStar {
     public:
         typedef struct _weighted_edge;
         typedef struct _dummy_node;
-        
+
         typedef struct _weighted_edge {
-            uint64_t src, des;
+            uint64_t des;
             double weight;
             _dummy_node* forward;
             _weighted_edge* next;
@@ -21,7 +21,7 @@ class ForwardStar {
             _weighted_edge* next;
         } DummyNode;
 
-        std::map<uint64_t, std::pair<DummyNode*, WeightedEdge*>> vertex_index;
+        std::map<uint64_t, DummyNode*> vertex_index;
         std::vector<DummyNode*> dummy_nodes;
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);

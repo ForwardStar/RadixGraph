@@ -7,7 +7,7 @@ class AdjacencyList {
     private:
     public:
         typedef struct _weighted_edge {
-            uint64_t src, des;
+            uint64_t des;
             double weight;
             _weighted_edge* next;
         } WeightedEdge;

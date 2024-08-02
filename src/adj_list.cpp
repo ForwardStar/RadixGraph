@@ -8,7 +8,7 @@ bool AdjacencyList::InsertEdge(uint64_t src, uint64_t des, double weight) {
         vertex_index[des] = nullptr;
     }
 
-    vertex_index[src] = new WeightedEdge{src, des, weight, vertex_index[src]};
+    vertex_index[src] = new WeightedEdge{des, weight, vertex_index[src]};
 }
 
 void AdjacencyList::BFS(uint64_t src) {
