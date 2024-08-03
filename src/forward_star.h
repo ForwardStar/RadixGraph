@@ -10,15 +10,15 @@ class ChainedForwardStar {
         typedef struct _dummy_node;
 
         typedef struct _weighted_edge {
-            double weight;
-            _dummy_node* forward;
-            _weighted_edge* next;
+            double weight; // edge property
+            _dummy_node* forward; // forward pointer to dummy node of target vertex
+            _weighted_edge* next; // next edge for this source vertex
         } WeightedEdge;
 
         typedef struct _dummy_node {
-            uint64_t node;
-            bool obsolete;
-            _weighted_edge* next;
+            uint64_t node; // this dummy node corresponds to which vertex
+            bool obsolete; // whether this vertex has been visited in graph traversal task
+            _weighted_edge* next; // linked-list-based edge structure
         } DummyNode;
 
         std::map<uint64_t, DummyNode*> vertex_index;
@@ -39,14 +39,14 @@ class ArrayForwardStar {
         typedef struct _dummy_node;
 
         typedef struct _weighted_edge {
-            double weight;
-            _dummy_node* forward;
+            double weight; // edge property
+            _dummy_node* forward; // forward pointer to dummy node of target vertex
         } WeightedEdge;
 
         typedef struct _dummy_node {
-            uint64_t node;
-            bool obsolete;
-            std::vector<WeightedEdge> next;
+            uint64_t node; // this dummy node corresponds to which vertex
+            bool obsolete; // whether this vertex has been visited in graph traversal task
+            std::vector<WeightedEdge> next; // array-based edge structure
         } DummyNode;
 
         std::map<uint64_t, DummyNode*> vertex_index;

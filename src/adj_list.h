@@ -7,9 +7,9 @@ class AdjacencyLinkedList {
     private:
     public:
         typedef struct _weighted_edge {
-            uint64_t des;
-            double weight;
-            _weighted_edge* next;
+            uint64_t des; // target vertex id
+            double weight; // edge property
+            _weighted_edge* next; // next edge for this source vertex
         } WeightedEdge;
 
         std::map<uint64_t, WeightedEdge*> vertex_index;
@@ -26,8 +26,8 @@ class AdjacencyArrayList {
     private:
     public:
         typedef struct _weighted_edge {
-            uint64_t des;
-            double weight;
+            uint64_t des; // target vertex id
+            double weight; // edge property
         } WeightedEdge;
 
         std::map<uint64_t, std::vector<WeightedEdge>> vertex_index;
