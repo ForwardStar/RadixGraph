@@ -10,13 +10,13 @@ class ChainedForwardStar {
         typedef struct _dummy_node;
 
         typedef struct _weighted_edge {
-            uint64_t des;
             double weight;
             _dummy_node* forward;
             _weighted_edge* next;
         } WeightedEdge;
 
         typedef struct _dummy_node {
+            uint64_t node;
             bool obsolete;
             _weighted_edge* next;
         } DummyNode;
@@ -39,14 +39,14 @@ class ArrayForwardStar {
         typedef struct _dummy_node;
 
         typedef struct _weighted_edge {
-            uint64_t des;
             double weight;
             _dummy_node* forward;
         } WeightedEdge;
 
         typedef struct _dummy_node {
+            uint64_t node;
             bool obsolete;
-            std::vector<WeightedEdge>* next;
+            std::vector<WeightedEdge> next;
         } DummyNode;
 
         std::map<uint64_t, DummyNode*> vertex_index;
