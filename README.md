@@ -1,6 +1,13 @@
 # Forward_star
 A graph data structure for optimizing graph traversals and graph OLAP tasks.
 
+# Compile and run
+```sh
+cmake .
+make
+./ForwardStar
+```
+
 # Experimental results
 ```
 n = 10, m = 256000
