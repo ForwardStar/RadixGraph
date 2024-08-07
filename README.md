@@ -11,48 +11,48 @@ make
 # Experimental results
 ```
 n = 10, m = 256000
-Average insertion time for adjacency linked list: 0.149987s
-Average insertion time for chained forward star: 0.159111s
-Average insertion time for adjacency array list: 0.121414s
-Average insertion time for array forward star: 0.159733s
-Average BFS time for adjacency linked list: 0.0743683s
-Average BFS time for chained forward star: 0.0472459s
-Average BFS time for adjacency array list: 0.0255649s
-Average BFS time for array forward star: 0.00263147s
+Average insertion time for adjacency linked list: 0.150728s
+Average insertion time for chained forward star: 0.202961s
+Average insertion time for adjacency array list: 0.167815s
+Average insertion time for array forward star: 0.209558s
+Average BFS time for adjacency linked list: 0.065152s
+Average BFS time for chained forward star: 0.0252291s
+Average BFS time for adjacency array list: 0.0335006s
+Average BFS time for array forward star: 0.00538497s
 n = 100, m = 256000
-Average insertion time for adjacency linked list: 0.379878s
-Average insertion time for chained forward star: 0.403734s
-Average insertion time for adjacency array list: 0.305074s
-Average insertion time for array forward star: 0.402522s
-Average BFS time for adjacency linked list: 0.122834s
-Average BFS time for chained forward star: 0.0721248s
-Average BFS time for adjacency array list: 0.0491853s
-Average BFS time for array forward star: 0.00454665s
+Average insertion time for adjacency linked list: 0.371476s
+Average insertion time for chained forward star: 0.495885s
+Average insertion time for adjacency array list: 0.411538s
+Average insertion time for array forward star: 0.527726s
+Average BFS time for adjacency linked list: 0.156298s
+Average BFS time for chained forward star: 0.0700884s
+Average BFS time for adjacency array list: 0.0650835s
+Average BFS time for array forward star: 0.00990759s
 n = 1000, m = 256000
-Average insertion time for adjacency linked list: 0.716622s
-Average insertion time for chained forward star: 0.740041s
-Average insertion time for adjacency array list: 0.564591s
-Average insertion time for array forward star: 0.74707s
-Average BFS time for adjacency linked list: 0.173269s
-Average BFS time for chained forward star: 0.0999842s
-Average BFS time for adjacency array list: 0.0740743s
-Average BFS time for array forward star: 0.00708884s
+Average insertion time for adjacency linked list: 0.694241s
+Average insertion time for chained forward star: 0.922737s
+Average insertion time for adjacency array list: 0.787879s
+Average insertion time for array forward star: 1.00848s
+Average BFS time for adjacency linked list: 0.260785s
+Average BFS time for chained forward star: 0.127034s
+Average BFS time for adjacency array list: 0.0996583s
+Average BFS time for array forward star: 0.0159844s
 n = 10000, m = 256000
-Average insertion time for adjacency linked list: 1.1343s
-Average insertion time for chained forward star: 1.16575s
-Average insertion time for adjacency array list: 0.932031s
-Average insertion time for array forward star: 1.23453s
-Average BFS time for adjacency linked list: 0.241039s
-Average BFS time for chained forward star: 0.126377s
-Average BFS time for adjacency array list: 0.11245s
-Average BFS time for array forward star: 0.0138833s
+Average insertion time for adjacency linked list: 1.21322s
+Average insertion time for chained forward star: 1.62503s
+Average insertion time for adjacency array list: 1.44781s
+Average insertion time for array forward star: 1.84906s
+Average BFS time for adjacency linked list: 0.401929s
+Average BFS time for chained forward star: 0.179642s
+Average BFS time for adjacency array list: 0.176705s
+Average BFS time for array forward star: 0.0346863s
 n = 100000, m = 256000
-Average insertion time for adjacency linked list: 1.90688s
-Average insertion time for chained forward star: 1.96455s
-Average insertion time for adjacency array list: 1.67191s
-Average insertion time for array forward star: 2.1206s
-Average BFS time for adjacency linked list: 0.465351s
-Average BFS time for chained forward star: 0.166148s
-Average BFS time for adjacency array list: 0.323809s
-Average BFS time for array forward star: 0.0550014s
+Average insertion time for adjacency linked list: 2.43924s
+Average insertion time for chained forward star: 3.1045s
+Average insertion time for adjacency array list: 2.84662s
+Average insertion time for array forward star: 3.56147s
+Average BFS time for adjacency linked list: 0.795834s
+Average BFS time for chained forward star: 0.259266s
+Average BFS time for adjacency array list: 0.510769s
+Average BFS time for array forward star: 0.11135s
 ```
