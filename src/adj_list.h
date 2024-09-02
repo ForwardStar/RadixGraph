@@ -16,6 +16,12 @@ class AdjacencyLinkedList {
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
 
+        bool UpdateEdge(uint64_t src, uint64_t des, double weight);
+
+        bool DeleteEdge(uint64_t src, uint64_t des);
+
+        bool GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours);
+
         void BFS(uint64_t src);
 
         AdjacencyLinkedList() {}
@@ -30,14 +36,20 @@ class AdjacencyArrayList {
             double weight; // edge property
         } WeightedEdge;
 
-        std::map<uint64_t, std::vector<WeightedEdge>> vertex_index;
+        std::map<uint64_t, std::vector<WeightedEdge*>> vertex_index;
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
+
+        bool UpdateEdge(uint64_t src, uint64_t des, double weight);
+
+        bool DeleteEdge(uint64_t src, uint64_t des);
+
+        bool GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours);
 
         void BFS(uint64_t src);
 
         AdjacencyArrayList() {}
-        ~AdjacencyArrayList() {}
+        ~AdjacencyArrayList();
 };
 
 #endif

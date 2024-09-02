@@ -17,7 +17,7 @@ class ChainedForwardStar {
 
         typedef struct _dummy_node {
             uint64_t node; // this dummy node corresponds to which vertex
-            bool obsolete; // whether this vertex has been visited in graph traversal task
+            uint8_t flag;
             _weighted_edge* next; // linked-list-based edge structure
         } DummyNode;
 
@@ -25,6 +25,14 @@ class ChainedForwardStar {
         std::vector<DummyNode*> dummy_nodes;
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
+
+        bool UpdateEdge(uint64_t src, uint64_t des, double weight);
+
+        bool DeleteEdge(uint64_t src, uint64_t des);
+
+        bool GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours);
+
+        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge*> &neighbours);
 
         void BFS(uint64_t src);
 
@@ -45,14 +53,22 @@ class ArrayForwardStar {
 
         typedef struct _dummy_node {
             uint64_t node; // this dummy node corresponds to which vertex
-            bool obsolete; // whether this vertex has been visited in graph traversal task
-            std::vector<WeightedEdge> next; // array-based edge structure
+            uint8_t flag;
+            std::vector<WeightedEdge*> next; // array-based edge structure
         } DummyNode;
 
         std::map<uint64_t, DummyNode*> vertex_index;
         std::vector<DummyNode*> dummy_nodes;
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
+
+        bool UpdateEdge(uint64_t src, uint64_t des, double weight);
+
+        bool DeleteEdge(uint64_t src, uint64_t des);
+
+        bool GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours);
+
+        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge*> &neighbours);
 
         void BFS(uint64_t src);
 

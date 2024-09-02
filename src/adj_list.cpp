@@ -15,6 +15,20 @@ bool AdjacencyLinkedList::InsertEdge(uint64_t src, uint64_t des, double weight) 
     else {
         tmp = new WeightedEdge{des, weight, nullptr};
     }
+
+    return true;
+}
+
+bool AdjacencyLinkedList::GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours) {
+    if (vertex_index.find(src) != vertex_index.end()) {
+        auto e = vertex_index[src];
+        while (e) {
+            neighbours.push_back(e);
+            e = e->next;
+        }
+    }
+
+    return true;
 }
 
 void AdjacencyLinkedList::BFS(uint64_t src) {
@@ -25,8 +39,9 @@ void AdjacencyLinkedList::BFS(uint64_t src) {
     while (!Q.empty()) {
         auto u = Q.front();
         Q.pop();
-        auto e = vertex_index[u];
-        while (e) {
+        std::vector<WeightedEdge*> neighbours;
+        GetNeighbours(u, neighbours);
+        for (auto e : neighbours) {
             if (visited_vertices.find(e->des) == visited_vertices.end()) {
                 visited_vertices.insert(e->des);
                 Q.push(e->des);
@@ -49,13 +64,25 @@ AdjacencyLinkedList::~AdjacencyLinkedList() {
 
 bool AdjacencyArrayList::InsertEdge(uint64_t src, uint64_t des, double weight) {
     if (vertex_index.find(src) == vertex_index.end()) {
-        vertex_index[src] = std::vector<WeightedEdge>();
+        vertex_index[src] = std::vector<WeightedEdge*>();
     }
     if (vertex_index.find(des) == vertex_index.end()) {
-        vertex_index[des] = std::vector<WeightedEdge>();
+        vertex_index[des] = std::vector<WeightedEdge*>();
     }
 
-    vertex_index[src].push_back(WeightedEdge{des, weight});
+    vertex_index[src].push_back(new WeightedEdge{des, weight});
+
+    return true;
+}
+
+bool AdjacencyArrayList::GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours) {
+    if (vertex_index.find(src) != vertex_index.end()) {
+        for (auto e : vertex_index[src]) {
+            neighbours.push_back(e);
+        }
+    }
+
+    return true;
 }
 
 void AdjacencyArrayList::BFS(uint64_t src) {
@@ -66,11 +93,21 @@ void AdjacencyArrayList::BFS(uint64_t src) {
     while (!Q.empty()) {
         auto u = Q.front();
         Q.pop();
-        for (auto e : vertex_index[u]) {
-            if (visited_vertices.find(e.des) == visited_vertices.end()) {
-                visited_vertices.insert(e.des);
-                Q.push(e.des);
+        std::vector<WeightedEdge*> neighbours;
+        GetNeighbours(u, neighbours);
+        for (auto e : neighbours) {
+            if (visited_vertices.find(e->des) == visited_vertices.end()) {
+                visited_vertices.insert(e->des);
+                Q.push(e->des);
             }
+        }
+    }
+}
+
+AdjacencyArrayList::~AdjacencyArrayList() {
+    for (auto u : vertex_index) {
+        for (auto e : u.second) {
+            delete e;
         }
     }
 }
