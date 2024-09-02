@@ -19,6 +19,45 @@ bool AdjacencyLinkedList::InsertEdge(uint64_t src, uint64_t des, double weight) 
     return true;
 }
 
+bool AdjacencyLinkedList::UpdateEdge(uint64_t src, uint64_t des, double weight) {
+    if (vertex_index.find(src) == vertex_index.end()) {
+        return false;
+    }
+
+    auto e = vertex_index[src];
+    while (e) {
+        if (e->des == des) {
+            e->weight = weight;
+            return true;
+        }
+        e = e->next;
+    }
+
+    return false;
+}
+
+bool AdjacencyLinkedList::DeleteEdge(uint64_t src, uint64_t des) {
+    if (vertex_index.find(src) == vertex_index.end()) {
+        return false;
+    }
+    
+    auto e = vertex_index[src];
+    WeightedEdge* e_last = nullptr;
+    while (e) {
+        if (e->des == des) {
+            if (e_last) {
+                e_last->next = e->next;
+                delete e;
+            }
+            return true;
+        }
+        e_last = e;
+        e = e->next;
+    }
+
+    return false;
+}
+
 bool AdjacencyLinkedList::GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours) {
     if (vertex_index.find(src) != vertex_index.end()) {
         auto e = vertex_index[src];
@@ -73,6 +112,39 @@ bool AdjacencyArrayList::InsertEdge(uint64_t src, uint64_t des, double weight) {
     vertex_index[src].push_back(new WeightedEdge{des, weight});
 
     return true;
+}
+
+bool AdjacencyArrayList::UpdateEdge(uint64_t src, uint64_t des, double weight) {
+    if (vertex_index.find(src) == vertex_index.end()) {
+        return false;
+    }
+
+    for (auto e : vertex_index[src]) {
+        if (e->des == des) {
+            e->weight = weight;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool AdjacencyArrayList::DeleteEdge(uint64_t src, uint64_t des) {
+    if (vertex_index.find(src) == vertex_index.end()) {
+        return false;
+    }
+    
+    auto& tmp = vertex_index[src];
+    for (auto it = tmp.begin(); it != tmp.end(); it++) {
+        auto e = *it;
+        if (e->des == des) {
+            delete e;
+            tmp.erase(it);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool AdjacencyArrayList::GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours) {
