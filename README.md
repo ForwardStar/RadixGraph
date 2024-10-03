@@ -6,7 +6,7 @@ A graph data structure for optimizing graph traversals and graph OLAP tasks.
 git clone https://github.com/ForwardStar/forward_star.git --recurse-submodules
 cmake .
 make
-./ForwardStar
+./forward_star
 ```
 
 # Experimental results (single-thread)
