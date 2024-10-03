@@ -1,0 +1,3 @@
+[submodule "Spruce"]
+	path = Spruce
+	url = https://github.com/ForwardStar/Spruce.git
