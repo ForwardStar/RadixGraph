@@ -85,7 +85,6 @@ void AdjacencyLinkedList::BFS(uint64_t src) {
                 visited_vertices.insert(e->des);
                 Q.push(e->des);
             }
-            e = e->next;
         }
     }
 }
