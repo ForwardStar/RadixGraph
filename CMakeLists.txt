@@ -21,11 +21,12 @@ include_directories("/usr/local/libevent/2_1_12/include/")
 
 # Add Spruce, Junction, and Turf directories
 add_subdirectory(${CMAKE_SOURCE_DIR}/Spruce/Spruce spruce)
+include_directories(${CMAKE_SOURCE_DIR}/Spruce/Spruce/junction/include)
+include_directories(${CMAKE_SOURCE_DIR}/Spruce/Spruce/junction/turf/include)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/turf)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/turf/include)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction/include)
-include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction/turf/include)
 
 # Add executable for your main program
 add_executable(forward_star 
