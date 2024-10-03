@@ -2,5 +2,9 @@
 CMakeFiles
 cmake_install.cmake
 CMakeCache.txt
-ForwardStar
 Makefile
+build
+CMakeTmp
+junction
+spruce
+forward_star
