@@ -33,9 +33,11 @@ add_executable(forward_star
     src/main.cpp
     src/adj_list.cpp
     src/forward_star.cpp
+    src/optimized_trie.cpp
     src/headers.h
     src/adj_list.h
     src/forward_star.h
+    src/optimized_trie.h
 )
 
 # Link libraries (Spruce depends on junction and turf)

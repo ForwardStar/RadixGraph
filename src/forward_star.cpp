@@ -2,12 +2,12 @@
 
 bool ChainedForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     if (vertex_index.find(src) == vertex_index.end()) {
-        auto tmp = new DummyNode{src, false, nullptr};
+        auto tmp = new DummyNode{src, 0, nullptr};
         vertex_index[src] = tmp;
         dummy_nodes.push_back(tmp);
     }
     if (vertex_index.find(des) == vertex_index.end()) {
-        auto tmp = new DummyNode{des, false, nullptr};
+        auto tmp = new DummyNode{des, 0, nullptr};
         vertex_index[des] = tmp;
         dummy_nodes.push_back(tmp);
     }
@@ -123,12 +123,12 @@ ChainedForwardStar::~ChainedForwardStar() {
 
 bool ArrayForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     if (vertex_index.find(src) == vertex_index.end()) {
-        auto tmp = new DummyNode{src, false, std::vector<WeightedEdge*>()};
+        auto tmp = new DummyNode{src, 0, std::vector<WeightedEdge*>()};
         vertex_index[src] = tmp;
         dummy_nodes.push_back(tmp);
     }
     if (vertex_index.find(des) == vertex_index.end()) {
-        auto tmp = new DummyNode{des, false, std::vector<WeightedEdge*>()};
+        auto tmp = new DummyNode{des, 0, std::vector<WeightedEdge*>()};
         vertex_index[des] = tmp;
         dummy_nodes.push_back(tmp);
     }

@@ -2,6 +2,7 @@
 #define FORWARDSTAR
 
 #include "headers.h"
+#include "optimized_trie.h"
 
 class ChainedForwardStar {
     private:
@@ -15,9 +16,7 @@ class ChainedForwardStar {
             _weighted_edge* next; // next edge for this source vertex
         } WeightedEdge;
 
-        typedef struct _dummy_node {
-            uint64_t node; // this dummy node corresponds to which vertex
-            uint8_t flag;
+        typedef struct _dummy_node : DummyNode {
             _weighted_edge* next; // linked-list-based edge structure
         } DummyNode;
 
@@ -51,9 +50,7 @@ class ArrayForwardStar {
             _dummy_node* forward; // forward pointer to dummy node of target vertex
         } WeightedEdge;
 
-        typedef struct _dummy_node {
-            uint64_t node; // this dummy node corresponds to which vertex
-            uint8_t flag;
+        typedef struct _dummy_node : DummyNode {
             std::vector<WeightedEdge*> next; // array-based edge structure
         } DummyNode;
 
