@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <cassert>
 #include <chrono>
 #include <stdint.h>
 #include <map>

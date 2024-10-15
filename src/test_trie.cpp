@@ -24,8 +24,12 @@ int main() {
     Trie trie_opt = Trie(d, a);
     for (int i = 0; i < n; i++) {
         uint64_t id = rand() % (1ull << u);
-        trie_base.InsertVertex(id, new DummyNode());
-        trie_opt.InsertVertex(id, new DummyNode());
+        trie_base.InsertVertex(id, new DummyNode{id});
+        trie_opt.InsertVertex(id, new DummyNode{id});
+        DummyNode* tmp = trie_base.RetrieveVertex(id);
+        assert(tmp->node == id);
+        tmp = trie_opt.RetrieveVertex(id);
+        assert(tmp->node == id);
     }
     std::cout << "Size of a baseline Trie: " << trie_base.size() << std::endl;
     std::cout << "Size of your Trie: " << trie_opt.size() << std::endl;
