@@ -4,7 +4,6 @@
 int u, d, n;
 
 int main() {
-    srand(time(0));
     std::cout << "Input n: ";
     std::cin >> n;
     std::cout << "Input log(u): ";
@@ -22,8 +21,11 @@ int main() {
     }
     Trie trie_base = Trie(d, a_base);
     Trie trie_opt = Trie(d, a);
+    std::default_random_engine generator;
+    unsigned long long maximum = u < 64 ? (1ull << u) - 1 : -1;
+    std::uniform_int_distribution distribution(0ull, maximum);
     for (int i = 0; i < n; i++) {
-        uint64_t id = rand() % (1ull << u);
+        uint64_t id = distribution(generator);
         trie_base.InsertVertex(id, new DummyNode{id});
         trie_opt.InsertVertex(id, new DummyNode{id});
         DummyNode* tmp = trie_base.RetrieveVertex(id);
@@ -31,7 +33,7 @@ int main() {
         tmp = trie_opt.RetrieveVertex(id);
         assert(tmp->node == id);
     }
-    std::cout << "Size of a baseline Trie: " << trie_base.size() << std::endl;
-    std::cout << "Size of your Trie: " << trie_opt.size() << std::endl;
+    std::cout << "Allocated space of a baseline Trie: " << trie_base.size() << std::endl;
+    std::cout << "Allocated space of your Trie: " << trie_opt.size() << std::endl;
     return 0;
 }

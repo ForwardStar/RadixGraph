@@ -8,23 +8,26 @@ void Trie::InsertVertex(uint64_t id, DummyNode* node) {
             InternalNode* tmp = (InternalNode*)current;
             if (tmp->children.size() > 0) {
                 uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
+                if (tmp->children[idx] == nullptr) {
+                    if (tmp->level < depth - 1) {
+                        tmp->children[idx] = new InternalNode{true, tmp->level + 1, std::vector<TrieNode*>()};
+                    }
+                    else {
+                        tmp->children[idx] = new LeafNode{false, nullptr};
+                    }
+                }
                 current = tmp->children[idx];
                 num_bits -= num_children[tmp->level];
             }
             else {
+                tmp->children.resize(1 << num_children[tmp->level]);
+                uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
                 if (tmp->level < depth - 1) {
-                    tmp->children.resize(1 << num_children[tmp->level]);
-                    for (int i = 0; i < (1 << num_children[tmp->level]); i++) {
-                        tmp->children[i] = new InternalNode{true, tmp->level + 1, std::vector<TrieNode*>()};
-                    }
+                    tmp->children[idx] = new InternalNode{true, tmp->level + 1, std::vector<TrieNode*>()};
                 }
                 else {
-                    tmp->children.resize(1 << num_children[tmp->level]);
-                    for (int i = 0; i < (1 << num_children[tmp->level]); i++) {
-                        tmp->children[i] = new LeafNode{false, nullptr};
-                    }
+                    tmp->children[idx] = new LeafNode{false, nullptr};
                 }
-                uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
                 current = tmp->children[idx];
                 num_bits -= num_children[tmp->level];
             }
@@ -67,11 +70,13 @@ long long Trie::size() {
     while (!Q.empty()) {
         TrieNode* u = Q.front();
         Q.pop();
-        sz++;
         if (u->is_internal) {
             InternalNode* tmp = (InternalNode*)u;
+            sz += tmp->children.size();
             for (auto nxt : tmp->children) {
-                Q.push(nxt);
+                if (nxt) {
+                    Q.push(nxt);
+                }
             }
         }
     }
@@ -105,7 +110,9 @@ Trie::~Trie() {
         if (u->is_internal) {
             InternalNode* tmp = (InternalNode*)u;
             for (auto nxt : tmp->children) {
-                Q.push(nxt);
+                if (nxt) {
+                    Q.push(nxt);
+                }
             }
         }
         delete u;

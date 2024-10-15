@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include <random>
 #include <chrono>
 #include <stdint.h>
 #include <map>
