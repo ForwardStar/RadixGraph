@@ -104,3 +104,6 @@ print("Objective =", objective(n, d, a))
 find_optimal(n, u, 0, d, [])
 print("Exact solution:", A)
 print("Objective = ", objective(n, d, A))
+a_base = [math.ceil(u / d) for _ in range(d)]
+print("Baseline:", a_base)
+print("Objective =", objective(n, d, a_base))

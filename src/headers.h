@@ -2,6 +2,7 @@
 #define HEADERS
 
 #include <iostream>
+#include <cmath>
 #include <chrono>
 #include <stdint.h>
 #include <map>

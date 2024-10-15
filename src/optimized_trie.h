@@ -13,7 +13,7 @@ class Trie {
 
         typedef struct _internal_node : TrieNode {
             int level;
-            TrieNode* children;
+            std::vector<TrieNode*> children;
         } InternalNode;
 
         typedef struct _leaf_node : TrieNode {
@@ -21,8 +21,8 @@ class Trie {
         } LeafNode;
 
     public:
-        InternalNode root;
-        int* num_children;
+        InternalNode* root;
+        std::vector<int> num_children;
         int sum_children = 0;
         int depth = 0;
         int space = 0;
@@ -31,6 +31,9 @@ class Trie {
 
         DummyNode* RetrieveVertex(uint64_t id);
 
+        long long size();
+
         Trie(int d, int _num_children[]);
+        Trie(int d, std::vector<int> _num_children);
         ~Trie();
 };
