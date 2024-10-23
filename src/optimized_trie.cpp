@@ -44,6 +44,9 @@ DummyNode* Trie::RetrieveVertex(uint64_t id) {
     int num_bits = sum_children;
     TrieNode* current = root;
     while (true) {
+        if (current == nullptr) {
+            break;
+        }
         if (current->is_internal) {
             InternalNode* tmp = (InternalNode*)current;
             if (tmp->children.size() > 0) {

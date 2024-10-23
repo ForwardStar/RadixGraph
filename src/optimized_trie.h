@@ -33,6 +33,7 @@ class Trie {
 
         long long size();
 
+        Trie() {}
         Trie(int d, int _num_children[]);
         Trie(int d, std::vector<int> _num_children);
         ~Trie();
