@@ -1,19 +1,21 @@
 #include "forward_star.h"
 
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
-    if (vertex_index->RetrieveVertex(src) == nullptr) {
-        auto tmp = new DummyNode{src, 0, std::vector<WeightedEdge*>()};
-        vertex_index->InsertVertex(src, tmp);
-        dummy_nodes.push_back(tmp);
+    auto src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src);
+    if (src_ptr == nullptr) {
+        src_ptr = new DummyNode{src, 0, std::vector<WeightedEdge*>()};
+        vertex_index->InsertVertex(src, src_ptr);
+        dummy_nodes.push_back(src_ptr);
     }
-    if (vertex_index->RetrieveVertex(des) == nullptr) {
-        auto tmp = new DummyNode{des, 0, std::vector<WeightedEdge*>()};
-        vertex_index->InsertVertex(des, tmp);
-        dummy_nodes.push_back(tmp);
+    
+    auto des_ptr = (DummyNode*)vertex_index->RetrieveVertex(des);
+    if (des_ptr == nullptr) {
+        des_ptr = new DummyNode{des, 0, std::vector<WeightedEdge*>()};
+        vertex_index->InsertVertex(des, des_ptr);
+        dummy_nodes.push_back(des_ptr);
     }
 
-    auto tmp = (DummyNode*)vertex_index->RetrieveVertex(src);
-    tmp->next.push_back(new WeightedEdge{weight, (DummyNode*)vertex_index->RetrieveVertex(des)});
+    src_ptr->next.push_back(new WeightedEdge{weight, des_ptr});
 
     return true;
 }
