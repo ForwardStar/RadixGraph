@@ -42,26 +42,6 @@ int main() {
         {20, 4, 4, 4},
         {23, 3, 3, 3}
     };
-    double duration_insert_edge_adjlinkedlist = 0;
-    double duration_insert_edge_adjarraylist = 0;
-    double duration_insert_edge_fstar = 0;
-    double duration_insert_edge_spruce = 0;
-    double duration_delete_edge_adjlinkedlist = 0;
-    double duration_delete_edge_adjarraylist = 0;
-    double duration_delete_edge_fstar = 0;
-    double duration_delete_edge_spruce = 0;
-    double duration_update_edge_adjlinkedlist = 0;
-    double duration_update_edge_adjarraylist = 0;
-    double duration_update_edge_fstar = 0;
-    double duration_update_edge_spruce = 0;
-    double duration_get_neighbours_adjlinkedlist = 0;
-    double duration_get_neighbours_adjarraylist = 0;
-    double duration_get_neighbours_fstar = 0;
-    double duration_get_neighbours_spruce = 0;
-    double duration_bfs_adjlinkedlist = 0;
-    double duration_bfs_adjarraylist = 0;
-    double duration_bfs_fstar = 0;
-    double duration_bfs_spruce = 0;
     int m = 2560000;
     int num_trials = 5;
     
@@ -70,6 +50,27 @@ int main() {
     std::uniform_int_distribution distribution(0ull, maximum);
     int now = 0;
     for (int n = 1000; n <= 1000000; n *= 10) {
+        double duration_insert_edge_adjlinkedlist = 0;
+        double duration_insert_edge_adjarraylist = 0;
+        double duration_insert_edge_fstar = 0;
+        double duration_insert_edge_spruce = 0;
+        double duration_delete_edge_adjlinkedlist = 0;
+        double duration_delete_edge_adjarraylist = 0;
+        double duration_delete_edge_fstar = 0;
+        double duration_delete_edge_spruce = 0;
+        double duration_update_edge_adjlinkedlist = 0;
+        double duration_update_edge_adjarraylist = 0;
+        double duration_update_edge_fstar = 0;
+        double duration_update_edge_spruce = 0;
+        double duration_get_neighbours_adjlinkedlist = 0;
+        double duration_get_neighbours_adjarraylist = 0;
+        double duration_get_neighbours_fstar = 0;
+        double duration_get_neighbours_spruce = 0;
+        double duration_bfs_adjlinkedlist = 0;
+        double duration_bfs_adjarraylist = 0;
+        double duration_bfs_fstar = 0;
+        double duration_bfs_spruce = 0;
+        
         std::cout << "n = " << n << ", m = " << m << std::endl;
         std::vector<uint64_t> vertex_ids;
         std::unordered_set<uint64_t> vertex_set;
