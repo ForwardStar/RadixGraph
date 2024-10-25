@@ -6,31 +6,17 @@ void Trie::InsertVertex(uint64_t id, DummyNode* node) {
     while (true) {
         if (current->is_internal) {
             InternalNode* tmp = (InternalNode*)current;
-            if (tmp->children.size() > 0) {
-                uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
-                if (tmp->children[idx] == nullptr) {
-                    if (tmp->level < depth - 1) {
-                        tmp->children[idx] = new InternalNode{true, tmp->level + 1, std::vector<TrieNode*>()};
-                    }
-                    else {
-                        tmp->children[idx] = new LeafNode{false, nullptr};
-                    }
-                }
-                current = tmp->children[idx];
-                num_bits -= num_children[tmp->level];
-            }
-            else {
-                tmp->children.resize(1 << num_children[tmp->level]);
-                uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
+            uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
+            if (tmp->children[idx] == nullptr) {
                 if (tmp->level < depth - 1) {
-                    tmp->children[idx] = new InternalNode{true, tmp->level + 1, std::vector<TrieNode*>()};
+                    tmp->children[idx] = new InternalNode{true, tmp->level + 1, std::vector<TrieNode*>(1 << num_children[tmp->level + 1])};
                 }
                 else {
                     tmp->children[idx] = new LeafNode{false, nullptr};
                 }
-                current = tmp->children[idx];
-                num_bits -= num_children[tmp->level];
             }
+            current = tmp->children[idx];
+            num_bits -= num_children[tmp->level];
         }
         else {
             LeafNode* tmp = (LeafNode*)current;
@@ -49,14 +35,9 @@ DummyNode* Trie::RetrieveVertex(uint64_t id) {
         }
         if (current->is_internal) {
             InternalNode* tmp = (InternalNode*)current;
-            if (tmp->children.size() > 0) {
-                uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
-                current = tmp->children[idx];
-                num_bits -= num_children[tmp->level];
-            }
-            else {
-                break;
-            }
+            uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
+            current = tmp->children[idx];
+            num_bits -= num_children[tmp->level];
         }
         else {
             LeafNode* tmp = (LeafNode*)current;
@@ -101,7 +82,7 @@ Trie::Trie(int d, std::vector<int> _num_children) {
         num_children.push_back(_num_children[i]);
         sum_children += num_children[i];
     }
-    root = new InternalNode{true, 0, std::vector<TrieNode*>()};
+    root = new InternalNode{true, 0, std::vector<TrieNode*>(1 << num_children[0])};
 }
 
 Trie::~Trie() {
