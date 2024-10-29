@@ -30,16 +30,16 @@ int main() {
     srand((int)time(NULL));
     std::vector<int> d = {4, 4, 4, 4};
     std::vector<std::vector<int>> a = {
-        {17, 8, 8, 7},
-        {20, 7, 7, 6},
-        {22, 6, 6, 6},
-        {25, 5, 5, 5}
+        {16, 7, 6, 6},
+        {10, 11, 7, 7},
+        {21, 5, 5, 4},
+        {16, 9, 5, 5}
     };
     int m = 2560000;
     int num_trials = 5;
     
     std::default_random_engine generator;
-    unsigned long long maximum = (1ull << 40) - 1;
+    unsigned long long maximum = (1ull << 35) - 1;
     std::uniform_int_distribution distribution(0ull, maximum);
     int now = 0;
     for (int n = 1000; n <= 1000000; n *= 10) {
@@ -74,7 +74,10 @@ int main() {
             {
                 uint64_t u, v;
                 double w;
-                for (int i = 0; i < m; i++) {
+                for (int i = 0; i < n - 1; i++) {
+                    edges.push_back(std::make_pair(std::make_pair(vertex_ids[i], vertex_ids[i + 1]), 0.5));
+                }
+                for (int i = 0; i < m - (n - 1); i++) {
                     int id1 = rand() % n, id2 = rand() % n;
                     u = vertex_ids[id1];
                     v = vertex_ids[id2];
@@ -133,7 +136,7 @@ int main() {
                 std::unordered_set<int> idx_delete;
                 for (int i = 0; i < 1000; i++) {
                     auto id = rand() % m;
-                    while (idx_delete.find(id) != idx_delete.end()) {
+                    while (idx_delete.find(id) != idx_delete.end() || id < n - 1) {
                         id = rand() % m;
                     }
                     idx_delete.insert(id);
@@ -204,6 +207,7 @@ int main() {
                     assert(res_fstar[j] == res_spruce[j]);
                 }
             }
+
             // std::cout << "BFS done" << std::endl;
         }
         ++now;

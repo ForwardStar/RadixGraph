@@ -29,10 +29,7 @@ void Trie::InsertVertex(uint64_t id, DummyNode* node) {
 DummyNode* Trie::RetrieveVertex(uint64_t id) {
     int num_bits = sum_children;
     TrieNode* current = root;
-    while (true) {
-        if (current == nullptr) {
-            break;
-        }
+    while (current) {
         if (current->is_internal) {
             InternalNode* tmp = (InternalNode*)current;
             uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
