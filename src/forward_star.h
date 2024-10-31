@@ -13,6 +13,7 @@ class ForwardStar {
         typedef struct _weighted_edge {
             double weight; // edge property
             _dummy_node* forward; // forward pointer to dummy node of target vertex
+            uint8_t flag;
         } WeightedEdge;
 
         typedef struct _dummy_node : DummyNode {

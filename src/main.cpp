@@ -166,22 +166,40 @@ int main() {
             // Get neighbours
             {
                 auto start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
                     std::vector<ForwardStar::WeightedEdge> neighbours;
-                    G_fstar.GetNeighbours(vertex_ids[i], neighbours);
+                    G_fstar.GetNeighbours(vertex_ids[j], neighbours);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_get_neighbours_fstar += duration.count();
 
                 start = std::chrono::high_resolution_clock::now();
-                for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
                     std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours;
-                    SpruceTransVer::get_neighbours(spruce, vertex_ids[i], neighbours);
+                    SpruceTransVer::get_neighbours(spruce, vertex_ids[j], neighbours);
                 }
                 end = std::chrono::high_resolution_clock::now();
                 duration = end - start;
                 duration_get_neighbours_spruce += duration.count();
+
+                // Correctness check
+                for (int j = 0; j < n; j++) {
+                    std::vector<ForwardStar::WeightedEdge> neighbours_fstar;
+                    std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours_spruce;
+                    G_fstar.GetNeighbours(vertex_ids[j], neighbours_fstar);
+                    SpruceTransVer::get_neighbours(spruce, vertex_ids[j], neighbours_spruce);
+                    std::sort(neighbours_fstar.begin(), neighbours_fstar.end(), [](ForwardStar::WeightedEdge a, ForwardStar::WeightedEdge b) {
+                        return a.forward->node < b.forward->node;
+                    });
+                    std::sort(neighbours_spruce.begin(), neighbours_spruce.end(), [](SpruceTransVer::WeightedOutEdgeSimple a, SpruceTransVer::WeightedOutEdgeSimple b) {
+                        return a.des < b.des;
+                    });
+                    assert(neighbours_fstar.size() == neighbours_spruce.size());
+                    for (int k = 0; k < neighbours_fstar.size(); k++) {
+                        assert(neighbours_fstar[k].forward->node == neighbours_spruce[k].des);
+                    }
+                }
             }
 
             // std::cout << "Get neighbors done" << std::endl;
