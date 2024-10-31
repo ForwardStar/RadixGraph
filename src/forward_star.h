@@ -16,7 +16,7 @@ class ForwardStar {
         } WeightedEdge;
 
         typedef struct _dummy_node : DummyNode {
-            std::vector<WeightedEdge*> next; // array-based edge structure
+            std::vector<WeightedEdge> next; // array-based edge structure
         } DummyNode;
 
         Trie* vertex_index = nullptr;
@@ -28,9 +28,9 @@ class ForwardStar {
 
         bool DeleteEdge(uint64_t src, uint64_t des);
 
-        bool GetNeighbours(uint64_t src, std::vector<WeightedEdge*> &neighbours);
+        bool GetNeighbours(uint64_t src, std::vector<WeightedEdge> &neighbours);
 
-        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge*> &neighbours);
+        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours);
 
         std::vector<uint64_t> BFS(uint64_t src);
 

@@ -167,7 +167,7 @@ int main() {
             {
                 auto start = std::chrono::high_resolution_clock::now();
                 for (int i = 0; i < n; i++) {
-                    std::vector<ForwardStar::WeightedEdge*> neighbours;
+                    std::vector<ForwardStar::WeightedEdge> neighbours;
                     G_fstar.GetNeighbours(vertex_ids[i], neighbours);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
