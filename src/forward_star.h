@@ -20,6 +20,7 @@ class ForwardStar {
         } DummyNode;
 
         Trie* vertex_index = nullptr;
+        int num_dummy_nodes = 0;
         std::vector<DummyNode*> dummy_nodes;
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
