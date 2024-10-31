@@ -30,19 +30,19 @@ int main() {
     srand((int)time(NULL));
     std::vector<int> d = {4, 4, 4, 4};
     std::vector<std::vector<int>> a = {
-        {16, 7, 6, 6},
-        {10, 11, 7, 7},
-        {21, 5, 5, 4},
-        {16, 9, 5, 5}
+        {17, 8, 8, 7},
+        {20, 7, 7, 6},
+        {22, 6, 6, 6},
+        {25, 5, 5, 5}
     };
     int m = 2560000;
     int num_trials = 5;
     
     std::default_random_engine generator;
-    unsigned long long maximum = (1ull << 35) - 1;
+    unsigned long long maximum = (1ull << 60) - 1;
     std::uniform_int_distribution distribution(0ull, maximum);
     int now = 0;
-    for (int n = 1000; n <= 1000000; n *= 10) {
+    for (int n = 1000; n <= 100000; n *= 10) {
         double duration_insert_edge_fstar = 0;
         double duration_insert_edge_spruce = 0;
         double duration_delete_edge_fstar = 0;
