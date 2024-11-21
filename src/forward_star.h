@@ -17,7 +17,7 @@ class ForwardStar {
         } WeightedEdge;
 
         typedef struct _dummy_node : DummyNode {
-            std::vector<WeightedEdge> next; // array-based edge structure
+            tbb::concurrent_vector<WeightedEdge> next; // array-based edge structure
         } DummyNode;
 
         Trie* vertex_index = nullptr;

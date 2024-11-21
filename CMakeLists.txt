@@ -13,6 +13,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
 # Enable OpenMP
 find_package(OpenMP REQUIRED)
+find_package(TBB REQUIRED)
 if(OPENMP_FOUND)
     message("OpenMP found")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -54,4 +55,4 @@ add_executable(test_trie
 )
 
 # Link libraries (Spruce depends on junction and turf)
-target_link_libraries(forward_star PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX)
+target_link_libraries(forward_star PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX TBB::tbb)

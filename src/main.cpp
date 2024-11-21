@@ -85,6 +85,7 @@ int main() {
                 }
 
                 auto start = std::chrono::high_resolution_clock::now();
+                // #pragma omp parallel for num_threads(10)
                 for (auto e : edges) {
                     G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
                 }
@@ -93,6 +94,7 @@ int main() {
                 duration_insert_edge_fstar += duration.count();
                 
                 start = std::chrono::high_resolution_clock::now();
+                // #pragma omp parallel for num_threads(10)
                 for (auto e : edges) {
                     SpruceTransVer::InsertEdge(spruce, {e.first.first, e.first.second, e.second});
                 }
@@ -112,6 +114,7 @@ int main() {
                 }
 
                 auto start = std::chrono::high_resolution_clock::now();
+                #pragma omp parallel for num_threads(10)
                 for (auto e : edges_update) {
                     G_fstar.UpdateEdge(e.first.first, e.first.second, e.second);
                 }
@@ -120,6 +123,7 @@ int main() {
                 duration_update_edge_fstar += duration.count();
                 
                 start = std::chrono::high_resolution_clock::now();
+                #pragma omp parallel for num_threads(10)
                 for (auto e : edges_update) {
                     SpruceTransVer::UpdateEdge(spruce, {e.first.first, e.first.second, e.second});
                 }
@@ -145,6 +149,7 @@ int main() {
                 }
 
                 auto start = std::chrono::high_resolution_clock::now();
+                #pragma omp parallel for num_threads(10)
                 for (auto e : edges_delete) {
                     G_fstar.DeleteEdge(e.first.first, e.first.second);
                 }
@@ -153,6 +158,7 @@ int main() {
                 duration_delete_edge_fstar += duration.count();
                 
                 start = std::chrono::high_resolution_clock::now();
+                #pragma omp parallel for num_threads(10)
                 for (auto e : edges_delete) {
                     SpruceTransVer::DeleteEdge(spruce, e.first.first, e.first.second);
                 }
@@ -166,6 +172,7 @@ int main() {
             // Get neighbours
             {
                 auto start = std::chrono::high_resolution_clock::now();
+                #pragma omp parallel for num_threads(10)
                 for (int j = 0; j < n; j++) {
                     std::vector<ForwardStar::WeightedEdge> neighbours;
                     G_fstar.GetNeighbours(vertex_ids[j], neighbours);
@@ -175,6 +182,7 @@ int main() {
                 duration_get_neighbours_fstar += duration.count();
 
                 start = std::chrono::high_resolution_clock::now();
+                #pragma omp parallel for num_threads(10)
                 for (int j = 0; j < n; j++) {
                     std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours;
                     SpruceTransVer::get_neighbours(spruce, vertex_ids[j], neighbours);
