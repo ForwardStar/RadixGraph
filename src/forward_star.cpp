@@ -1,7 +1,7 @@
 #include "forward_star.h"
 
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
-    auto src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src);
+    auto src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src, true);
     if (src_ptr == nullptr) {
         int idx = num_dummy_nodes++ % 10000;
         if (idx == 0) {
@@ -12,7 +12,7 @@ bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
         vertex_index->InsertVertex(src, src_ptr);
     }
     
-    auto des_ptr = (DummyNode*)vertex_index->RetrieveVertex(des);
+    auto des_ptr = (DummyNode*)vertex_index->RetrieveVertex(des, true);
     if (des_ptr == nullptr) {
         int idx = num_dummy_nodes++ % 10000;
         if (idx == 0) {

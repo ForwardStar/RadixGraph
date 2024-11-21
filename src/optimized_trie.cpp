@@ -14,6 +14,7 @@ void Trie::InsertVertex(uint64_t id, DummyNode* node) {
                 else {
                     tmp->children[idx] = new LeafNode{false, nullptr};
                 }
+                tmp->mtx.unlock();
             }
             current = tmp->children[idx];
             num_bits -= num_children[tmp->level];
@@ -21,23 +22,36 @@ void Trie::InsertVertex(uint64_t id, DummyNode* node) {
         else {
             LeafNode* tmp = (LeafNode*)current;
             tmp->head = node;
+            tmp->mtx.unlock();
             break;
         }
     }
 }
 
-DummyNode* Trie::RetrieveVertex(uint64_t id) {
+DummyNode* Trie::RetrieveVertex(uint64_t id, bool lock) {
     int num_bits = sum_children;
     TrieNode* current = root;
     while (current) {
         if (current->is_internal) {
             InternalNode* tmp = (InternalNode*)current;
             uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[tmp->level]));
+            if (lock && tmp->children[idx] == nullptr) {
+                tmp->mtx.lock();
+                if (tmp->children[idx]) {
+                    tmp->mtx.unlock();
+                }
+            }
             current = tmp->children[idx];
             num_bits -= num_children[tmp->level];
         }
         else {
             LeafNode* tmp = (LeafNode*)current;
+            if (lock && tmp->head == nullptr) {
+                tmp->mtx.lock();
+                if (tmp->head) {
+                    tmp->mtx.unlock();
+                }
+            }
             return tmp->head;
         }
     }

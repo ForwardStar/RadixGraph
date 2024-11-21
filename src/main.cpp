@@ -85,7 +85,7 @@ int main() {
                 }
 
                 auto start = std::chrono::high_resolution_clock::now();
-                // #pragma omp parallel for num_threads(10)
+                #pragma omp parallel for num_threads(10)
                 for (auto e : edges) {
                     G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
                 }
@@ -94,7 +94,7 @@ int main() {
                 duration_insert_edge_fstar += duration.count();
                 
                 start = std::chrono::high_resolution_clock::now();
-                // #pragma omp parallel for num_threads(10)
+                #pragma omp parallel for num_threads(10)
                 for (auto e : edges) {
                     SpruceTransVer::InsertEdge(spruce, {e.first.first, e.first.second, e.second});
                 }
