@@ -193,6 +193,7 @@ int main() {
                 duration_get_neighbours_spruce += duration.count();
 
                 // Correctness check
+                #pragma omp parallel for num_threads(num_threads)
                 for (int j = 0; j < n; j++) {
                     std::vector<ForwardStar::WeightedEdge> neighbours_fstar;
                     std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours_spruce;

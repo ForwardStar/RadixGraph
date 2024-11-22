@@ -3,7 +3,7 @@
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     auto src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src, true);
     if (src_ptr == nullptr) {
-        int idx = num_dummy_nodes++ % 10000;
+        int idx = num_dummy_nodes.fetch_add(1, std::memory_order_relaxed) % 10000;
         if (idx == 0) {
             dummy_nodes.push_back(new DummyNode[10000]);
         }
@@ -14,7 +14,7 @@ bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     
     auto des_ptr = (DummyNode*)vertex_index->RetrieveVertex(des, true);
     if (des_ptr == nullptr) {
-        int idx = num_dummy_nodes++ % 10000;
+        int idx = num_dummy_nodes.fetch_add(1, std::memory_order_relaxed) % 10000;
         if (idx == 0) {
             dummy_nodes.push_back(new DummyNode[10000]);
         }

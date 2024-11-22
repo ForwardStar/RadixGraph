@@ -10,9 +10,13 @@ void Trie::InsertVertex(uint64_t id, DummyNode* node) {
             if (tmp->children[idx] == nullptr) {
                 if (tmp->level < depth - 1) {
                     tmp->children[idx] = new InternalNode{true, tmp->level + 1, std::vector<TrieNode*>(1 << num_children[tmp->level + 1])};
+                    auto tmp_child = (InternalNode*)tmp->children[idx];
+                    tmp_child->mtx.lock();
                 }
                 else {
                     tmp->children[idx] = new LeafNode{false, nullptr};
+                    auto tmp_child = (LeafNode*)tmp->children[idx];
+                    tmp_child->mtx.lock();
                 }
                 tmp->mtx.unlock();
             }
