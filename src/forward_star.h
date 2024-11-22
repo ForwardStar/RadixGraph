@@ -22,7 +22,7 @@ class ForwardStar {
 
         Trie* vertex_index = nullptr;
         std::atomic<int> num_dummy_nodes;
-        std::vector<DummyNode*> dummy_nodes;
+        tbb::concurrent_vector<DummyNode*> dummy_nodes;
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
 

@@ -109,7 +109,7 @@ int main() {
             // Update edges
             {         
                 std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges_update;
-                for (int i = 0; i < 1000; i++) {
+                for (int i = 0; i < 10000; i++) {
                     auto e = edges[rand() % m];
                     edges_update.push_back(e);
                 }
@@ -139,7 +139,7 @@ int main() {
             {         
                 std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges_delete;
                 std::unordered_set<int> idx_delete;
-                for (int i = 0; i < 1000; i++) {
+                for (int i = 0; i < 10000; i++) {
                     auto id = rand() % m;
                     while (idx_delete.find(id) != idx_delete.end() || id < n - 1) {
                         id = rand() % m;
