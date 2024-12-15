@@ -35,6 +35,8 @@ include_directories(${CMAKE_SOURCE_DIR}/Spruce/turf/include)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction/include)
 
+add_library(FSTAR STATIC src/forward_star.cpp src/optimized_trie.cpp)
+
 # Add executable for your main program
 add_executable(forward_star
     src/main.cpp
