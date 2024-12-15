@@ -1,4 +1,4 @@
-import math
+import math, sys
 
 A = None
 
@@ -77,8 +77,25 @@ def find_optimal(n, u, now, d, a):
         find_optimal(n, u - i, now + 1, d, a)
         a.pop()
 
-n = int(input("n = "))
-u = int(input("log(u) = "))
+n = u = 0
+if len(sys.argv) > 1:
+    edges = []
+    with open(sys.argv[len(sys.argv)-1], 'r') as f:
+        edges = f.readlines()
+    edges = [(int(e.split()[0]), int(e.split()[1])) for e in edges]
+    vertices = dict()
+    for e in edges:
+        if e[0] not in vertices:
+            vertices[e[0]] = 1
+        if e[1] not in vertices:
+            vertices[e[1]] = 1
+    u = math.ceil(math.log2(max(vertices.keys()) + 1))
+    n = len(vertices.keys())
+    print("n =", n)
+    print("log(u) =", u)
+else:
+    n = int(input("n = "))
+    u = int(input("log(u) = "))
 d = int(input("d = "))
 c0 = 1
 c1 = solve_C(n, u, d)
