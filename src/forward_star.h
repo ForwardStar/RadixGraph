@@ -21,14 +21,12 @@ class ForwardStar {
         } DummyNode;
 
         Trie* vertex_index = nullptr;
-        std::atomic<int> num_dummy_nodes;
-        int thread_pool[32], cnt = 0;
+        std::atomic<int> num_dummy_nodes, cnt;
+        tbb::concurrent_vector<int> thread_pool;
         tbb::concurrent_vector<DummyNode*> dummy_nodes;
         std::mutex mtx;
 
-        int GetFlagID();
-
-        void RestoreFlag(int id);
+        void ExpandDummies();
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
 
