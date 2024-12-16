@@ -91,7 +91,7 @@ Trie::Trie(int d, int _num_children[]) {
         num_children[i] = _num_children[i];
         sum_children += num_children[i];
     }
-    root = new InternalNode{true, std::vector<TrieNode*>()};
+    root = new InternalNode{true, std::vector<TrieNode*>(1 << num_children[0])};
 }
 
 Trie::Trie(int d, std::vector<int> _num_children) {
