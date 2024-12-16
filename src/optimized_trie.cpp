@@ -1,28 +1,26 @@
 #include "optimized_trie.h"
 
-void Trie::InsertVertex(uint64_t id, DummyNode* node, int level) {
-    int num_bits = sum_children;
-    TrieNode* current = root;
+void Trie::InsertVertex(TrieNode* current, DummyNode* node) {
+    uint64_t id = node->node;
     while (true) {
-        if (current->is_internal) {
+        if (current->level < depth) {
             InternalNode* tmp = (InternalNode*)current;
-            uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[level]));
+            int num_now = sum_bits[depth - 1] - (tmp->level > 0 ? sum_bits[tmp->level - 1] : 0);
+            uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[tmp->level]));
             if (tmp->children[idx] == nullptr) {
-                if (level < depth - 1) {
-                    auto tmp_child = new InternalNode{true, std::vector<TrieNode*>(1 << num_children[level + 1])};
+                if (tmp->level < depth - 1) {
+                    auto tmp_child = new InternalNode{tmp->level + 1, std::vector<TrieNode*>(1 << num_bits[tmp->level + 1])};
                     tmp_child->mtx.lock();
                     tmp->children[idx] = tmp_child;
                 }
                 else {
-                    auto tmp_child = new LeafNode{false, nullptr};
+                    auto tmp_child = new LeafNode{tmp->level + 1, nullptr};
                     tmp_child->mtx.lock();
                     tmp->children[idx] = tmp_child;
                 }
                 tmp->mtx.unlock();
             }
             current = tmp->children[idx];
-            num_bits -= num_children[level];
-            level++;
         }
         else {
             LeafNode* tmp = (LeafNode*)current;
@@ -33,22 +31,27 @@ void Trie::InsertVertex(uint64_t id, DummyNode* node, int level) {
     }
 }
 
-DummyNode* Trie::RetrieveVertex(uint64_t id, bool lock, int level) {
-    int num_bits = sum_children;
+void Trie::InsertVertex(DummyNode* node) {
+    InsertVertex(root, node);
+}
+
+Trie::TrieNode* Trie::RetrieveVertex(uint64_t id, bool lock) {
     TrieNode* current = root;
     while (current) {
-        if (current->is_internal) {
+        if (current->level < depth) {
             InternalNode* tmp = (InternalNode*)current;
-            uint64_t idx = ((id & ((1ull << num_bits) - 1)) >> (num_bits - num_children[level]));
+            int num_now = sum_bits[depth - 1] - (tmp->level > 0 ? sum_bits[tmp->level - 1] : 0);
+            uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[tmp->level]));
             if (lock && tmp->children[idx] == nullptr) {
                 tmp->mtx.lock();
                 if (tmp->children[idx]) {
                     tmp->mtx.unlock();
                 }
+                else {
+                    return tmp;
+                }
             }
             current = tmp->children[idx];
-            num_bits -= num_children[level];
-            level++;
         }
         else {
             LeafNode* tmp = (LeafNode*)current;
@@ -58,7 +61,7 @@ DummyNode* Trie::RetrieveVertex(uint64_t id, bool lock, int level) {
                     tmp->mtx.unlock();
                 }
             }
-            return tmp->head;
+            return tmp;
         }
     }
     return nullptr;
@@ -71,7 +74,7 @@ long long Trie::size() {
     while (!Q.empty()) {
         TrieNode* u = Q.front();
         Q.pop();
-        if (u->is_internal) {
+        if (u->level < depth) {
             InternalNode* tmp = (InternalNode*)u;
             sz += tmp->children.size();
             for (auto nxt : tmp->children) {
@@ -84,24 +87,24 @@ long long Trie::size() {
     return sz;
 }
 
-Trie::Trie(int d, int _num_children[]) {
+Trie::Trie(int d, int _num_bits[]) {
     depth = d;
-    num_children.resize(d);
+    num_bits.resize(d), sum_bits.resize(d);
     for (int i = 0; i < d; i++) {
-        num_children[i] = _num_children[i];
-        sum_children += num_children[i];
+        num_bits[i] = _num_bits[i];
+        sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
     }
-    root = new InternalNode{true, std::vector<TrieNode*>(1 << num_children[0])};
+    root = new InternalNode{0, std::vector<TrieNode*>(1 << num_bits[0])};
 }
 
-Trie::Trie(int d, std::vector<int> _num_children) {
+Trie::Trie(int d, std::vector<int> _num_bits) {
     depth = d;
-    num_children.resize(d);
+    num_bits.resize(d), sum_bits.resize(d);
     for (int i = 0; i < d; i++) {
-        num_children[i] = _num_children[i];
-        sum_children += num_children[i];
+        num_bits[i] = _num_bits[i];
+        sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
     }
-    root = new InternalNode{true, std::vector<TrieNode*>(1 << num_children[0])};
+    root = new InternalNode{0, std::vector<TrieNode*>(1 << num_bits[0])};
 }
 
 Trie::~Trie() {
@@ -110,7 +113,7 @@ Trie::~Trie() {
     while (!Q.empty()) {
         TrieNode* u = Q.front();
         Q.pop();
-        if (u->is_internal) {
+        if (u->level < depth) {
             InternalNode* tmp = (InternalNode*)u;
             for (auto nxt : tmp->children) {
                 if (nxt) {

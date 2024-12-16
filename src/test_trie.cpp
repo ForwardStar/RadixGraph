@@ -26,11 +26,13 @@ int main() {
     std::uniform_int_distribution distribution(0ull, maximum);
     for (int i = 0; i < n; i++) {
         uint64_t id = distribution(generator);
-        trie_base.InsertVertex(id, new DummyNode{id});
-        trie_opt.InsertVertex(id, new DummyNode{id});
-        DummyNode* tmp = trie_base.RetrieveVertex(id);
+        trie_base.InsertVertex(new DummyNode{id});
+        trie_opt.InsertVertex(new DummyNode{id});
+        auto tmp1 = (Trie::LeafNode*)trie_base.RetrieveVertex(id);
+        DummyNode* tmp = tmp1->head;
         assert(tmp->node == id);
-        tmp = trie_opt.RetrieveVertex(id);
+        tmp1 = (Trie::LeafNode*)trie_opt.RetrieveVertex(id);
+        tmp = tmp1->head;
         assert(tmp->node == id);
     }
     std::cout << "Allocated space of a baseline Trie: " << trie_base.size() << std::endl;

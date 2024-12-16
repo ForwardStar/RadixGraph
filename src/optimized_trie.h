@@ -6,9 +6,9 @@ struct DummyNode {
 };
 
 class Trie {
-    private:
+    public:
         struct TrieNode {
-            bool is_internal;
+            int level;
         };
 
         typedef struct _internal_node : TrieNode {
@@ -21,21 +21,20 @@ class Trie {
             std::mutex mtx;
         } LeafNode;
 
-    public:
         InternalNode* root;
-        std::vector<int> num_children;
-        int sum_children = 0;
+        std::vector<int> num_bits, sum_bits;
         int depth = 0;
         int space = 0;
 
-        void InsertVertex(uint64_t id, DummyNode* node, int level=0);
+        void InsertVertex(TrieNode* current, DummyNode* node);
+        void InsertVertex(DummyNode* node);
 
-        DummyNode* RetrieveVertex(uint64_t id, bool lock=false, int level=0);
+        TrieNode* RetrieveVertex(uint64_t id, bool lock=false);
 
         long long size();
 
         Trie() {}
-        Trie(int d, int _num_children[]);
-        Trie(int d, std::vector<int> _num_children);
+        Trie(int d, int _num_bits[]);
+        Trie(int d, std::vector<int> _num_bits);
         ~Trie();
 };
