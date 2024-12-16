@@ -37,7 +37,7 @@ bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
                 ExpandDummies();
             }
         }
-        dummy_nodes[a][b].node = src;
+        dummy_nodes[a][b].node = des;
         des_ptr = &dummy_nodes[a][b];
         vertex_index->InsertVertex(des, des_ptr);
     }
