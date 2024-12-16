@@ -12,7 +12,6 @@ class Trie {
         };
 
         typedef struct _internal_node : TrieNode {
-            int level;
             std::vector<TrieNode*> children;
             std::mutex mtx;
         } InternalNode;
@@ -29,9 +28,9 @@ class Trie {
         int depth = 0;
         int space = 0;
 
-        void InsertVertex(uint64_t id, DummyNode* node);
+        void InsertVertex(uint64_t id, DummyNode* node, int level=0);
 
-        DummyNode* RetrieveVertex(uint64_t id, bool lock=false);
+        DummyNode* RetrieveVertex(uint64_t id, bool lock=false, int level=0);
 
         long long size();
 
