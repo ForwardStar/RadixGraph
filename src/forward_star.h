@@ -28,6 +28,8 @@ class ForwardStar {
 
         void ExpandDummies();
 
+        inline DummyNode* RetrieveOrInsert(uint64_t u);
+
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
 
         bool UpdateEdge(uint64_t src, uint64_t des, double weight);

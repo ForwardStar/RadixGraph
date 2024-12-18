@@ -24,9 +24,51 @@ std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, int n, uint64_t src) {
     return res;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
+    int num_threads = 1;
+    if (argc > 1) {
+        std::ifstream f("settings");
+        int d;
+        f >> d;
+        std::vector<int> a(d);
+        for (auto& i : a) f >> i;
+        ForwardStar G_fstar(d, a);
+        SpruceTransVer spruce;
+
+        std::ifstream fin(argv[argc - 1]);
+        uint64_t u, v;
+        std::vector<std::pair<uint64_t, uint64_t>> edges;
+        while (fin >> u >> v) {
+            edges.emplace_back(u, v);
+        }
+        std::random_shuffle(edges.begin(), edges.end());
+
+        auto start = std::chrono::high_resolution_clock::now();
+        #pragma omp parallel for num_threads(num_threads)
+        for (auto e : edges) G_fstar.InsertEdge(e.first, e.second, 0.5);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = end - start;
+        std::cout << "Forward Star: " << duration.count() << "s" << std::endl;
+
+        start = std::chrono::high_resolution_clock::now();
+        #pragma omp parallel for num_threads(num_threads)
+        for (auto e : edges) SpruceTransVer::InsertEdge(spruce, {e.first, e.second, 0.5});
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Spruce: " << duration.count() << "s" << std::endl;
+
+
+        std::cout << "n = " << G_fstar.num_dummy_nodes << std::endl;
+        int cnt = 0;
+        for (int i = 0; i < G_fstar.num_dummy_nodes; i++) {
+            int a = i / 10000, b = i % 10000;
+            if (G_fstar.dummy_nodes[a][b].next.size() == 0) cnt++;
+        }
+        std::cout << "Number of nodes with 0 out-degree: " << cnt << std::endl;
+        return 0;
+    }
     std::vector<int> d = {4, 4, 4, 4};
     std::vector<std::vector<int>> a = {
         {17, 8, 8, 7},
@@ -36,7 +78,6 @@ int main() {
     };
     int m = 2560000;
     int num_trials = 5;
-    int num_threads = 10;
     
     std::default_random_engine generator;
     unsigned long long maximum = (1ull << 60) - 1;

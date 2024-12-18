@@ -5,55 +5,36 @@ void ForwardStar::ExpandDummies() {
     mtx.unlock();
 }
 
+inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
+    DummyNode* u_ptr = 0;
+    auto tmp = vertex_index->RetrieveVertex(u, true);
+    if (tmp->level == vertex_index->depth) {
+        auto tmp_leaf = (Trie::LeafNode*)tmp;
+        u_ptr = (DummyNode*)tmp_leaf->head;
+    }
+    if (!u_ptr) {
+        int idx = num_dummy_nodes.fetch_add(1, std::memory_order_relaxed);
+        int a = idx / 10000, b = idx % 10000;
+        if (dummy_nodes.size() <= a) {
+            mtx.lock();
+            if (dummy_nodes.size() > a) {
+                mtx.unlock();
+            }
+            else {
+                ExpandDummies();
+            }
+        }
+        dummy_nodes[a][b].node = u;
+        u_ptr = &dummy_nodes[a][b];
+        vertex_index->InsertVertex(tmp, u_ptr);
+    }
+    return u_ptr;
+}
+
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
-    DummyNode* src_ptr = 0;
-    auto tmp = vertex_index->RetrieveVertex(src, true);
-    if (tmp->level == vertex_index->depth) {
-        auto tmp_leaf = (Trie::LeafNode*)tmp;
-        src_ptr = (DummyNode*)tmp_leaf->head;
-    }
-    if (!src_ptr) {
-        int idx = num_dummy_nodes.fetch_add(1, std::memory_order_relaxed);
-        int a = idx / 10000, b = idx % 10000;
-        if (dummy_nodes.size() <= a) {
-            mtx.lock();
-            if (dummy_nodes.size() > a) {
-                mtx.unlock();
-            }
-            else {
-                ExpandDummies();
-            }
-        }
-        dummy_nodes[a][b].node = src;
-        src_ptr = &dummy_nodes[a][b];
-        vertex_index->InsertVertex(tmp, src_ptr);
-    }
-    
-    DummyNode* des_ptr = 0;
-    tmp = vertex_index->RetrieveVertex(des, true);
-    if (tmp->level == vertex_index->depth) {
-        auto tmp_leaf = (Trie::LeafNode*)tmp;
-        des_ptr = (DummyNode*)tmp_leaf->head;
-    }
-    if (!des_ptr) {
-        int idx = num_dummy_nodes.fetch_add(1, std::memory_order_relaxed);
-        int a = idx / 10000, b = idx % 10000;
-        if (dummy_nodes.size() <= a) {
-            mtx.lock();
-            if (dummy_nodes.size() > a) {
-                mtx.unlock();
-            }
-            else {
-                ExpandDummies();
-            }
-        }
-        dummy_nodes[a][b].node = des;
-        des_ptr = &dummy_nodes[a][b];
-        vertex_index->InsertVertex(tmp, des_ptr);
-    }
-
+    DummyNode* src_ptr = RetrieveOrInsert(src);
+    DummyNode* des_ptr = RetrieveOrInsert(des);
     src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, 1});
-
     return true;
 }
 

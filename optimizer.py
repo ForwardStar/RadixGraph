@@ -1,4 +1,4 @@
-import math, sys
+import math, sys, os
 
 A = None
 
@@ -79,18 +79,26 @@ def find_optimal(n, u, now, d, a):
 
 n = u = 0
 if len(sys.argv) > 1:
-    edges = []
-    with open(sys.argv[len(sys.argv)-1], 'r') as f:
-        edges = f.readlines()
-    edges = [(int(e.split()[0]), int(e.split()[1])) for e in edges]
-    vertices = dict()
-    for e in edges:
-        if e[0] not in vertices:
-            vertices[e[0]] = 1
-        if e[1] not in vertices:
-            vertices[e[1]] = 1
-    u = math.ceil(math.log2(max(vertices.keys()) + 1))
-    n = len(vertices.keys())
+    ffname = sys.argv[len(sys.argv)-1]
+    with open(ffname, 'r') as f:
+        root_dir = ffname.split("/")
+        root_dir = root_dir[:len(root_dir)-1]
+        root_dir = '/'.join(root_dir)
+        lines = f.readlines()
+        fname = ''
+        for s in lines:
+            if 'vertex-file' in s:
+                fname = s.split(' = ')[1].strip('\n')
+        with open(os.path.join(root_dir, fname), 'r') as g:
+            lines = g.readlines()
+            max_vid = 0
+            n = 0
+            for s in lines:
+                n += 1
+                max_vid = max(max_vid, int(s))
+            u = math.ceil(math.log2(max_vid))
+            g.close()
+        f.close()
     print("n =", n)
     print("log(u) =", u)
 else:
@@ -116,11 +124,17 @@ for i in range(u, s):
         if a_opt is None or objective(n, d, a_new) < objective(n, d, a_opt):
             a_opt = a_new[:]
     a = a_opt[:]
-print("Approximate solution by KKT conditions:", a)
-print("Objective =", objective(n, d, a))
+
+with open("settings", "w") as f:
+    s = str(d) + "\n"
+    for i in a:
+        s += str(i) + ' '
+    f.writelines(s)
+# print("Approximate solution by KKT conditions:", a)
+# print("Objective =", objective(n, d, a))
 # find_optimal(n, u, 0, d, [])
 # print("Exact solution:", A)
 # print("Objective = ", objective(n, d, A))
-a_base = [math.ceil(u / d) for _ in range(d)]
-print("Baseline:", a_base)
-print("Objective =", objective(n, d, a_base))
+# a_base = [math.ceil(u / d) for _ in range(d)]
+# print("Baseline:", a_base)
+# print("Objective =", objective(n, d, a_base))
