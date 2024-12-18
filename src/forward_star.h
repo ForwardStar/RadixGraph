@@ -22,7 +22,7 @@ class ForwardStar {
 
         Trie* vertex_index = nullptr;
         std::atomic<int> num_dummy_nodes, cnt;
-        tbb::concurrent_vector<int> thread_pool;
+        std::vector<int> thread_pool;
         std::vector<DummyNode*> dummy_nodes;
         std::mutex mtx;
 
