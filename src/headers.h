@@ -6,6 +6,7 @@
 #include <cassert>
 #include <random>
 #include <chrono>
+#include <fstream>
 #include <stdint.h>
 #include <map>
 #include <mutex>
