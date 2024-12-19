@@ -3,6 +3,7 @@
 struct DummyNode {
     uint64_t node; // this dummy node corresponds to which vertex
     std::atomic<uint8_t> flag[32];
+    std::mutex mtx;
 };
 
 class Trie {

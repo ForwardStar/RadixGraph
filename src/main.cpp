@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         for (auto e : edges) G_fstar.InsertEdge(e.first, e.second, 0.5);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> duration = end - start;
-        std::cout << "Forward Star: " << duration.count() << "s" << std::endl;
+        std::cout << "Forward*: " << duration.count() << "s" << std::endl;
 
         start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)
@@ -67,6 +67,20 @@ int main(int argc, char* argv[]) {
             if (G_fstar.dummy_nodes[a][b].next.size() == 0) cnt++;
         }
         std::cout << "Number of nodes with 0 out-degree: " << cnt << std::endl;
+        
+        start = std::chrono::high_resolution_clock::now();
+        int sz = G_fstar.BFS(1).size();
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Forward* BFS: " << duration.count() << "s" << std::endl;
+        // std::cout << "BFS results: " << sz << std::endl;
+        
+        start = std::chrono::high_resolution_clock::now();
+        sz = spruce_bfs(spruce, G_fstar.num_dummy_nodes, 1).size();
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Spruce BFS: " << duration.count() << "s" << std::endl;
+        // std::cout << "BFS results: " << sz << std::endl;
         return 0;
     }
     std::vector<int> d = {4, 4, 4, 4};
@@ -215,7 +229,7 @@ int main(int argc, char* argv[]) {
                 auto start = std::chrono::high_resolution_clock::now();
                 #pragma omp parallel for num_threads(num_threads)
                 for (int j = 0; j < n; j++) {
-                    std::vector<ForwardStar::WeightedEdge> neighbours;
+                    std::vector<ForwardStar::DummyNode*> neighbours;
                     G_fstar.GetNeighbours(vertex_ids[j], neighbours);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
@@ -235,19 +249,19 @@ int main(int argc, char* argv[]) {
                 // Correctness check
                 #pragma omp parallel for num_threads(num_threads)
                 for (int j = 0; j < n; j++) {
-                    std::vector<ForwardStar::WeightedEdge> neighbours_fstar;
+                    std::vector<ForwardStar::DummyNode*> neighbours_fstar;
                     std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours_spruce;
                     G_fstar.GetNeighbours(vertex_ids[j], neighbours_fstar);
                     SpruceTransVer::get_neighbours(spruce, vertex_ids[j], neighbours_spruce);
-                    std::sort(neighbours_fstar.begin(), neighbours_fstar.end(), [](ForwardStar::WeightedEdge a, ForwardStar::WeightedEdge b) {
-                        return a.forward->node < b.forward->node;
+                    std::sort(neighbours_fstar.begin(), neighbours_fstar.end(), [](ForwardStar::DummyNode* a, ForwardStar::DummyNode* b) {
+                        return a->node < b->node;
                     });
                     std::sort(neighbours_spruce.begin(), neighbours_spruce.end(), [](SpruceTransVer::WeightedOutEdgeSimple a, SpruceTransVer::WeightedOutEdgeSimple b) {
                         return a.des < b.des;
                     });
                     assert(neighbours_fstar.size() == neighbours_spruce.size());
                     for (int k = 0; k < neighbours_fstar.size(); k++) {
-                        assert(neighbours_fstar[k].forward->node == neighbours_spruce[k].des);
+                        assert(neighbours_fstar[k]->node == neighbours_spruce[k].des);
                     }
                 }
             }
@@ -268,11 +282,13 @@ int main(int argc, char* argv[]) {
                 duration = end - start;
                 duration_bfs_spruce += duration.count();
 
-                std::sort(res_fstar.begin(), res_fstar.end());
+                std::sort(res_fstar.begin(), res_fstar.end(), [](ForwardStar::DummyNode* a, ForwardStar::DummyNode* b) {
+                    return a->node < b->node;
+                });
                 std::sort(res_spruce.begin(), res_spruce.end());
                 assert(res_fstar.size() == res_spruce.size());
                 for (int j = 0; j < res_fstar.size(); j++) {
-                    assert(res_fstar[j] == res_spruce[j]);
+                    assert(res_fstar[j]->node == res_spruce[j]);
                 }
             }
 
