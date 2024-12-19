@@ -166,7 +166,7 @@ std::vector<ForwardStar::DummyNode*> ForwardStar::BFS(uint64_t src) {
 
 ForwardStar::ForwardStar(int d, std::vector<int> _num_children) {
     vertex_index = new Trie(d, _num_children);
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < max_number_of_threads; i++) {
         thread_pool.emplace_back(i), ++cnt;
     }
 }

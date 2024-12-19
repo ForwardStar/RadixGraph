@@ -2,7 +2,7 @@
 
 struct DummyNode {
     uint64_t node = -1; // this dummy node corresponds to which vertex
-    uint8_t flag[32];
+    uint8_t flag[max_number_of_threads];
     std::mutex mtx;
 };
 
