@@ -58,14 +58,6 @@ int main(int argc, char* argv[]) {
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Spruce: " << duration.count() << "s" << std::endl;
-
-        std::cout << "n = " << G_fstar.num_dummy_nodes << std::endl;
-        int cnt = 0;
-        for (int i = 0; i < G_fstar.num_dummy_nodes; i++) {
-            int a = i / 10000, b = i % 10000;
-            if (G_fstar.dummy_nodes[a][b].next.size() == 0) cnt++;
-        }
-        std::cout << "Number of nodes with 0 out-degree: " << cnt << std::endl;
         
         start = std::chrono::high_resolution_clock::now();
         int sz = G_fstar.BFS(1).size();
@@ -85,15 +77,15 @@ int main(int argc, char* argv[]) {
     }
     std::vector<int> d = {4, 4, 4};
     std::vector<std::vector<int>> a = {
-        {12, 3, 3, 2},
-        {10, 5, 3, 2},
-        {16, 2, 1, 1}
+        {15, 5, 5, 5},
+        {18, 4, 4, 4},
+        {20, 4, 3, 3}
     };
     int m = 2560000;
     int num_trials = 5;
     
     std::default_random_engine generator;
-    unsigned long long maximum = (1ull << 20) - 1;
+    unsigned long long maximum = (1ull << 30) - 1;
     std::uniform_int_distribution distribution(0ull, maximum);
     int now = 0;
     for (int n = 1000; n <= 100000; n *= 10) {

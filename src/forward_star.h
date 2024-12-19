@@ -4,6 +4,8 @@
 #include "headers.h"
 #include "optimized_trie.h"
 
+const int block_size = 1000;
+
 class ForwardStar {
     private:
     public:

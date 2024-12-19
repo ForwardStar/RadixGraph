@@ -1,7 +1,7 @@
 #include "forward_star.h"
 
 void ForwardStar::ExpandDummies() {
-    dummy_nodes.emplace_back(new DummyNode[10000]);
+    dummy_nodes.emplace_back(new DummyNode[block_size]);
     mtx.unlock();
 }
 
@@ -14,7 +14,7 @@ inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
     }
     if (!u_ptr) {
         int idx = num_dummy_nodes.fetch_add(1, std::memory_order_relaxed);
-        int a = idx / 10000, b = idx % 10000;
+        int a = idx / block_size, b = idx % block_size;
         if (dummy_nodes.size() <= a) {
             mtx.lock();
             if (dummy_nodes.size() > a) {
