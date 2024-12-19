@@ -59,7 +59,6 @@ int main(int argc, char* argv[]) {
         duration = end - start;
         std::cout << "Spruce: " << duration.count() << "s" << std::endl;
 
-
         std::cout << "n = " << G_fstar.num_dummy_nodes << std::endl;
         int cnt = 0;
         for (int i = 0; i < G_fstar.num_dummy_nodes; i++) {
@@ -73,28 +72,28 @@ int main(int argc, char* argv[]) {
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Forward* BFS: " << duration.count() << "s" << std::endl;
-        // std::cout << "BFS results: " << sz << std::endl;
+        std::cout << "BFS results: " << sz << std::endl;
         
         start = std::chrono::high_resolution_clock::now();
         sz = spruce_bfs(spruce, G_fstar.num_dummy_nodes, 1).size();
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Spruce BFS: " << duration.count() << "s" << std::endl;
-        // std::cout << "BFS results: " << sz << std::endl;
+        std::cout << "BFS results: " << sz << std::endl;
+
         return 0;
     }
-    std::vector<int> d = {4, 4, 4, 4};
+    std::vector<int> d = {4, 4, 4};
     std::vector<std::vector<int>> a = {
-        {17, 8, 8, 7},
-        {20, 7, 7, 6},
-        {22, 6, 6, 6},
-        {25, 5, 5, 5}
+        {12, 3, 3, 2},
+        {10, 5, 3, 2},
+        {16, 2, 1, 1}
     };
     int m = 2560000;
     int num_trials = 5;
     
     std::default_random_engine generator;
-    unsigned long long maximum = (1ull << 60) - 1;
+    unsigned long long maximum = (1ull << 20) - 1;
     std::uniform_int_distribution distribution(0ull, maximum);
     int now = 0;
     for (int n = 1000; n <= 100000; n *= 10) {
@@ -229,7 +228,7 @@ int main(int argc, char* argv[]) {
                 auto start = std::chrono::high_resolution_clock::now();
                 #pragma omp parallel for num_threads(num_threads)
                 for (int j = 0; j < n; j++) {
-                    std::vector<ForwardStar::DummyNode*> neighbours;
+                    std::vector<ForwardStar::WeightedEdge> neighbours;
                     G_fstar.GetNeighbours(vertex_ids[j], neighbours);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
@@ -249,19 +248,19 @@ int main(int argc, char* argv[]) {
                 // Correctness check
                 #pragma omp parallel for num_threads(num_threads)
                 for (int j = 0; j < n; j++) {
-                    std::vector<ForwardStar::DummyNode*> neighbours_fstar;
+                    std::vector<ForwardStar::WeightedEdge> neighbours_fstar;
                     std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours_spruce;
                     G_fstar.GetNeighbours(vertex_ids[j], neighbours_fstar);
                     SpruceTransVer::get_neighbours(spruce, vertex_ids[j], neighbours_spruce);
-                    std::sort(neighbours_fstar.begin(), neighbours_fstar.end(), [](ForwardStar::DummyNode* a, ForwardStar::DummyNode* b) {
-                        return a->node < b->node;
+                    std::sort(neighbours_fstar.begin(), neighbours_fstar.end(), [](ForwardStar::WeightedEdge a, ForwardStar::WeightedEdge b) {
+                        return a.forward->node < b.forward->node;
                     });
                     std::sort(neighbours_spruce.begin(), neighbours_spruce.end(), [](SpruceTransVer::WeightedOutEdgeSimple a, SpruceTransVer::WeightedOutEdgeSimple b) {
                         return a.des < b.des;
                     });
                     assert(neighbours_fstar.size() == neighbours_spruce.size());
                     for (int k = 0; k < neighbours_fstar.size(); k++) {
-                        assert(neighbours_fstar[k]->node == neighbours_spruce[k].des);
+                        assert(neighbours_fstar[k].forward->node == neighbours_spruce[k].des);
                     }
                 }
             }

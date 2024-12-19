@@ -1,8 +1,8 @@
 #include "headers.h"
 
 struct DummyNode {
-    uint64_t node; // this dummy node corresponds to which vertex
-    std::atomic<uint8_t> flag[32];
+    uint64_t node = -1; // this dummy node corresponds to which vertex
+    uint8_t flag[32];
     std::mutex mtx;
 };
 
@@ -18,7 +18,7 @@ class Trie {
         } InternalNode;
 
         typedef struct _leaf_node : TrieNode {
-            DummyNode* head;
+            DummyNode* head = nullptr;
             std::mutex mtx;
         } LeafNode;
 

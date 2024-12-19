@@ -36,9 +36,9 @@ class ForwardStar {
 
         bool DeleteEdge(uint64_t src, uint64_t des);
 
-        bool GetNeighbours(uint64_t src, std::vector<DummyNode*> &neighbours);
+        bool GetNeighbours(uint64_t src, std::vector<WeightedEdge> &neighbours);
 
-        bool GetNeighbours(DummyNode* src, std::vector<DummyNode*> &neighbours);
+        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours);
 
         std::vector<DummyNode*> BFS(uint64_t src);
 
