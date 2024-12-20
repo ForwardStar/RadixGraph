@@ -125,16 +125,19 @@ for i in range(u, s):
             a_opt = a_new[:]
     a = a_opt[:]
 
-with open("settings", "w") as f:
-    s = str(d) + "\n"
-    for i in a:
-        s += str(i) + ' '
-    f.writelines(s)
-# print("Approximate solution by KKT conditions:", a)
-# print("Objective =", objective(n, d, a))
-# find_optimal(n, u, 0, d, [])
-# print("Exact solution:", A)
-# print("Objective = ", objective(n, d, A))
-# a_base = [math.ceil(u / d) for _ in range(d)]
-# print("Baseline:", a_base)
-# print("Objective =", objective(n, d, a_base))
+if len(sys.argv) > 1:
+    with open("settings", "w") as f:
+        s = str(d) + "\n"
+        for i in a:
+            s += str(i) + ' '
+        f.writelines(s)
+else:
+    print("Approximate solution by KKT conditions:", a)
+    print("Objective =", objective(n, d, a))
+    find_optimal(n, u, 0, d, [])
+    print("Exact solution:", A)
+    print("Objective = ", objective(n, d, A))
+    a_base = [16, 10, 8]
+    # a_base = [math.ceil(u / d) for _ in range(d)]
+    print("Baseline:", a_base)
+    print("Objective =", objective(n, d, a_base))
