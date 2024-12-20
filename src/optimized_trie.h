@@ -29,7 +29,7 @@ class Trie {
         int depth = 0;
         int space = 0;
 
-        TrieNode* InsertVertex(TrieNode* current, uint64_t u, int d);
+        inline TrieNode* InsertVertex(TrieNode* current, uint64_t u, int d);
 
         TrieNode* RetrieveVertex(uint64_t id, bool insert_mode=false);
 
