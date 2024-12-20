@@ -1,10 +1,5 @@
 #include "forward_star.h"
 
-void ForwardStar::ExpandDummies() {
-    dummy_nodes.emplace_back(new DummyNode[block_size]);
-    mtx.unlock();
-}
-
 inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
     DummyNode* u_ptr = 0;
     auto tmp = vertex_index->RetrieveVertex(u, true);
@@ -17,12 +12,10 @@ inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
         int a = idx / block_size, b = idx % block_size;
         if (dummy_nodes.size() <= a) {
             mtx.lock();
-            if (dummy_nodes.size() > a) {
-                mtx.unlock();
+            if (dummy_nodes.size() <= a) {
+                dummy_nodes.emplace_back(new DummyNode[block_size]);
             }
-            else {
-                ExpandDummies();
-            }
+            mtx.unlock();
         }
         dummy_nodes[a][b].node = u;
         memset(dummy_nodes[a][b].flag, 0, sizeof(dummy_nodes[a][b].flag));
@@ -141,7 +134,6 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
 
 std::vector<ForwardStar::DummyNode*> ForwardStar::BFS(uint64_t src) {
     std::queue<DummyNode*> Q;
-    
     auto tmp = (Trie::LeafNode*)vertex_index->RetrieveVertex(src);
     auto src_ptr = (DummyNode*)tmp->head;
     src_ptr->flag[0] |= (1 << 7);

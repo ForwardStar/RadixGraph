@@ -30,8 +30,6 @@ class ForwardStar {
         std::vector<DummyNode*> dummy_nodes;
         std::mutex mtx;
 
-        void ExpandDummies();
-
         inline DummyNode* RetrieveOrInsert(uint64_t u);
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
