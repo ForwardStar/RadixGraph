@@ -10,7 +10,6 @@ struct DummyNode {
 class Trie {
     public:
         typedef struct _trie_node {
-            int level = -1;
             DummyNode* head = nullptr;
             _trie_node* children = nullptr;
             std::atomic<int> mtx;
@@ -30,7 +29,7 @@ class Trie {
         int depth = 0;
         int space = 0;
 
-        TrieNode* InsertVertex(TrieNode* current, uint64_t u);
+        TrieNode* InsertVertex(TrieNode* current, uint64_t u, int d);
 
         TrieNode* RetrieveVertex(uint64_t id, bool insert_mode=false);
 
@@ -39,7 +38,7 @@ class Trie {
         Trie() {}
         Trie(int d, int _num_bits[]);
         Trie(int d, std::vector<int> _num_bits);
-        ~Trie();
+        ~Trie() {};
 };
 
 #endif

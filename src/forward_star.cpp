@@ -7,7 +7,6 @@ inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
         u_ptr = new DummyNode{u};
         std::memset(u_ptr->flag, 0, sizeof(u_ptr->flag));
         tmp->head = u_ptr;
-        tmp->level = vertex_index->depth;
         tmp->mtx = 0;
     }
     return u_ptr;

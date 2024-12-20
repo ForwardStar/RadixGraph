@@ -28,11 +28,9 @@ int main() {
         uint64_t id = distribution(generator);
         auto x = trie_base.RetrieveVertex(id, true);
         x->head = new DummyNode{id};
-        x->level = trie_base.depth;
         x->mtx = 0;
         auto y = trie_opt.RetrieveVertex(id, true);
         y->head = new DummyNode{id};
-        y->level = trie_opt.depth;
         y->mtx = 0;
         auto tmp1 = trie_base.RetrieveVertex(id);
         DummyNode* tmp = tmp1->head;
