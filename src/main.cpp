@@ -27,7 +27,7 @@ std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, int n, uint64_t src) {
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
-    int num_threads = 10;
+    int num_threads = 1;
     if (argc > 1) {
         std::ifstream f("settings");
         int d;

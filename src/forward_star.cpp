@@ -35,7 +35,7 @@ inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* src_ptr = RetrieveOrInsert(src);
     DummyNode* des_ptr = RetrieveOrInsert(des);
-    src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, 1});
+    src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, global_timestamp++, 1});
     return true;
 }
 
@@ -60,7 +60,7 @@ bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
         return false;
     }
 
-    src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, 2});
+    src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, global_timestamp++, 2});
 
     return true;
 }
@@ -86,7 +86,7 @@ bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
         return false;
     }
 
-    src_ptr->next.emplace_back(WeightedEdge{0, des_ptr, 4});
+    src_ptr->next.emplace_back(WeightedEdge{0, des_ptr, global_timestamp++, 4});
 
     return true;
 }

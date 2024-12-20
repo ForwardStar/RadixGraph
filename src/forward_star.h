@@ -15,6 +15,7 @@ class ForwardStar {
         typedef struct _weighted_edge {
             double weight; // edge property
             _dummy_node* forward; // forward pointer to dummy node of target vertex
+            int timestamp;
             uint8_t flag;
         } WeightedEdge;
 
@@ -24,6 +25,7 @@ class ForwardStar {
 
         Trie* vertex_index = nullptr;
         std::atomic<int> num_dummy_nodes, cnt;
+        int global_timestamp;
         std::vector<int> thread_pool;
         std::vector<DummyNode*> dummy_nodes;
         std::mutex mtx;
