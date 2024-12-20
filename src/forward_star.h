@@ -4,8 +4,6 @@
 #include "headers.h"
 #include "optimized_trie.h"
 
-const int block_size = 1000;
-
 class ForwardStar {
     private:
     public:
@@ -24,11 +22,9 @@ class ForwardStar {
         } DummyNode;
 
         Trie* vertex_index = nullptr;
-        std::atomic<int> num_dummy_nodes, cnt;
+        std::atomic<int> cnt;
         int global_timestamp;
         std::vector<int> thread_pool;
-        std::vector<DummyNode*> dummy_nodes;
-        std::mutex mtx;
 
         inline DummyNode* RetrieveOrInsert(uint64_t u);
 

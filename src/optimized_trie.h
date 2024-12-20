@@ -8,27 +8,29 @@ struct DummyNode {
 
 class Trie {
     public:
-        struct TrieNode {
-            int level;
-        };
-
-        typedef struct _internal_node : TrieNode {
-            std::vector<TrieNode*> children;
-            std::mutex mtx;
-        } InternalNode;
-
-        typedef struct _leaf_node : TrieNode {
+        typedef struct _trie_node {
+            int level = -1;
             DummyNode* head = nullptr;
+            _trie_node* children = nullptr;
             std::mutex mtx;
-        } LeafNode;
 
-        InternalNode* root;
+            ~_trie_node() {
+                if (children) {
+                    delete [] children;
+                }
+                if (head) {
+                    delete head;
+                }
+            }
+        } TrieNode;
+
+        TrieNode root;
         std::vector<int> num_bits, sum_bits;
         int depth = 0;
         int space = 0;
 
-        void InsertVertex(TrieNode* current, DummyNode* node);
-        void InsertVertex(DummyNode* node);
+        void InsertVertex(TrieNode* current, DummyNode* u_ptr);
+        void InsertVertex(DummyNode* u_ptr);
 
         TrieNode* RetrieveVertex(uint64_t id, bool lock=false);
 

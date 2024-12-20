@@ -28,10 +28,10 @@ int main() {
         uint64_t id = distribution(generator);
         trie_base.InsertVertex(new DummyNode{id});
         trie_opt.InsertVertex(new DummyNode{id});
-        auto tmp1 = (Trie::LeafNode*)trie_base.RetrieveVertex(id);
+        auto tmp1 = trie_base.RetrieveVertex(id);
         DummyNode* tmp = tmp1->head;
         assert(tmp->node == id);
-        tmp1 = (Trie::LeafNode*)trie_opt.RetrieveVertex(id);
+        tmp1 = trie_opt.RetrieveVertex(id);
         tmp = tmp1->head;
         assert(tmp->node == id);
     }

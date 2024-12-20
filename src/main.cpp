@@ -2,7 +2,7 @@
 #include "forward_star.h"
 #include "../Spruce/Spruce/src/spruce_transaction.h"
 
-std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, int n, uint64_t src) {
+std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, uint64_t src) {
     std::unordered_set<uint64_t> visited_vertices;
     std::queue<uint64_t> Q;
     visited_vertices.insert(src);
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
         std::cout << "BFS results: " << sz << std::endl;
         
         start = std::chrono::high_resolution_clock::now();
-        sz = spruce_bfs(spruce, G_fstar.num_dummy_nodes, 1).size();
+        sz = spruce_bfs(spruce, 1).size();
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Spruce BFS: " << duration.count() << "s" << std::endl;
@@ -75,11 +75,11 @@ int main(int argc, char* argv[]) {
 
         return 0;
     }
-    std::vector<int> d = {4, 4, 4};
+    std::vector<int> d = {3, 3, 3};
     std::vector<std::vector<int>> a = {
-        {15, 5, 5, 5},
-        {18, 4, 4, 4},
-        {20, 4, 3, 3}
+        {16, 7, 7},
+        {19, 6, 5},
+        {21, 5, 4}
     };
     int m = 2560000;
     int num_trials = 5;
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
                 duration_bfs_fstar += duration.count();
 
                 start = std::chrono::high_resolution_clock::now();
-                auto res_spruce = spruce_bfs(spruce, n, vertex_ids[0]);
+                auto res_spruce = spruce_bfs(spruce, vertex_ids[0]);
                 end = std::chrono::high_resolution_clock::now();
                 duration = end - start;
                 duration_bfs_spruce += duration.count();

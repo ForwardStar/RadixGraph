@@ -4,22 +4,11 @@ inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
     DummyNode* u_ptr = 0;
     auto tmp = vertex_index->RetrieveVertex(u, true);
     if (tmp->level == vertex_index->depth) {
-        auto tmp_leaf = (Trie::LeafNode*)tmp;
-        u_ptr = (DummyNode*)tmp_leaf->head;
+        u_ptr = (DummyNode*)tmp->head;
     }
     if (!u_ptr) {
-        int idx = num_dummy_nodes.fetch_add(1, std::memory_order_relaxed);
-        int a = idx / block_size, b = idx % block_size;
-        if (dummy_nodes.size() <= a) {
-            mtx.lock();
-            if (dummy_nodes.size() <= a) {
-                dummy_nodes.emplace_back(new DummyNode[block_size]);
-            }
-            mtx.unlock();
-        }
-        dummy_nodes[a][b].node = u;
-        memset(dummy_nodes[a][b].flag, 0, sizeof(dummy_nodes[a][b].flag));
-        u_ptr = &dummy_nodes[a][b];
+        u_ptr = new DummyNode{u};
+        std::memset(u_ptr->flag, 0, sizeof(u_ptr->flag));
         vertex_index->InsertVertex(tmp, u_ptr);
     }
     return u_ptr;
@@ -36,8 +25,7 @@ bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* src_ptr = 0;
     auto tmp = vertex_index->RetrieveVertex(src);
     if (tmp->level == vertex_index->depth) {
-        auto tmp_leaf = (Trie::LeafNode*)tmp;
-        src_ptr = (DummyNode*)tmp_leaf->head;
+        src_ptr = (DummyNode*)tmp->head;
     }
     if (!src_ptr) {
         return false;
@@ -46,8 +34,7 @@ bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* des_ptr = 0;
     tmp = vertex_index->RetrieveVertex(des);
     if (tmp->level == vertex_index->depth) {
-        auto tmp_leaf = (Trie::LeafNode*)tmp;
-        des_ptr = (DummyNode*)tmp_leaf->head;
+        des_ptr = (DummyNode*)tmp->head;
     }
     if (!des_ptr) {
         return false;
@@ -62,8 +49,7 @@ bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
     DummyNode* src_ptr = 0;
     auto tmp = vertex_index->RetrieveVertex(src);
     if (tmp->level == vertex_index->depth) {
-        auto tmp_leaf = (Trie::LeafNode*)tmp;
-        src_ptr = (DummyNode*)tmp_leaf->head;
+        src_ptr = (DummyNode*)tmp->head;
     }
     if (!src_ptr) {
         return false;
@@ -72,8 +58,7 @@ bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
     DummyNode* des_ptr = 0;
     tmp = vertex_index->RetrieveVertex(des);
     if (tmp->level == vertex_index->depth) {
-        auto tmp_leaf = (Trie::LeafNode*)tmp;
-        des_ptr = (DummyNode*)tmp_leaf->head;
+        des_ptr = (DummyNode*)tmp->head;
     }
     if (!des_ptr) {
         return false;
@@ -88,8 +73,7 @@ bool ForwardStar::GetNeighbours(uint64_t src, std::vector<WeightedEdge> &neighbo
     DummyNode* src_ptr = 0;
     auto tmp = vertex_index->RetrieveVertex(src);
     if (tmp->level == vertex_index->depth) {
-        auto tmp_leaf = (Trie::LeafNode*)tmp;
-        src_ptr = (DummyNode*)tmp_leaf->head;
+        src_ptr = (DummyNode*)tmp->head;
     }
     if (!src_ptr) {
         return false;
@@ -134,7 +118,7 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
 
 std::vector<ForwardStar::DummyNode*> ForwardStar::BFS(uint64_t src) {
     std::queue<DummyNode*> Q;
-    auto tmp = (Trie::LeafNode*)vertex_index->RetrieveVertex(src);
+    auto tmp = vertex_index->RetrieveVertex(src);
     auto src_ptr = (DummyNode*)tmp->head;
     src_ptr->flag[0] |= (1 << 7);
     Q.push(src_ptr);
@@ -164,8 +148,5 @@ ForwardStar::ForwardStar(int d, std::vector<int> _num_children) {
 }
 
 ForwardStar::~ForwardStar() {
-    for (auto u : dummy_nodes) {
-        delete [] u;
-    }
     delete vertex_index;
 }
