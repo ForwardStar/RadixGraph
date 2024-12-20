@@ -26,8 +26,14 @@ int main() {
     std::uniform_int_distribution distribution(0ull, maximum);
     for (int i = 0; i < n; i++) {
         uint64_t id = distribution(generator);
-        trie_base.InsertVertex(new DummyNode{id});
-        trie_opt.InsertVertex(new DummyNode{id});
+        auto x = trie_base.RetrieveVertex(id, true);
+        x->head = new DummyNode{id};
+        x->level = trie_base.depth;
+        x->mtx = 0;
+        auto y = trie_opt.RetrieveVertex(id, true);
+        y->head = new DummyNode{id};
+        y->level = trie_opt.depth;
+        y->mtx = 0;
         auto tmp1 = trie_base.RetrieveVertex(id);
         DummyNode* tmp = tmp1->head;
         assert(tmp->node == id);

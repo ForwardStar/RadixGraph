@@ -1,15 +1,14 @@
 #include "forward_star.h"
 
 inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
-    DummyNode* u_ptr = 0;
     auto tmp = vertex_index->RetrieveVertex(u, true);
-    if (tmp->level == vertex_index->depth) {
-        u_ptr = (DummyNode*)tmp->head;
-    }
+    DummyNode* u_ptr = (DummyNode*)tmp->head;
     if (!u_ptr) {
         u_ptr = new DummyNode{u};
         std::memset(u_ptr->flag, 0, sizeof(u_ptr->flag));
-        vertex_index->InsertVertex(tmp, u_ptr);
+        tmp->head = u_ptr;
+        tmp->level = vertex_index->depth;
+        tmp->mtx = 0;
     }
     return u_ptr;
 }
@@ -23,59 +22,33 @@ bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
 }
 
 bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
-    DummyNode* src_ptr = 0;
-    auto tmp = vertex_index->RetrieveVertex(src);
-    if (tmp->level == vertex_index->depth) {
-        src_ptr = (DummyNode*)tmp->head;
-    }
+    DummyNode* src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src)->head;
     if (!src_ptr) {
         return false;
     }
-
-    DummyNode* des_ptr = 0;
-    tmp = vertex_index->RetrieveVertex(des);
-    if (tmp->level == vertex_index->depth) {
-        des_ptr = (DummyNode*)tmp->head;
-    }
+    DummyNode* des_ptr = (DummyNode*)vertex_index->RetrieveVertex(des)->head;
     if (!des_ptr) {
         return false;
     }
-
     src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, global_timestamp++, 2});
-
     return true;
 }
 
 bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
-    DummyNode* src_ptr = 0;
-    auto tmp = vertex_index->RetrieveVertex(src);
-    if (tmp->level == vertex_index->depth) {
-        src_ptr = (DummyNode*)tmp->head;
-    }
+    DummyNode* src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src)->head;
     if (!src_ptr) {
         return false;
     }
-
-    DummyNode* des_ptr = 0;
-    tmp = vertex_index->RetrieveVertex(des);
-    if (tmp->level == vertex_index->depth) {
-        des_ptr = (DummyNode*)tmp->head;
-    }
+    DummyNode* des_ptr = (DummyNode*)vertex_index->RetrieveVertex(des)->head;
     if (!des_ptr) {
         return false;
     }
-
     src_ptr->next.emplace_back(WeightedEdge{0, des_ptr, global_timestamp++, 4});
-
     return true;
 }
 
 bool ForwardStar::GetNeighbours(uint64_t src, std::vector<WeightedEdge> &neighbours) {
-    DummyNode* src_ptr = 0;
-    auto tmp = vertex_index->RetrieveVertex(src);
-    if (tmp->level == vertex_index->depth) {
-        src_ptr = (DummyNode*)tmp->head;
-    }
+    DummyNode* src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src)->head;
     if (!src_ptr) {
         return false;
     }

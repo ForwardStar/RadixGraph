@@ -75,20 +75,21 @@ int main(int argc, char* argv[]) {
 
         return 0;
     }
-    std::vector<int> d = {3, 3, 3};
+    std::vector<int> d = {3, 3, 3, 3};
     std::vector<std::vector<int>> a = {
         {16, 7, 7},
         {19, 6, 5},
-        {21, 5, 4}
+        {21, 5, 4},
+        {16, 9, 5},
     };
-    int m = 2560000;
-    int num_trials = 5;
+    int m = 10000000;
+    int num_trials = 3;
     
     std::default_random_engine generator;
     unsigned long long maximum = (1ull << 30) - 1;
     std::uniform_int_distribution distribution(0ull, maximum);
     int now = 0;
-    for (int n = 1000; n <= 100000; n *= 10) {
+    for (int n = 1000; n <= 1000000; n *= 10) {
         double duration_insert_edge_fstar = 0;
         double duration_insert_edge_spruce = 0;
         double duration_delete_edge_fstar = 0;
@@ -112,6 +113,7 @@ int main(int argc, char* argv[]) {
             vertex_set.insert(id);
         }
         for (int i = 0; i < num_trials; i++) {
+            std::cout << "Trial " << i + 1 << ":" << std::endl;
             ForwardStar G_fstar(d[now], a[now]);
             SpruceTransVer spruce;
             std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
@@ -149,7 +151,7 @@ int main(int argc, char* argv[]) {
                 duration_insert_edge_spruce += duration.count();
             }
 
-            // std::cout << "Insert done" << std::endl;
+            std::cout << "Insert done" << std::endl;
 
             // Update edges
             {         
@@ -178,7 +180,7 @@ int main(int argc, char* argv[]) {
                 duration_update_edge_spruce += duration.count();
             }
 
-            // std::cout << "Update done" << std::endl;
+            std::cout << "Update done" << std::endl;
 
             // Delete edges
             {         
@@ -213,7 +215,7 @@ int main(int argc, char* argv[]) {
                 duration_delete_edge_spruce += duration.count();
             }
 
-            // std::cout << "Delete done" << std::endl;
+            std::cout << "Delete done" << std::endl;
 
             // Get neighbours
             {
@@ -257,7 +259,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            // std::cout << "Get neighbors done" << std::endl;
+            std::cout << "Get neighbors done" << std::endl;
 
             // BFS
             {
@@ -283,7 +285,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            // std::cout << "BFS done" << std::endl;
+            std::cout << "BFS done" << std::endl;
         }
         ++now;
 
