@@ -17,7 +17,8 @@ inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* src_ptr = RetrieveOrInsert(src);
     DummyNode* des_ptr = RetrieveOrInsert(des);
-    src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, global_timestamp++, 1});
+    auto it = src_ptr->next.grow_by(1);
+    *it = WeightedEdge{weight, des_ptr, global_timestamp++, 1};
     return true;
 }
 
