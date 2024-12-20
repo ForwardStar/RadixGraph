@@ -27,7 +27,7 @@ std::vector<std::vector<int>> a = {
 };
 ```
 
-# Experimental results (10-threaded)
+# Experimental results (16-threaded)
 ```
 n = 1000, m = 10000000
 Average insertion time for forward star: 1.29279s

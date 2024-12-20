@@ -12,7 +12,7 @@ class Trie {
         typedef struct _trie_node {
             DummyNode* head = nullptr;
             _trie_node* children = nullptr;
-            std::atomic<int> mtx;
+            std::atomic<uint8_t> mtx;
 
             ~_trie_node() {
                 if (children) {

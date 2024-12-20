@@ -25,7 +25,7 @@ Trie::TrieNode* Trie::RetrieveVertex(uint64_t id, bool insert_mode) {
             int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
             uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
             if (insert_mode && (!current->children[idx].head && !current->children[idx].children)) {
-                int unlocked = 0;
+                uint8_t unlocked = 0;
                 while (!current->children[idx].mtx.compare_exchange_strong(unlocked, 1)) {
                     unlocked = 0;
                 }
