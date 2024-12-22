@@ -7,26 +7,10 @@
 class ForwardStar {
     private:
     public:
-        typedef struct _weighted_edge;
-        typedef struct _dummy_node;
-
-        typedef struct _weighted_edge {
-            double weight; // edge property
-            _dummy_node* forward; // forward pointer to dummy node of target vertex
-            int timestamp;
-            uint8_t flag;
-        } WeightedEdge;
-
-        typedef struct _dummy_node : DummyNode {
-            tbb::concurrent_vector<WeightedEdge> next; // array-based edge structure
-        } DummyNode;
-
         Trie* vertex_index = nullptr;
         std::atomic<int> cnt;
         int global_timestamp;
         std::vector<int> thread_pool;
-
-        inline DummyNode* RetrieveOrInsert(uint64_t u);
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
 

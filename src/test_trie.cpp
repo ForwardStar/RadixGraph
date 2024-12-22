@@ -24,19 +24,14 @@ int main() {
     std::default_random_engine generator;
     unsigned long long maximum = u < 64 ? (1ull << u) - 1 : -1;
     std::uniform_int_distribution distribution(0ull, maximum);
+    #pragma omp parallel for num_threads(10)
     for (int i = 0; i < n; i++) {
         uint64_t id = distribution(generator);
         auto x = trie_base.RetrieveVertex(id, true);
-        x->head = new DummyNode{id};
-        x->mtx = 0;
-        auto y = trie_opt.RetrieveVertex(id, true);
-        y->head = new DummyNode{id};
-        y->mtx = 0;
-        auto tmp1 = trie_base.RetrieveVertex(id);
-        DummyNode* tmp = tmp1->head;
+        x = trie_opt.RetrieveVertex(id, true);
+        auto tmp = trie_base.RetrieveVertex(id);
         assert(tmp->node == id);
-        tmp1 = trie_opt.RetrieveVertex(id);
-        tmp = tmp1->head;
+        tmp = trie_opt.RetrieveVertex(id);
         assert(tmp->node == id);
     }
     std::cout << "Allocated space of a baseline Trie: " << trie_base.size() << std::endl;

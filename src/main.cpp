@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
             vertex_set.insert(id);
         }
         for (int i = 0; i < num_trials; i++) {
-            std::cout << "Trial " << i + 1 << ":" << std::endl;
+            // std::cout << "Trial " << i + 1 << ":" << std::endl;
             ForwardStar G_fstar(d[now], a[now]);
             SpruceTransVer spruce;
             std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
                 duration_insert_edge_spruce += duration.count();
             }
 
-            std::cout << "Insert done" << std::endl;
+            // std::cout << "Insert done" << std::endl;
 
             // Update edges
             {         
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
                 duration_update_edge_spruce += duration.count();
             }
 
-            std::cout << "Update done" << std::endl;
+            // std::cout << "Update done" << std::endl;
 
             // Delete edges
             {         
@@ -215,14 +215,14 @@ int main(int argc, char* argv[]) {
                 duration_delete_edge_spruce += duration.count();
             }
 
-            std::cout << "Delete done" << std::endl;
+            // std::cout << "Delete done" << std::endl;
 
             // Get neighbours
             {
                 auto start = std::chrono::high_resolution_clock::now();
                 #pragma omp parallel for num_threads(num_threads)
                 for (int j = 0; j < n; j++) {
-                    std::vector<ForwardStar::WeightedEdge> neighbours;
+                    std::vector<WeightedEdge> neighbours;
                     G_fstar.GetNeighbours(vertex_ids[j], neighbours);
                 }
                 auto end = std::chrono::high_resolution_clock::now();
@@ -242,11 +242,11 @@ int main(int argc, char* argv[]) {
                 // Correctness check
                 #pragma omp parallel for num_threads(num_threads)
                 for (int j = 0; j < n; j++) {
-                    std::vector<ForwardStar::WeightedEdge> neighbours_fstar;
+                    std::vector<WeightedEdge> neighbours_fstar;
                     std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours_spruce;
                     G_fstar.GetNeighbours(vertex_ids[j], neighbours_fstar);
                     SpruceTransVer::get_neighbours(spruce, vertex_ids[j], neighbours_spruce);
-                    std::sort(neighbours_fstar.begin(), neighbours_fstar.end(), [](ForwardStar::WeightedEdge a, ForwardStar::WeightedEdge b) {
+                    std::sort(neighbours_fstar.begin(), neighbours_fstar.end(), [](WeightedEdge a, WeightedEdge b) {
                         return a.forward->node < b.forward->node;
                     });
                     std::sort(neighbours_spruce.begin(), neighbours_spruce.end(), [](SpruceTransVer::WeightedOutEdgeSimple a, SpruceTransVer::WeightedOutEdgeSimple b) {
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            std::cout << "Get neighbors done" << std::endl;
+            // std::cout << "Get neighbors done" << std::endl;
 
             // BFS
             {
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
                 duration = end - start;
                 duration_bfs_spruce += duration.count();
 
-                std::sort(res_fstar.begin(), res_fstar.end(), [](ForwardStar::DummyNode* a, ForwardStar::DummyNode* b) {
+                std::sort(res_fstar.begin(), res_fstar.end(), [](DummyNode* a, DummyNode* b) {
                     return a->node < b->node;
                 });
                 std::sort(res_spruce.begin(), res_spruce.end());
@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            std::cout << "BFS done" << std::endl;
+            // std::cout << "BFS done" << std::endl;
         }
         ++now;
 

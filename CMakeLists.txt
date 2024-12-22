@@ -8,9 +8,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Enable optimization
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-
 # Enable OpenMP
 find_package(OpenMP REQUIRED)
 find_package(TBB REQUIRED)
@@ -56,3 +53,4 @@ add_executable(test_trie
 
 # Link libraries (Spruce depends on junction and turf)
 target_link_libraries(forward_star PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(test_trie PRIVATE OpenMP::OpenMP_CXX TBB::tbb)

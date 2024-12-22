@@ -1,53 +1,43 @@
 #include "forward_star.h"
 
-inline ForwardStar::DummyNode* ForwardStar::RetrieveOrInsert(uint64_t u) {
-    auto tmp = vertex_index->RetrieveVertex(u, true);
-    DummyNode* u_ptr = (DummyNode*)tmp->head;
-    if (!u_ptr) {
-        u_ptr = new DummyNode{u};
-        std::memset(u_ptr->flag, 0, sizeof(u_ptr->flag));
-        tmp->head = u_ptr;
-        tmp->mtx = 0;
-    }
-    return u_ptr;
-}
-
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
-    DummyNode* src_ptr = RetrieveOrInsert(src);
-    DummyNode* des_ptr = RetrieveOrInsert(des);
+    DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
+    DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
     auto it = src_ptr->next.grow_by(1);
     *it = WeightedEdge{weight, des_ptr, global_timestamp++, 1};
     return true;
 }
 
 bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
-    DummyNode* src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src)->head;
+    DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
     }
-    DummyNode* des_ptr = (DummyNode*)vertex_index->RetrieveVertex(des)->head;
+    DummyNode* des_ptr = vertex_index->RetrieveVertex(des);
     if (!des_ptr) {
         return false;
     }
-    src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, global_timestamp++, 2});
+    auto it = src_ptr->next.grow_by(1);
+    *it = WeightedEdge{weight, des_ptr, global_timestamp++, 2};
     return true;
 }
 
 bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
-    DummyNode* src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src)->head;
+    DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
     }
-    DummyNode* des_ptr = (DummyNode*)vertex_index->RetrieveVertex(des)->head;
+    DummyNode* des_ptr = vertex_index->RetrieveVertex(des);
     if (!des_ptr) {
         return false;
     }
-    src_ptr->next.emplace_back(WeightedEdge{0, des_ptr, global_timestamp++, 4});
+    auto it = src_ptr->next.grow_by(1);
+    *it = WeightedEdge{0, des_ptr, global_timestamp++, 4};
     return true;
 }
 
 bool ForwardStar::GetNeighbours(uint64_t src, std::vector<WeightedEdge> &neighbours) {
-    DummyNode* src_ptr = (DummyNode*)vertex_index->RetrieveVertex(src)->head;
+    DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
     }
@@ -89,10 +79,9 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
     return true;
 }
 
-std::vector<ForwardStar::DummyNode*> ForwardStar::BFS(uint64_t src) {
+std::vector<DummyNode*> ForwardStar::BFS(uint64_t src) {
     std::queue<DummyNode*> Q;
-    auto tmp = vertex_index->RetrieveVertex(src);
-    auto src_ptr = (DummyNode*)tmp->head;
+    auto src_ptr = vertex_index->RetrieveVertex(src);
     src_ptr->flag[0] |= (1 << 7);
     Q.push(src_ptr);
     std::vector<DummyNode*> res;
