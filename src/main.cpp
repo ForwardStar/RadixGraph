@@ -27,7 +27,7 @@ std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, uint64_t src) {
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
-    int num_threads = 16;
+    int num_threads = 1;
     if (argc > 1) {
         std::ifstream f("settings");
         int d;
@@ -51,6 +51,7 @@ int main(int argc, char* argv[]) {
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> duration = end - start;
         std::cout << "Forward*: " << duration.count() << "s" << std::endl;
+        std::cout << G_fstar.vertex_index->size() << std::endl;
 
         start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)

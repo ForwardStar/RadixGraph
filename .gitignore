@@ -10,3 +10,7 @@ spruce
 forward_star
 test_trie
 libFSTAR.a
+binned_distribution.jpg
+*.e
+*.v
+*.properties

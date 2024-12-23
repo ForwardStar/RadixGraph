@@ -81,7 +81,7 @@ long long Trie::size() {
             sz += (1 << num_bits[d]);
             if (d < depth - 1) {
                 for (int i = 0; i < (1 << num_bits[d]); i++) {
-                    if (u->children[i].children) {
+                    if (u->children[i].children || u->children[i].head) {
                         Q.emplace(&u->children[i], d + 1);
                     }
                 }
