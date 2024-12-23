@@ -1,23 +1,36 @@
 #include "optimized_trie.h"
 
-DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t u, int d) {
+DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
     for (int i = d; i < depth; i++) {
         int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
-        uint64_t idx = ((u & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
-        if (i < depth - 2) {
-            uint64_t nxt_idx = ((u & ((1ull << num_now - num_bits[i]) - 1)) >> (sum_bits[depth - 1] - sum_bits[i + 1]));
-            current->children[idx].children = new TrieNode[1 << num_bits[i + 1]];
-            current->children[idx].children[nxt_idx].mtx = 1;
-            current->children[idx].mtx = 0;
-        }
-        else if (i == depth - 2) {
-            uint64_t nxt_idx = ((u & ((1ull << num_now - num_bits[i]) - 1)) >> (sum_bits[depth - 1] - sum_bits[i + 1]));
-            current->children[idx].head = new DummyNode[1 << num_bits[i + 1]];
-            current->children[idx].head[nxt_idx].node = u;
-            std::memset(current->children[idx].head[nxt_idx].flag, 0, sizeof(current->children[idx].head[nxt_idx].flag));
-            current->children[idx].mtx = 0;
+        uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
+        if (i < depth - 1) {
+            if (!current->children) {
+                uint8_t unlocked = 0;
+                while (!current->mtx.compare_exchange_strong(unlocked, 1)) {
+                    unlocked = 0;
+                }
+                if (!current->children) {
+                    current->children = new TrieNode[1 << num_bits[i]];
+                }
+                current->mtx = 0;
+            }
         }
         else {
+            if (!current->head) {
+                uint8_t unlocked = 0;
+                while (!current->mtx.compare_exchange_strong(unlocked, 1)) {
+                    unlocked = 0;
+                }
+                if (!current->head) {
+                    current->head = new DummyNode[1 << num_bits[i]];
+                }
+                current->mtx = 0;
+            }
+            if (current->head[idx].node == -1) {
+                current->head[idx].node = id;
+                std::memset(current->head[idx].flag, 0, sizeof(current->head[idx].flag));
+            }
             return &current->head[idx];
         }
         current = &current->children[idx];
@@ -30,39 +43,19 @@ DummyNode* Trie::RetrieveVertex(uint64_t id, bool insert_mode) {
     for (int i = 0; i < depth; i++) {
         int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
         uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
-        if (i < depth - 2) {
-            if (insert_mode && !current->children[idx].children) {
-                uint8_t unlocked = 0;
-                while (!current->children[idx].mtx.compare_exchange_strong(unlocked, 1)) {
-                    unlocked = 0;
-                }
-                if (!current->children[idx].children) {
-                    return InsertVertex(current, id, i);
-                }
-                current->children[idx].mtx = 0;
-            }
-        }
-        else if (i == depth - 2) {
-            if (insert_mode && !current->children[idx].head) {
-                uint8_t unlocked = 0;
-                while (!current->children[idx].mtx.compare_exchange_strong(unlocked, 1)) {
-                    unlocked = 0;
-                }
-                if (!current->children[idx].head) {
-                    return InsertVertex(current, id, i);
-                }
-                current->children[idx].mtx = 0;
+        if (i < depth - 1) {
+            if (insert_mode && !current->children) {
+                return InsertVertex(current, id, i);
             }
         }
         else {
-            if (insert_mode && current->head[idx].node == -1) {
-                current->head[idx].node = id;
-                std::memset(current->head[idx].flag, 0, sizeof(current->head[idx].flag));
+            if (insert_mode && (!current->head || current->head[idx].node == -1)) {
+                return InsertVertex(current, id, i);
             }
             if (current->head[idx].node == -1) {
                 return nullptr;
             }
-            else return &current->head[idx];
+            return &current->head[idx];
         }
         current = &current->children[idx];
     }

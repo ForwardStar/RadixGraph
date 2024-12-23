@@ -23,7 +23,7 @@ class Trie {
         typedef struct _trie_node {
             DummyNode* head = nullptr;
             _trie_node* children = nullptr;
-            std::atomic<uint8_t> mtx;
+            std::atomic<uint8_t> mtx = 0;
 
             ~_trie_node() {
                 if (children) {
@@ -40,7 +40,7 @@ class Trie {
         int depth = 0;
         int space = 0;
 
-        inline DummyNode* InsertVertex(TrieNode* current, uint64_t u, int d);
+        inline DummyNode* InsertVertex(TrieNode* current, uint64_t id, int d);
 
         DummyNode* RetrieveVertex(uint64_t id, bool insert_mode=false);
 
