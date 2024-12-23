@@ -3,8 +3,8 @@
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
-    // auto it = src_ptr->next.grow_by(1);
-    // *it = WeightedEdge{weight, des_ptr, global_timestamp++, 1};
+    auto it = src_ptr->next.grow_by(1);
+    *it = WeightedEdge{weight, des_ptr, global_timestamp++, 1};
     return true;
 }
 
