@@ -44,6 +44,8 @@ class Trie {
 
         DummyNode* RetrieveVertex(uint64_t id, bool insert_mode=false);
 
+        bool DeleteVertex(uint64_t id);
+
         long long size();
 
         Trie() {}

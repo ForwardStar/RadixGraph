@@ -46,10 +46,16 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
     if (src) {
         int thread_id = thread_pool[cnt.fetch_sub(1, std::memory_order_relaxed) - 1];
         for (int i = int(src->next.size()) - 1; i >= 0; i--) {
+            if (src->next[i].forward->node == -1) {
+                continue;
+            }
             src->next[i].forward->flag[thread_id] &= (1 << 7);
         }
         for (int i = int(src->next.size()) - 1; i >= 0; i--) {
             auto e = src->next[i];
+            if (e.forward->node == -1) {
+                continue;
+            }
             if ((e.forward->flag[thread_id] & 7) == 0) {
                 if (e.flag == 1) {
                     neighbours.emplace_back(e);

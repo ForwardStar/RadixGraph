@@ -62,6 +62,16 @@ DummyNode* Trie::RetrieveVertex(uint64_t id, bool insert_mode) {
     return nullptr;
 }
 
+bool Trie::DeleteVertex(uint64_t id) {
+    DummyNode* tmp = RetrieveVertex(id);
+    if (tmp == nullptr) {
+        return false;
+    }
+    tmp->node = -1;
+    tmp->next.clear();
+    return true;
+}
+
 long long Trie::size() {
     long long sz = 0;
     std::queue<std::pair<TrieNode*, int>> Q;
