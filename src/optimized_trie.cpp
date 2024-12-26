@@ -28,8 +28,17 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
                 current->mtx = 0;
             }
             if (current->head[idx].node == -1) {
-                current->head[idx].node = id;
-                std::memset(current->head[idx].flag, 0, sizeof(current->head[idx].flag));
+                uint8_t unlocked = 0;
+                while (!current->head[idx].mtx.compare_exchange_strong(unlocked, 1)) {
+                    unlocked = 0;
+                }
+                if (current->head[idx].node == -1) {
+                    std::memset(current->head[idx].flag, 0, sizeof(current->head[idx].flag));
+                    current->head[idx].next = new WeightedEdge[5];
+                    current->head[idx].cap = 5;
+                    current->head[idx].node = id;
+                }
+                current->head[idx].mtx = 0;
             }
             return &current->head[idx];
         }
@@ -68,7 +77,8 @@ bool Trie::DeleteVertex(uint64_t id) {
         return false;
     }
     tmp->node = -1;
-    tmp->next.clear();
+    delete [] tmp->next;
+    tmp->cap = tmp->cnt = 0;
     return true;
 }
 

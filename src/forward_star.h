@@ -6,6 +6,7 @@
 
 class ForwardStar {
     private:
+        bool Insert(DummyNode* src, DummyNode* des, double weight, int flag);      
     public:
         Trie* vertex_index = nullptr;
         std::atomic<int> cnt;

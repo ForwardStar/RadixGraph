@@ -15,7 +15,14 @@ typedef struct _weighted_edge {
 typedef struct _dummy_node {
     uint64_t node = -1; // this dummy node corresponds to which vertex
     uint8_t flag[max_number_of_threads];
-    tbb::concurrent_vector<WeightedEdge> next; // array-based edge structure
+    WeightedEdge* next = nullptr;
+    int cap = 0;
+    std::atomic<int> cnt = 0;
+    std::atomic<uint8_t> mtx = 0;
+
+    ~_dummy_node() {
+        delete [] next;
+    }
 } DummyNode;
 
 class Trie {

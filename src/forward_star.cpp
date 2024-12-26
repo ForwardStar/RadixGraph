@@ -1,9 +1,34 @@
 #include "forward_star.h"
 
+bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight, int flag) {
+    int i = src->cnt.fetch_add(1);
+    if (i >= src->cap) {
+        uint8_t unlocked = 0;
+        while (!src->mtx.compare_exchange_strong(unlocked, 1)) {
+            unlocked = 0;
+        }
+        if (i >= src->cap) {
+            auto des = new WeightedEdge[src->cap * 2];
+            std::copy(src->next, src->next + src->cap, des);
+            delete [] src->next;
+            src->next = des;
+            src->cap *= 2;
+        }
+        src->mtx = 0;
+    }
+    if (i < src->cap) {
+        src->next[i].forward = des;
+        src->next[i].weight = weight;
+        src->next[i].flag = flag;
+        return true;
+    }
+    return false;
+}
+
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
-    src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, global_timestamp++, 1});
+    Insert(src_ptr, des_ptr, weight, 1);
     return true;
 }
 
@@ -16,7 +41,7 @@ bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
     if (!des_ptr) {
         return false;
     }
-    src_ptr->next.emplace_back(WeightedEdge{weight, des_ptr, global_timestamp++, 2});
+    Insert(src_ptr, des_ptr, weight, 2);
     return true;
 }
 
@@ -29,7 +54,7 @@ bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
     if (!des_ptr) {
         return false;
     }
-    src_ptr->next.emplace_back(WeightedEdge{0, des_ptr, global_timestamp++, 2});
+    Insert(src_ptr, des_ptr, 0, 4);
     return true;
 }
 
@@ -45,13 +70,13 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
     std::vector<int> temp;
     if (src) {
         int thread_id = thread_pool[cnt.fetch_sub(1, std::memory_order_relaxed) - 1];
-        for (int i = int(src->next.size()) - 1; i >= 0; i--) {
+        for (int i = src->cnt - 1; i >= 0; i--) {
             if (src->next[i].forward->node == -1) {
                 continue;
             }
             src->next[i].forward->flag[thread_id] &= (1 << 7);
         }
-        for (int i = int(src->next.size()) - 1; i >= 0; i--) {
+        for (int i = src->cnt - 1; i >= 0; i--) {
             auto e = src->next[i];
             if (e.forward->node == -1) {
                 continue;
