@@ -24,9 +24,21 @@ int main() {
     std::default_random_engine generator;
     unsigned long long maximum = u < 64 ? (1ull << u) - 1 : -1;
     std::uniform_int_distribution distribution(0ull, maximum);
-    #pragma omp parallel for num_threads(10)
+    std::unordered_set<uint64_t> vertex_ids;
     for (int i = 0; i < n; i++) {
         uint64_t id = distribution(generator);
+        while (vertex_ids.find(id) != vertex_ids.end()) {
+            id = distribution(generator);
+        }
+        vertex_ids.insert(id);
+    }
+    std::vector<uint64_t> vids;
+    for (auto u : vertex_ids) {
+        vids.emplace_back(u);
+    }
+    #pragma omp parallel for num_threads(10)
+    for (int i = 0; i < n; i++) {
+        uint64_t id = vids[i];
         auto x = trie_base.RetrieveVertex(id, true);
         x = trie_opt.RetrieveVertex(id, true);
         auto tmp = trie_base.RetrieveVertex(id);

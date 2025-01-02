@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
         {16, 7, 7},
         {19, 6, 5},
         {21, 5, 4},
-        {16, 9, 5},
+        {23, 4, 3},
     };
     int m = 10000000;
     int num_trials = 3;
