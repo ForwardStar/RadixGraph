@@ -1,11 +1,6 @@
 # Forward_star
 A graph data structure for optimizing graph traversals and graph OLAP tasks.
 
-# Prerequisite
-```
-libtbb-dev 2021.5.0
-```
-
 # Compile and run
 ```sh
 git clone https://github.com/ForwardStar/forward_star.git --recurse-submodules
@@ -28,7 +23,7 @@ std::vector<std::vector<int>> a = {
     {16, 7, 7},
     {19, 6, 5},
     {21, 5, 4},
-    {16, 9, 5},
+    {23, 4, 3},
 };
 ```
 
