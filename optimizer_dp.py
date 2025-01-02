@@ -20,7 +20,7 @@ if len(sys.argv) > 1:
             for s in lines:
                 n += 1
                 max_vid = max(max_vid, int(s))
-            u = max_vid
+            u = max_vid + 1
             g.close()
         f.close()
     print("n =", n)

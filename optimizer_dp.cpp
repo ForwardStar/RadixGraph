@@ -16,7 +16,7 @@ using vl = vector<ll>;
 using vvl = vector<vector<ll>>;
 using vvld = vector<vector<ld>>;
  
-const ll INF = 1e18;
+const ll INF = (1ll << 62);
 const ld EPS = 1e-9;
 const ll MOD = 1e9 + 7;
 
@@ -58,7 +58,7 @@ signed main(signed argc, char* argv[]) {
     rep(i, 1, l) {
         rep(j, i, logu + 1) {
             rep(k, i, j) {
-                ld cost = (1ll << j) + (1 - prob(u, n, (1ll << logu - k)));
+                ld cost = (1ll << j) * (1.0 - prob(u, n, (1ll << logu - k)));
                 if (g[i - 1][k] + cost < g[i][j]) {
                     g[i][j] = g[i - 1][k] + cost;
                     pre[i][j] = k;
@@ -80,5 +80,6 @@ signed main(signed argc, char* argv[]) {
         cout << s[i] << " ";
     }
     cout << "\n";
+    cout << g[l - 1][logu] << "\n";
     return 0;
 }
