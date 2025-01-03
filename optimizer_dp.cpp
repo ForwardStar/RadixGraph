@@ -30,37 +30,49 @@ ld prob(ll u, ll n, ll desc) {
 }
 
 signed main(signed argc, char* argv[]) {
+    ll n = 0, l = 0, u = 0;
+    int logu = 0;
     if (argc != 3) {
         cerr << "Usage: " << argv[0] << " <file> <layers>" << endl;
-        return EXIT_FAILURE;
+        cout << "Or input parameters manually:" << endl;
+        cout << "n = ";
+        cin >> n;
+        cout << "log(u) = ";
+        cin >> logu;
+        cout << "l = ";
+        cin >> l;
     }
-    ifstream infile(argv[1]);
-    if (!infile) {
-        cerr << "Error: Cannot open file " << argv[1] << endl;
-        return EXIT_FAILURE;
+    else {
+        ifstream infile(argv[1]);
+        l = atoi(argv[2]);
+        if (!infile) {
+            cerr << "Error: Cannot open file " << argv[1] << endl;
+            return EXIT_FAILURE;
+        }
+        ll num;
+        while (infile >> num) {
+            n++;
+            u = max(u, num);
+        }
+        u++;
+        logu = ceil(log2(u));
     }
-    ll l = atoi(argv[2]), u = 0, n = 0, num;
-    while (infile >> num) {
-        n++;
-        u = max(u, num);
-    }
-    u++;
-    int logu = ceil(log2(u));
+    u = (1ll << logu);
     vvld g(l);
     vvl pre(l);
     rep(i, 0, l) {
         g[i].assign(logu + 1, INF);
         pre[i].assign(logu + 1, -1);
     }
-    rep(i, 1, logu + 1) {
+    rep(i, 0, logu + 1) {
         g[0][i] = (1ll << i);
     }
     rep(i, 1, l) {
-        rep(j, i, logu + 1) {
-            rep(k, i, j) {
-                ld cost = (1ll << j) * (1.0 - pow(ld(u - (1ll << logu - k)) / u, n));
+        rep(j, 0, logu + 1) {
+            rep(k, 0, j + 1) {
+                ld cost = (1.0 - pow(ld(u - (1ll << logu - k)) / u, n)) * (1ll << j);
                 if (g[i - 1][k] + cost >= g[i][j]) continue;
-                cost = (1ll << j) * (1.0 - prob(u, n, (1ll << logu - k)));
+                cost = (1.0 - prob(u, n, (1ll << logu - k))) * (1ll << j);
                 if (g[i - 1][k] + cost < g[i][j]) {
                     g[i][j] = g[i - 1][k] + cost;
                     pre[i][j] = k;
