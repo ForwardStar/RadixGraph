@@ -80,7 +80,6 @@ signed main(signed argc, char* argv[]) {
             }
         }
     }
-    cout << l << "\n";
     vl s(l);
     ll now = logu;
     rrep(i, l - 1, 0) {
@@ -89,9 +88,12 @@ signed main(signed argc, char* argv[]) {
     }
     rrep(i, l - 1, 1) {
         s[i] -= s[i - 1];
+        if (s[i] == 0) l--;
     }
-    rep(i, 0, l) {
-        cout << s[i] << " ";
+    if (s[0] == 0) l--;
+    cout << l << "\n";
+    rep(i, 0, s.size()) {
+        if (s[i]) cout << s[i] << " ";
     }
     cout << "\n";
     cout << g[l - 1][logu] << "\n";
