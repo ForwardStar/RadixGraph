@@ -96,6 +96,6 @@ signed main(signed argc, char* argv[]) {
         if (s[i]) cout << s[i] << " ";
     }
     cout << "\n";
-    cout << g[l - 1][logu] << "\n";
+    // cout << g[l - 1][logu] << "\n";
     return 0;
 }
