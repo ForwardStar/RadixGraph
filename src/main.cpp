@@ -24,6 +24,26 @@ std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, uint64_t src) {
     return res;
 }
 
+unsigned int get_proc_mem() {
+    int pid = getpid();
+    char file_name[64] = { 0 };
+    FILE* fd;
+    char line_buff[512] = { 0 };
+    sprintf(file_name, "/proc/%d/status", pid);
+    fd = fopen(file_name, "r");
+    if (fd == NULL) return 0;
+    char name[64];
+    int vmrss = 0;
+    int i;
+    for (i = 0; i < VMRSS_LINE - 1; i++) {
+        fgets(line_buff, sizeof(line_buff), fd);
+    }
+    fgets(line_buff, sizeof(line_buff), fd);
+    sscanf(line_buff, "%s %d", name, &vmrss);
+    fclose(fd);
+    return vmrss;
+}
+
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
@@ -34,8 +54,6 @@ int main(int argc, char* argv[]) {
         f >> d;
         std::vector<int> a(d);
         for (auto& i : a) f >> i;
-        ForwardStar G_fstar(d, a);
-        SpruceTransVer spruce;
 
         std::ifstream fin(argv[argc - 1]);
         uint64_t u, v;
@@ -45,6 +63,7 @@ int main(int argc, char* argv[]) {
         }
         std::random_shuffle(edges.begin(), edges.end());
 
+        ForwardStar G_fstar(d, a);
         auto start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)
         for (auto e : edges) G_fstar.InsertEdge(e.first, e.second, 0.5);
@@ -52,13 +71,16 @@ int main(int argc, char* argv[]) {
         std::chrono::duration<double> duration = end - start;
         std::cout << "Forward*: " << duration.count() << "s" << std::endl;
         std::cout << "Size: " << G_fstar.vertex_index->size() << std::endl;
+        std::cout << "Memory: " << get_proc_mem() << std::endl;
 
+        SpruceTransVer spruce;
         start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)
         for (auto e : edges) SpruceTransVer::InsertEdge(spruce, {e.first, e.second, 0.5});
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Spruce: " << duration.count() << "s" << std::endl;
+        std::cout << "Memory: " << get_proc_mem() << std::endl;
         
         start = std::chrono::high_resolution_clock::now();
         int sz = G_fstar.BFS(1).size();
