@@ -14,8 +14,9 @@
 #include <queue>
 #include <stack>
 #include <thread>
-#include <tbb/concurrent_vector.h>
+#include "GAPBS/bitmap.h"
 
-const int max_number_of_threads = 32;
+const int max_number_of_threads = 64;
+const size_t bitmap_size = max_number_of_threads * 3;
 
 #endif

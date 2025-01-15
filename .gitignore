@@ -9,6 +9,7 @@ junction
 spruce
 forward_star
 test_trie
+test_gapbs
 libFSTAR.a
 *.e
 *.v

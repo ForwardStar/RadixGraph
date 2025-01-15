@@ -1,4 +1,3 @@
-#include "headers.h"
 #include "forward_star.h"
 #include "../Spruce/Spruce/src/spruce_transaction.h"
 

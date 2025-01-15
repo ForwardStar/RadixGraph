@@ -33,9 +33,29 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
                     unlocked = 0;
                 }
                 if (current->head[idx].node == -1) {
-                    std::memset(current->head[idx].flag, 0, sizeof(current->head[idx].flag));
+                    current->head[idx].flag = new Bitmap(bitmap_size);
+                    current->head[idx].flag->reset();
                     current->head[idx].next = new WeightedEdge[5];
                     current->head[idx].cap = 5;
+                    int i = cnt.fetch_add(1);
+                    if (i >= cap) {
+                        uint8_t unlocked = 0;
+                        while (!mtx.compare_exchange_strong(unlocked, 1)) {
+                            unlocked = 0;
+                        }
+                        if (i >= cap) {
+                            auto des = new DummyNode*[cap * 2];
+                            std::copy(dummy_nodes, dummy_nodes + cap, des);
+                            delete [] dummy_nodes;
+                            dummy_nodes = des;
+                            cap *= 2;
+                        }
+                        mtx = 0;
+                    }
+                    if (i < cap) {
+                        dummy_nodes[i] = &current->head[idx];
+                    }
+                    current->head[idx].idx = i;
                     current->head[idx].node = id;
                 }
                 current->head[idx].mtx = 0;
@@ -112,6 +132,8 @@ Trie::Trie(int d, int _num_bits[]) {
         sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
     }
     root.children = new TrieNode[1 << num_bits[0]];
+    cap = 1000;
+    dummy_nodes = new DummyNode*[cap];
 }
 
 Trie::Trie(int d, std::vector<int> _num_bits) {
@@ -122,4 +144,10 @@ Trie::Trie(int d, std::vector<int> _num_bits) {
         sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
     }
     root.children = new TrieNode[1 << num_bits[0]];
+    cap = 1000;
+    dummy_nodes = new DummyNode*[cap];
+}
+
+Trie::~Trie() {
+    if (dummy_nodes) delete [] dummy_nodes;
 }

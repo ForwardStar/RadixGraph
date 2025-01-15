@@ -1,6 +1,7 @@
-#include "headers.h"
 #ifndef TRIE
 #define TRIE
+
+#include "headers.h"
 
 typedef struct _weighted_edge;
 typedef struct _dummy_node;
@@ -9,19 +10,21 @@ typedef struct _weighted_edge {
     double weight; // edge property
     _dummy_node* forward; // forward pointer to dummy node of target vertex
     int timestamp;
-    uint8_t flag;
+    uint8_t type;
 } WeightedEdge;
 
 typedef struct _dummy_node {
     uint64_t node = -1; // this dummy node corresponds to which vertex
-    uint8_t flag[max_number_of_threads];
+    int idx = -1; // the index of this dummy node
+    Bitmap* flag = nullptr;
     WeightedEdge* next = nullptr;
     int cap = 0;
     std::atomic<int> cnt = 0;
     std::atomic<uint8_t> mtx = 0;
 
     ~_dummy_node() {
-        delete [] next;
+        if (next) delete [] next;
+        if (flag) delete flag;
     }
 } DummyNode;
 
@@ -43,9 +46,11 @@ class Trie {
         } TrieNode;
 
         TrieNode root;
+        DummyNode** dummy_nodes = nullptr;
         std::vector<int> num_bits, sum_bits;
-        int depth = 0;
-        int space = 0;
+        int depth = 0, space = 0, cap = 0;
+        std::atomic<int> cnt = 0;
+        std::atomic<uint8_t> mtx = 0;
 
         inline DummyNode* InsertVertex(TrieNode* current, uint64_t id, int d);
 
@@ -58,7 +63,7 @@ class Trie {
         Trie() {}
         Trie(int d, int _num_bits[]);
         Trie(int d, std::vector<int> _num_bits);
-        ~Trie() {};
+        ~Trie();
 };
 
 #endif

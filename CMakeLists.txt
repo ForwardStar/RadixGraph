@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Enable OpenMP
 find_package(OpenMP REQUIRED)
-find_package(TBB REQUIRED)
 if(OPENMP_FOUND)
     message("OpenMP found")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -42,6 +41,8 @@ add_executable(forward_star
     src/headers.h
     src/forward_star.h
     src/optimized_trie.h
+    src/GAPBS/bitmap.h
+    src/GAPBS/platform_atomics.h
 )
 
 add_executable(test_trie
@@ -49,8 +50,25 @@ add_executable(test_trie
     src/optimized_trie.cpp
     src/headers.h
     src/optimized_trie.h
+    src/GAPBS/bitmap.h
+    src/GAPBS/platform_atomics.h
+)
+
+add_executable(test_gapbs
+    src/test_gapbs.cpp
+    src/forward_star.cpp
+    src/optimized_trie.cpp
+    src/GAPBS/bfs.cc
+    src/GAPBS/sssp.cc
+    src/forward_star.h
+    src/optimized_trie.h
+    src/GAPBS/bfs.h
+    src/GAPBS/benchmark.h
+    src/GAPBS/sssp.h
+    src/GAPBS/platform_atomics.h
 )
 
 # Link libraries (Spruce depends on junction and turf)
-target_link_libraries(forward_star PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_trie PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(forward_star PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX)
+target_link_libraries(test_trie PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries(test_gapbs PRIVATE OpenMP::OpenMP_CXX)
