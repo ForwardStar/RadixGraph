@@ -16,15 +16,14 @@ typedef struct _weighted_edge {
 typedef struct _dummy_node {
     uint64_t node = -1; // this dummy node corresponds to which vertex
     int idx = -1; // the index of this dummy node
-    Bitmap* flag = nullptr;
+    uint8_t flag[max_number_of_threads] = {0};
     WeightedEdge* next = nullptr;
-    int cap = 0, deg = 0;
-    std::atomic<int> cnt = 0;
+    int cap = 0;
+    std::atomic<int> cnt = 0, deg = 0;
     std::atomic<uint8_t> mtx = 0;
 
     ~_dummy_node() {
         if (next) delete [] next;
-        if (flag) delete flag;
     }
 } DummyNode;
 

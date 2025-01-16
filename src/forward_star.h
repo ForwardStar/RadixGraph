@@ -8,9 +8,7 @@ class ForwardStar {
         bool Insert(DummyNode* src, DummyNode* des, double weight, int type);      
     public:
         Trie* vertex_index = nullptr;
-        std::atomic<int> cnt;
         int global_timestamp;
-        std::vector<int> thread_pool;
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
         bool UpdateEdge(uint64_t src, uint64_t des, double weight);

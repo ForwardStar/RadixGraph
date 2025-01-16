@@ -32,11 +32,18 @@ int main(int argc, char* argv[]) {
     // for (int i = 0; i < n - 1; i++) {
     //     edges.push_back(std::make_pair(std::make_pair(vertex_ids[i], vertex_ids[i + 1]), 0.5));
     // }
+    std::set<std::pair<uint64_t, uint64_t>> edge_set;
     for (int i = 0; i < m; i++) {
         int id1 = rand() % n, id2 = rand() % n;
         u = vertex_ids[id1];
         v = vertex_ids[id2];
+        while (edge_set.find({u, v}) != edge_set.end()) {
+            id1 = rand() % n, id2 = rand() % n;
+            u = vertex_ids[id1];
+            v = vertex_ids[id2];
+        }
         edges.push_back(std::make_pair(std::make_pair(u, v), 0.5));
+        edge_set.emplace(std::make_pair(u, v));
     }
 
     ForwardStar G(d, a);

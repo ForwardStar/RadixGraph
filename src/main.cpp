@@ -1,10 +1,13 @@
 #include "forward_star.h"
 #include "../Spruce/Spruce/src/spruce_transaction.h"
 
+uint64_t max_uid = 0;
+
 std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, uint64_t src) {
-    std::unordered_set<uint64_t> visited_vertices;
+    Bitmap vis(max_uid + 1);
+    vis.reset();
     std::queue<uint64_t> Q;
-    visited_vertices.insert(src);
+    vis.set_bit(src);
     Q.push(src);
     std::vector<uint64_t> res;
     while (!Q.empty()) {
@@ -14,8 +17,8 @@ std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, uint64_t src) {
         std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours;
         SpruceTransVer::get_neighbours(spruce, u, neighbours);
         for (auto e : neighbours) {
-            if (visited_vertices.find(e.des) == visited_vertices.end()) {
-                visited_vertices.insert(e.des);
+            if (!vis.get_bit(e.des)) {
+                vis.set_bit(e.des);
                 Q.push(e.des);
             }
         }
@@ -59,6 +62,8 @@ int main(int argc, char* argv[]) {
         std::vector<std::pair<uint64_t, uint64_t>> edges;
         while (fin >> u >> v) {
             edges.emplace_back(u, v);
+            max_uid = std::max(max_uid, u);
+            max_uid = std::max(max_uid, v);
         }
         std::random_shuffle(edges.begin(), edges.end());
 
@@ -111,7 +116,7 @@ int main(int argc, char* argv[]) {
     unsigned long long maximum = (1ull << 30) - 1;
     std::uniform_int_distribution distribution(0ull, maximum);
     int now = 0;
-    for (int n = 1000; n <= 1000000; n *= 10) {
+    for (int n = 10000; n <= 1000000; n *= 10) {
         double duration_insert_edge_fstar = 0;
         double duration_insert_edge_spruce = 0;
         double duration_delete_edge_fstar = 0;
@@ -126,6 +131,7 @@ int main(int argc, char* argv[]) {
         std::cout << "n = " << n << ", m = " << m << std::endl;
         std::vector<uint64_t> vertex_ids;
         std::unordered_set<uint64_t> vertex_set;
+        max_uid = 0;
         for (int i = 0; i < n; i++) {
             uint64_t id = distribution(generator);
             while (vertex_set.find(id) != vertex_set.end()) {
@@ -133,6 +139,7 @@ int main(int argc, char* argv[]) {
             }
             vertex_ids.push_back(id);
             vertex_set.insert(id);
+            max_uid = std::max(max_uid, id);
         }
         for (int i = 0; i < num_trials; i++) {
             // std::cout << "Trial " << i + 1 << ":" << std::endl;
@@ -144,14 +151,22 @@ int main(int argc, char* argv[]) {
             {
                 uint64_t u, v;
                 double w;
+                std::set<std::pair<uint64_t, uint64_t>> edge_set;
                 for (int i = 0; i < n - 1; i++) {
                     edges.push_back(std::make_pair(std::make_pair(vertex_ids[i], vertex_ids[i + 1]), 0.5));
+                    edge_set.emplace(std::make_pair(vertex_ids[i], vertex_ids[i + 1]));
                 }
                 for (int i = 0; i < m - (n - 1); i++) {
                     int id1 = rand() % n, id2 = rand() % n;
                     u = vertex_ids[id1];
                     v = vertex_ids[id2];
+                    while (edge_set.find({u, v}) != edge_set.end()) {
+                        id1 = rand() % n, id2 = rand() % n;
+                        u = vertex_ids[id1];
+                        v = vertex_ids[id2];
+                    }
                     edges.push_back(std::make_pair(std::make_pair(u, v), 0.5));
+                    edge_set.emplace(std::make_pair(u, v));
                 }
 
                 auto start = std::chrono::high_resolution_clock::now();

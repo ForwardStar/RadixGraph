@@ -28,8 +28,8 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight, int type
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
-    src_ptr->deg++;
-    Insert(src_ptr, des_ptr, weight, 1);
+    src_ptr->deg.fetch_add(1);
+    Insert(src_ptr, des_ptr, weight, 0);
     return true;
 }
 
@@ -42,8 +42,7 @@ bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
     if (!des_ptr) {
         return false;
     }
-    src_ptr->deg--;
-    Insert(src_ptr, des_ptr, weight, 2);
+    Insert(src_ptr, des_ptr, weight, 1);
     return true;
 }
 
@@ -56,7 +55,8 @@ bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
     if (!des_ptr) {
         return false;
     }
-    Insert(src_ptr, des_ptr, 0, 3);
+    src_ptr->deg.fetch_sub(1);
+    Insert(src_ptr, des_ptr, 0, 2);
     return true;
 }
 
@@ -72,49 +72,46 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
     if (src) {
         std::vector<int> temp;
         int num = 0;
-        neighbours.resize(src->cnt);
-        int thread_id = thread_pool[cnt.fetch_sub(1, std::memory_order_relaxed) - 1];
-        const int INSERT = thread_id * 3, UPDATE = thread_id * 3 + 1, DELETE = thread_id * 3 + 2;
+        neighbours.resize(src->deg);
+        int thread_id = omp_get_thread_num();
         for (int i = src->cnt - 1; i >= 0; i--) {
             if (src->next[i].forward->node == -1) {
                 continue;
             }
-            src->next[i].forward->flag->clear_bit(INSERT);
-            src->next[i].forward->flag->clear_bit(UPDATE);
-            src->next[i].forward->flag->clear_bit(DELETE);
+            src->next[i].forward->flag[thread_id] = 0;
         }
         for (int i = src->cnt - 1; i >= 0; i--) {
-            auto e = src->next[i];
-            if (e.forward->node == -1) {
+            auto e = &src->next[i];
+            if (e->forward->node == -1) {
                 continue;
             }
-            if (!e.forward->flag->get_bit(INSERT) && !e.forward->flag->get_bit(DELETE)) {
-                if (!e.forward->flag->get_bit(UPDATE)) {
-                    if (e.type == 1) { // Insert
-                        neighbours[num++] = e;
+            if ((e->forward->flag[thread_id] & 5) == 0) {
+                if ((e->forward->flag[thread_id] & 2) == 0) {
+                    if (e->type == 0) { // Insert
+                        neighbours[num].forward = e->forward;
+                        neighbours[num].timestamp = e->timestamp;
+                        neighbours[num].type = e->type;
+                        neighbours[num].weight = e->weight;
+                        ++num;
                     }
-                    else if (e.type == 2) { // Update
+                    else if (e->type == 1) { // Update
                         temp.emplace_back(i);
                     }
                 }
-                if (e.type == 1) {
-                    e.forward->flag->set_bit(INSERT);
-                }
-                if (e.type == 2) {
-                    e.forward->flag->set_bit(UPDATE);
-                }
-                if (e.type == 3) {
-                    e.forward->flag->set_bit(DELETE);
-                }
+                e->forward->flag[thread_id] |= (1 << e->type);
             }
         }
         for (auto i : temp) {
-            if (src->next[i].forward->flag->get_bit(INSERT)) {
-                neighbours[num++] = src->next[i];
+            if (src->next[i].forward->flag[thread_id] & 1) {
+                neighbours[num].forward = src->next[i].forward;
+                neighbours[num].timestamp = src->next[i].timestamp;
+                neighbours[num].type = src->next[i].type;
+                neighbours[num].weight = src->next[i].weight;
+                ++num;
             }
         }
-        thread_pool[cnt.fetch_add(1, std::memory_order_relaxed)] = thread_id;
         while (neighbours.size() > num) {
+            // std::cout << "Should not happen if data format correct... deg = " << src->deg << ", actual size = " << num << ", log entries = " << src->cnt << std::endl;
             neighbours.pop_back();
         }
     }
@@ -174,9 +171,6 @@ std::vector<double> ForwardStar::SSSP(uint64_t src) {
 
 ForwardStar::ForwardStar(int d, std::vector<int> _num_children) {
     vertex_index = new Trie(d, _num_children);
-    for (int i = 0; i < max_number_of_threads; i++) {
-        thread_pool.emplace_back(i), ++cnt;
-    }
 }
 
 ForwardStar::~ForwardStar() {

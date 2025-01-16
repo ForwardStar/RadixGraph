@@ -33,8 +33,6 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
                     unlocked = 0;
                 }
                 if (current->head[idx].node == -1) {
-                    current->head[idx].flag = new Bitmap(bitmap_size);
-                    current->head[idx].flag->reset();
                     current->head[idx].next = new WeightedEdge[5];
                     current->head[idx].cap = 5;
                     int i = cnt.fetch_add(1);
