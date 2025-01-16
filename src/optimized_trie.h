@@ -18,7 +18,7 @@ typedef struct _dummy_node {
     int idx = -1; // the index of this dummy node
     Bitmap* flag = nullptr;
     WeightedEdge* next = nullptr;
-    int cap = 0;
+    int cap = 0, deg = 0;
     std::atomic<int> cnt = 0;
     std::atomic<uint8_t> mtx = 0;
 

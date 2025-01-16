@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     // Test BFS
     std::cout << "Testing BFS..." << std::endl;
     auto res1 = G.BFS(vertex_ids[0]);
-    auto p = DOBFS(&G, vertex_ids[0], n, m, G.vertex_index->RetrieveVertex(vertex_ids[0])->cnt);
+    auto p = DOBFS(&G, vertex_ids[0], n, m, G.vertex_index->RetrieveVertex(vertex_ids[0])->deg);
     std::vector<uint64_t> res2;
     for (int i = 0; i < n; i++) {
         if (p[i] != -1) {

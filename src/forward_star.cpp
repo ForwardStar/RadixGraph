@@ -28,6 +28,7 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight, int type
 bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
+    src_ptr->deg++;
     Insert(src_ptr, des_ptr, weight, 1);
     return true;
 }
@@ -41,6 +42,7 @@ bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
     if (!des_ptr) {
         return false;
     }
+    src_ptr->deg--;
     Insert(src_ptr, des_ptr, weight, 2);
     return true;
 }
