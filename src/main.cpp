@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
         }
         std::random_shuffle(edges.begin(), edges.end());
 
+        int start_mem = get_proc_mem();
         ForwardStar G_fstar(d, a);
         auto start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)
@@ -75,8 +76,9 @@ int main(int argc, char* argv[]) {
         std::chrono::duration<double> duration = end - start;
         std::cout << "Forward*: " << duration.count() << "s" << std::endl;
         std::cout << "Size: " << G_fstar.vertex_index->size() << std::endl;
-        std::cout << "Memory: " << get_proc_mem() << std::endl;
+        std::cout << "Memory: " << get_proc_mem() - start_mem << std::endl;
 
+        start_mem = get_proc_mem();
         SpruceTransVer spruce;
         start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)
@@ -84,7 +86,7 @@ int main(int argc, char* argv[]) {
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Spruce: " << duration.count() << "s" << std::endl;
-        std::cout << "Memory: " << get_proc_mem() << std::endl;
+        std::cout << "Memory: " << get_proc_mem() - start_mem << std::endl;
         
         start = std::chrono::high_resolution_clock::now();
         int sz = G_fstar.BFS(1).size();

@@ -3,6 +3,44 @@
 
 #include "headers.h"
 
+// Revised from GAPBS: https://github.com/sbeamer/gapbs
+class AtomicBitmap {
+ public:
+  explicit AtomicBitmap(size_t size) {
+    uint8_t num_words = (size + kBitsPerWord - 1) / kBitsPerWord;
+    start_ = new std::atomic<uint8_t>[num_words];
+    end_ = start_ + num_words;
+  }
+
+  ~AtomicBitmap() {
+    delete [] start_;
+  }
+
+  void reset() {
+    std::fill(start_, end_, 0);
+  }
+
+  void clear_bit(size_t pos) {
+    start_[word_offset(pos)].fetch_and(~((uint8_t) 1l << bit_offset(pos)));
+  }
+
+  void set_bit(size_t pos) {
+    start_[word_offset(pos)].fetch_or((uint8_t) 1l << bit_offset(pos));
+  }
+
+  bool get_bit(size_t pos) const {
+    return (start_[word_offset(pos)] >> bit_offset(pos)) & 1l;
+  }
+
+ private:
+  std::atomic<uint8_t> *start_ = nullptr;
+  std::atomic<uint8_t> *end_ = nullptr;
+
+  static const uint8_t kBitsPerWord = 8;
+  static uint8_t word_offset(size_t n) { return n / kBitsPerWord; }
+  static uint8_t bit_offset(size_t n) { return n & (kBitsPerWord - 1); }
+};
+
 typedef struct _weighted_edge;
 typedef struct _dummy_node;
 
@@ -16,7 +54,7 @@ typedef struct _weighted_edge {
 typedef struct _dummy_node {
     uint64_t node = -1; // this dummy node corresponds to which vertex
     int idx = -1; // the index of this dummy node
-    uint8_t flag[max_number_of_threads] = {0};
+    AtomicBitmap* flag = nullptr;
     WeightedEdge* next = nullptr;
     int cap = 0;
     std::atomic<int> cnt = 0, deg = 0;
@@ -24,6 +62,7 @@ typedef struct _dummy_node {
 
     ~_dummy_node() {
         if (next) delete [] next;
+        if (flag) delete flag;
     }
 } DummyNode;
 

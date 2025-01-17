@@ -58,6 +58,7 @@ add_executable(test_gapbs
     src/test_gapbs.cpp
     src/forward_star.cpp
     src/optimized_trie.cpp
+    src/headers.h
     src/GAPBS/bfs.cc
     src/GAPBS/sssp.cc
     src/forward_star.h
