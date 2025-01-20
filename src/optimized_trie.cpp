@@ -46,6 +46,7 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
                         }
                         mtx = 0;
                     }
+                    dummy_nodes[i] = current->head[idx];
                 }
                 if (current->head[idx]->node == -1) {
                     current->head[idx]->flag = new AtomicBitmap(bitmap_size);
@@ -53,9 +54,6 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
                     current->head[idx]->next = new WeightedEdge[5];
                     current->head[idx]->cap = 5;
                     current->head[idx]->node = id;
-                }
-                if (i < cap) {
-                    dummy_nodes[i] = current->head[idx];
                 }
                 current->mtx->clear_bit(idx);
             }

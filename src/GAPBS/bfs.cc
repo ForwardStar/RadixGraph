@@ -126,6 +126,7 @@ pvector<NodeID> InitParent(ForwardStar* g, int vertex_num) {
 pvector<NodeID> DOBFS(ForwardStar* g, NodeID source, int vertex_num, int edge_num, int src_out_degree, int alpha,
                       int beta) {
     auto u = g->vertex_index->RetrieveVertex(source);
+    if (src_out_degree == -1) src_out_degree = u->deg;
     pvector<NodeID> parent = InitParent(g, vertex_num);
     parent[u->idx] = u->idx;
 
