@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(ForwardStar)
 
 # Enable optimization
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
 # Set C++ standard to C++20
 set(CMAKE_CXX_STANDARD 20)
@@ -57,11 +57,17 @@ add_executable(test_gapbs
     src/headers.h
     src/GAPBS/bfs.cc
     src/GAPBS/sssp.cc
+    src/GAPBS/tc.cc
+    src/GAPBS/pr_spmv.cc
+    src/GAPBS/cc_sv.cc
     src/forward_star.h
     src/optimized_trie.h
     src/GAPBS/bfs.h
     src/GAPBS/benchmark.h
     src/GAPBS/sssp.h
+    src/GAPBS/tc.h
+    src/GAPBS/pr_spmv.h
+    src/GAPBS/cc_sv.h
     src/GAPBS/platform_atomics.h
 )
 

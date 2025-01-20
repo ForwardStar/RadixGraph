@@ -6,15 +6,8 @@
 #ifndef GRAPHINDEX_CC_SV_H
 #define GRAPHINDEX_CC_SV_H
 
-#include <algorithm>
-#include <cinttypes>
-#include <iostream>
-#include <unordered_map>
-#include <vector>
-
 #include "benchmark.h"
 #include "bitmap.h"
-#include "command_line.h"
 #include "pvector.h"
 #include "../forward_star.h"
 

@@ -1,12 +1,8 @@
 #ifndef GRAPHINDEX_BFS_H
 #define GRAPHINDEX_BFS_H
 
-#include <iostream>
-#include <vector>
-
 #include "benchmark.h"
 #include "bitmap.h"
-#include "command_line.h"
 #include "platform_atomics.h"
 #include "pvector.h"
 #include "sliding_queue.h"

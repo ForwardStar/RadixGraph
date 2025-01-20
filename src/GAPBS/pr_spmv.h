@@ -5,13 +5,7 @@
 #ifndef GRAPHINDEX_PR_SPMV_H
 #define GRAPHINDEX_PR_SPMV_H
 
-
-#include <algorithm>
-#include <iostream>
-#include <vector>
-
 #include "benchmark.h"
-#include "command_line.h"
 #include "pvector.h"
 #include "../forward_star.h"
 

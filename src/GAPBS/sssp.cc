@@ -44,12 +44,8 @@ execution order, leading to significant speedup on large diameter road networks.
     algorithms with GraphIt." The 18th International Symposium on Code Generation
     and Optimization (CGO), pages 158-170, 2020.
 */
-
-
-using namespace std;
-
-const WeightT kDistInf = numeric_limits<WeightT>::max() / 2;
-const size_t kMaxBin = numeric_limits<size_t>::max() / 2;
+const WeightT kDistInf = std::numeric_limits<WeightT>::max() / 2;
+const size_t kMaxBin = std::numeric_limits<size_t>::max() / 2;
 const size_t kBinSizeThreshold = 1000;
 
 
@@ -65,7 +61,7 @@ pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_
   frontier[0] = u;
   #pragma omp parallel
   {
-    vector<vector<DummyNode*> > local_bins(0);
+    std::vector<std::vector<DummyNode*> > local_bins(0);
     size_t iter = 0;
     while (shared_indexes[iter&1] != kMaxBin) {
       size_t &curr_bin_index = shared_indexes[iter&1];
@@ -81,7 +77,7 @@ pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_
       while (curr_bin_index < local_bins.size() &&
              !local_bins[curr_bin_index].empty() &&
              local_bins[curr_bin_index].size() < kBinSizeThreshold) {
-        vector<DummyNode*> curr_bin_copy = local_bins[curr_bin_index];
+        std::vector<DummyNode*> curr_bin_copy = local_bins[curr_bin_index];
         local_bins[curr_bin_index].resize(0);
         for (auto u : curr_bin_copy)
           RelaxEdges(g, u, delta, dist, local_bins);
@@ -89,7 +85,7 @@ pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_
       for (size_t i=curr_bin_index; i < local_bins.size(); i++) {
         if (!local_bins[i].empty()) {
           #pragma omp critical
-          next_bin_index = min(next_bin_index, i);
+          next_bin_index = std::min(next_bin_index, i);
           break;
         }
       }

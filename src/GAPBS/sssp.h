@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "benchmark.h"
-#include "command_line.h"
 #include "platform_atomics.h"
 #include "pvector.h"
 #include "../forward_star.h"

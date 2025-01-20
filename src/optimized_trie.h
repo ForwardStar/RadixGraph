@@ -89,6 +89,11 @@ class Trie {
                     delete [] children;
                 }
                 if (head) {
+                    for (int i = 0; i < sz; i++) {
+                      if (head[i]) {
+                        delete head[i];
+                      }
+                    }
                     delete [] head;
                 }
                 if (mtx) {

@@ -27,11 +27,6 @@ more consistent performance for undirected graphs.
     algorithms for graph connectivity." Workshop on Large Scale Parallel
     Processing, 2010.
 */
-
-
-using namespace std;
-
-
 // The hooking condition (comp_u < comp_v) may not coincide with the edge's
 // direction, so we use a min-max swap such that lower component IDs propagate
 // independent of the edge's direction.

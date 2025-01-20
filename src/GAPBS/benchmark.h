@@ -6,10 +6,7 @@
 
 #include <algorithm>
 #include <cinttypes>
-#include <functional>
-#include <random>
 #include <utility>
-#include <vector>
 
 /*
 GAP Benchmark Suite

@@ -4,9 +4,6 @@
 #ifndef BITMAP_H_
 #define BITMAP_H_
 
-#include <algorithm>
-#include <cinttypes>
-
 #include "platform_atomics.h"
 
 

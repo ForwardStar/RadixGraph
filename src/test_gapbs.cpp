@@ -2,7 +2,9 @@
 #include "forward_star.h"
 #include "./GAPBS/bfs.h"
 #include "./GAPBS/sssp.h"
-#include "./GAPBS/bitmap.h"
+#include "./GAPBS/tc.h"
+#include "./GAPBS/cc_sv.h"
+#include "./GAPBS/pr_spmv.h"
 
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
@@ -96,6 +98,18 @@ int main(int argc, char* argv[]) {
         }
     }
     std::cout << "SSSP results verified!" << std::endl;
+
+    // Test LCC
+    std::cout << "Testing LCC..." << std::endl;
+    OrderedCount(&G, n);
+
+    // Test WCC
+    std::cout << "Testing WCC..." << std::endl;
+    ShiloachVishkin(&G, n);
+
+    // Test PageRank
+    std::cout << "Testing PageRank..." << std::endl;
+    PageRankPull(&G, 100, n);
 
     return 0;
 }

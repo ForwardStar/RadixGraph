@@ -28,9 +28,6 @@ them in parent array as negative numbers. Thus the encoding of parent is:
     Computing, Networking, Storage and Analysis (SC), Salt Lake City, Utah,
     November 2012.
 */
-
-using namespace std;
-
 int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
                Bitmap &next, int vertex_num) {
     int64_t awake_count = 0;
