@@ -10,17 +10,18 @@ make
 ```
 
 # Trie and test data setting
+This demo randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1].
+
 Test settings:
 ```
-n = [1000, 10000, 100000, 1000000]
-m = [10000000, 10000000, 10000000, 10000000]
+n = [10000, 100000, 1000000]
+m = [10000000, 10000000, 10000000]
 log(u) = 30
 ```
 Trie settings:
 ```cpp
-std::vector<int> d = {3, 3, 3, 3};
+std::vector<int> d = {3, 3, 3};
 std::vector<std::vector<int>> a = {
-    {16, 7, 7},
     {19, 6, 5},
     {21, 5, 4},
     {23, 4, 3},
@@ -29,64 +30,49 @@ std::vector<std::vector<int>> a = {
 
 # Experimental results (16-threaded)
 ```
-n = 1000, m = 10000000
-Average insertion time for forward star: 1.21344s
-Average insertion time for spruce: 2.48354s
-
-Average deletion time for forward star: 0.00199824s
-Average deletion time for spruce: 0.00116301s
-
-Average update time for forward star: 0.00374285s
-Average update time for spruce: 0.00583736s
-
-Average get neighbours time for forward star: 0.0469012s
-Average get neighbours time for spruce: 0.00355675s
-
-Average BFS time for forward star: 0.0894005s
-Average BFS time for spruce: 0.0902526s
 n = 10000, m = 10000000
-Average insertion time for forward star: 1.09347s
-Average insertion time for spruce: 0.90108s
+Average insertion time for forward star: 0.422699s
+Average insertion time for spruce: 1.51126s
 
-Average deletion time for forward star: 0.00238862s
-Average deletion time for spruce: 0.0123387s
+Average deletion time for forward star: 0.00203847s
+Average deletion time for spruce: 0.0340424s
 
-Average update time for forward star: 0.00227458s
-Average update time for spruce: 0.0318565s
+Average update time for forward star: 0.00570543s
+Average update time for spruce: 0.116295s
 
-Average get neighbours time for forward star: 0.0444252s
-Average get neighbours time for spruce: 0.00411186s
+Average get neighbours time for forward star: 0.0604059s
+Average get neighbours time for spruce: 0.0153609s
 
-Average BFS time for forward star: 0.15073s
-Average BFS time for spruce: 0.176383s
+Average BFS time for forward star: 0.574411s
+Average BFS time for spruce: 1.53121s
 n = 100000, m = 10000000
-Average insertion time for forward star: 1.4136s
-Average insertion time for spruce: 1.77962s
+Average insertion time for forward star: 0.936805s
+Average insertion time for spruce: 1.84409s
 
-Average deletion time for forward star: 0.00258604s
-Average deletion time for spruce: 0.0444091s
+Average deletion time for forward star: 0.00497156s
+Average deletion time for spruce: 0.0682484s
 
-Average update time for forward star: 0.00417859s
-Average update time for spruce: 0.0420873s
+Average update time for forward star: 0.0197878s
+Average update time for spruce: 0.139953s
 
-Average get neighbours time for forward star: 0.0490874s
-Average get neighbours time for spruce: 0.0151101s
+Average get neighbours time for forward star: 0.0351155s
+Average get neighbours time for spruce: 0.0339793s
 
-Average BFS time for forward star: 0.347068s
-Average BFS time for spruce: 0.53081s
+Average BFS time for forward star: 0.542994s
+Average BFS time for spruce: 1.88408s
 n = 1000000, m = 10000000
-Average insertion time for forward star: 3.35699s
-Average insertion time for spruce: 5.02225s
+Average insertion time for forward star: 2.02932s
+Average insertion time for spruce: 2.75474s
 
-Average deletion time for forward star: 0.00341613s
-Average deletion time for spruce: 0.054329s
+Average deletion time for forward star: 0.00801279s
+Average deletion time for spruce: 0.0532879s
 
-Average update time for forward star: 0.00355786s
-Average update time for spruce: 0.000717927s
+Average update time for forward star: 0.0423716s
+Average update time for spruce: 0.00622348s
 
-Average get neighbours time for forward star: 0.282689s
-Average get neighbours time for spruce: 0.0588298s
+Average get neighbours time for forward star: 0.124021s
+Average get neighbours time for spruce: 0.0801724s
 
-Average BFS time for forward star: 1.11858s
-Average BFS time for spruce: 1.39421s
+Average BFS time for forward star: 1.1841s
+Average BFS time for spruce: 3.05221s
 ```

@@ -104,9 +104,8 @@ int main(int argc, char* argv[]) {
 
         return 0;
     }
-    std::vector<int> d = {3, 3, 3, 3};
+    std::vector<int> d = {3, 3, 3};
     std::vector<std::vector<int>> a = {
-        {16, 7, 7},
         {19, 6, 5},
         {21, 5, 4},
         {23, 4, 3},
