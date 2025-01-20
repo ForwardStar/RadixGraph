@@ -20,7 +20,4 @@
 
 pvector<NodeID> ShiloachVishkin(ForwardStar* g, uint32_t num_nodes);
 
-void PrintCompStats(const Graph &g, const pvector<NodeID> &comp);
-
-bool CCVerifier(const Graph &g, const pvector<NodeID> &comp);
 #endif //GRAPHINDEX_CC_SV_H
