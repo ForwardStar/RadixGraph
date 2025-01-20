@@ -37,7 +37,8 @@ int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
     next.reset();
     #pragma omp parallel for reduction(+ : awake_count) schedule(dynamic, 1024)
     for (int i = 0; i < vertex_num; i++) {
-        auto u = &g->vertex_index->dummy_nodes[i / g->vertex_index->block_sz][i % g->vertex_index->block_sz];
+        auto u = g->vertex_index->dummy_nodes[i];
+        if (!u || u->node == -1) continue;
         if (parent[i] == -1) {
             std::vector<WeightedEdge> neighbours;
             g->GetNeighbours(u, neighbours);
@@ -100,8 +101,11 @@ void BitmapToQueue(ForwardStar* g, int vertex_num, const Bitmap &bm,
     QueueBuffer<DummyNode*> lqueue(queue);
     #pragma omp for nowait
     for (NodeID n = 0; n < vertex_num; n++)
-      if (bm.get_bit(n))
-        lqueue.push_back(&g->vertex_index->dummy_nodes[n / g->vertex_index->block_sz][n % g->vertex_index->block_sz]);
+      if (bm.get_bit(n)) {
+        auto u = g->vertex_index->dummy_nodes[n];
+        if (!u || u->node == -1) continue;
+        lqueue.push_back(u);
+      }
     lqueue.flush();
   }
   queue.slide_window();
@@ -111,7 +115,9 @@ pvector<NodeID> InitParent(ForwardStar* g, int vertex_num) {
     pvector<NodeID> parent(vertex_num);
     #pragma omp parallel for
     for (NodeID n = 0; n < vertex_num; n++) {
-        int d = g->vertex_index->dummy_nodes[n / g->vertex_index->block_sz][n % g->vertex_index->block_sz].deg;
+        auto u = g->vertex_index->dummy_nodes[n];
+        if (!u || u->node == -1) continue;
+        int d = u->deg;
         parent[n] = d != 0 ? -d : -1;
     }
     return parent;

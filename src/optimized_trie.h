@@ -98,9 +98,9 @@ class Trie {
         } TrieNode;
 
         TrieNode* root = nullptr;
-        std::vector<DummyNode*> dummy_nodes;
+        DummyNode** dummy_nodes;
         std::vector<int> num_bits, sum_bits;
-        int depth = 0, space = 0, cap = 0, block_sz = 1e4;
+        int depth = 0, space = 0, cap = 0;
         std::atomic<int> cnt = 0;
         std::atomic<uint8_t> mtx = 0;
 

@@ -2,6 +2,7 @@
 #include "forward_star.h"
 #include "./GAPBS/bfs.h"
 #include "./GAPBS/sssp.h"
+#include "./GAPBS/bitmap.h"
 
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);

@@ -141,9 +141,6 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
                 }
             }
         }
-        if (deg * 2 <= cnt) {
-            // TO IMPLEMENT: Insert / (Update + Delete) ratio >= 1, dump and merge
-        }
     }
     else {
         return false;
@@ -154,7 +151,7 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
 
 std::vector<DummyNode*> ForwardStar::BFS(uint64_t src) {
     std::queue<DummyNode*> Q;
-    Bitmap vis(vertex_index->cnt);
+    AtomicBitmap vis(vertex_index->cnt);
     vis.reset();
     auto src_ptr = vertex_index->RetrieveVertex(src);
     vis.set_bit(src_ptr->idx);

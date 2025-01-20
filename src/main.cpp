@@ -4,7 +4,7 @@
 uint64_t max_uid = 0;
 
 std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, uint64_t src) {
-    Bitmap vis(max_uid + 1);
+    AtomicBitmap vis(max_uid + 1);
     vis.reset();
     std::queue<uint64_t> Q;
     vis.set_bit(src);
