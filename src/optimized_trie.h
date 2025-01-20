@@ -7,7 +7,7 @@
 class AtomicBitmap {
  public:
   explicit AtomicBitmap(size_t size) {
-    uint8_t num_words = (size + kBitsPerWord - 1) / kBitsPerWord;
+    size_t num_words = (size + kBitsPerWord - 1) / kBitsPerWord;
     start_ = new std::atomic<uint8_t>[num_words];
     end_ = start_ + num_words;
   }
@@ -28,6 +28,11 @@ class AtomicBitmap {
     start_[word_offset(pos)].fetch_or((uint8_t) 1l << bit_offset(pos));
   }
 
+  void set_bit_atomic(size_t pos) {
+    size_t offset_w = word_offset(pos), offset_b = bit_offset(pos);
+    while (start_[offset_w].fetch_or((uint8_t) 1l << offset_b) & ((uint8_t) 1l << offset_b)) {}
+  }
+
   bool get_bit(size_t pos) const {
     return (start_[word_offset(pos)] >> bit_offset(pos)) & 1l;
   }
@@ -36,9 +41,9 @@ class AtomicBitmap {
   std::atomic<uint8_t> *start_ = nullptr;
   std::atomic<uint8_t> *end_ = nullptr;
 
-  static const uint8_t kBitsPerWord = 8;
-  static uint8_t word_offset(size_t n) { return n / kBitsPerWord; }
-  static uint8_t bit_offset(size_t n) { return n & (kBitsPerWord - 1); }
+  static const size_t kBitsPerWord = 8;
+  static size_t word_offset(size_t n) { return n / kBitsPerWord; }
+  static size_t bit_offset(size_t n) { return n & (kBitsPerWord - 1); }
 };
 
 typedef struct _weighted_edge;
@@ -69,24 +74,33 @@ typedef struct _dummy_node {
 class Trie {
     public:
         typedef struct _trie_node {
-            DummyNode* head = nullptr;
-            _trie_node* children = nullptr;
-            std::atomic<uint8_t> mtx = 0;
+            DummyNode** head = nullptr;
+            _trie_node** children = nullptr;
+            AtomicBitmap* mtx = nullptr;
+            int sz = 0;
 
             ~_trie_node() {
                 if (children) {
+                    for (int i = 0; i < sz; i++) {
+                        if (children[i]) {
+                            delete children[i];
+                        }
+                    }
                     delete [] children;
                 }
                 if (head) {
                     delete [] head;
                 }
+                if (mtx) {
+                    delete mtx;
+                }
             }
         } TrieNode;
 
-        TrieNode root;
-        DummyNode** dummy_nodes = nullptr;
+        TrieNode* root = nullptr;
+        std::vector<DummyNode*> dummy_nodes;
         std::vector<int> num_bits, sum_bits;
-        int depth = 0, space = 0, cap = 0;
+        int depth = 0, space = 0, cap = 0, block_sz = 1e4;
         std::atomic<int> cnt = 0;
         std::atomic<uint8_t> mtx = 0;
 

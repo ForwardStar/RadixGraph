@@ -5,38 +5,29 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
         int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
         uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
         if (i < depth - 1) {
-            if (!current->children) {
-                uint8_t unlocked = 0;
-                while (!current->mtx.compare_exchange_strong(unlocked, 1)) {
-                    unlocked = 0;
+            if (!current->children[idx]) {
+                current->mtx->set_bit_atomic(idx);
+                if (!current->children[idx]) {
+                    auto tmp = new TrieNode();
+                    tmp->sz = (1 << num_bits[i + 1]);
+                    tmp->mtx = new AtomicBitmap(tmp->sz);
+                    if (i + 1 < depth - 1) {
+                        tmp->children = new TrieNode*[tmp->sz];
+                        std::memset(tmp->children, 0, sizeof(tmp->children) * tmp->sz);
+                    }
+                    else {
+                        tmp->head = new DummyNode*[tmp->sz];
+                        std::memset(tmp->head, 0, sizeof(tmp->head) * tmp->sz);
+                    }
+                    current->children[idx] = tmp;
                 }
-                if (!current->children) {
-                    current->children = new TrieNode[1 << num_bits[i]];
-                }
-                current->mtx = 0;
+                current->mtx->clear_bit(idx);
             }
         }
         else {
-            if (!current->head) {
-                uint8_t unlocked = 0;
-                while (!current->mtx.compare_exchange_strong(unlocked, 1)) {
-                    unlocked = 0;
-                }
-                if (!current->head) {
-                    current->head = new DummyNode[1 << num_bits[i]];
-                }
-                current->mtx = 0;
-            }
-            if (current->head[idx].node == -1) {
-                uint8_t unlocked = 0;
-                while (!current->head[idx].mtx.compare_exchange_strong(unlocked, 1)) {
-                    unlocked = 0;
-                }
-                if (current->head[idx].node == -1) {
-                    current->head[idx].flag = new AtomicBitmap(bitmap_size);
-                    current->head[idx].flag->reset();
-                    current->head[idx].next = new WeightedEdge[5];
-                    current->head[idx].cap = 5;
+            if (!current->head[idx] || current->head[idx]->node == -1) {
+                current->mtx->set_bit_atomic(idx);
+                if (!current->head[idx]) {
                     int i = cnt.fetch_add(1);
                     if (i >= cap) {
                         uint8_t unlocked = 0;
@@ -44,49 +35,61 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
                             unlocked = 0;
                         }
                         if (i >= cap) {
-                            auto des = new DummyNode*[cap * 2];
-                            std::copy(dummy_nodes, dummy_nodes + cap, des);
-                            delete [] dummy_nodes;
-                            dummy_nodes = des;
-                            cap *= 2;
+                            dummy_nodes.emplace_back(new DummyNode[block_sz]);
+                            cap += block_sz;
                         }
                         mtx = 0;
                     }
-                    if (i < cap) {
-                        dummy_nodes[i] = &current->head[idx];
-                    }
-                    current->head[idx].idx = i;
-                    current->head[idx].node = id;
+                    int block_offset = i / block_sz, bit_offset = i % block_sz;
+                    dummy_nodes[block_offset][bit_offset].flag = new AtomicBitmap(bitmap_size);
+                    dummy_nodes[block_offset][bit_offset].flag->reset();
+                    dummy_nodes[block_offset][bit_offset].next = new WeightedEdge[5];
+                    dummy_nodes[block_offset][bit_offset].cap = 5;
+                    dummy_nodes[block_offset][bit_offset].idx = i;
+                    dummy_nodes[block_offset][bit_offset].node = id;
+                    current->head[idx] = &dummy_nodes[block_offset][bit_offset];
                 }
-                current->head[idx].mtx = 0;
+                if (current->head[idx]->node == -1) {
+                    current->head[idx]->flag = new AtomicBitmap(bitmap_size);
+                    current->head[idx]->flag->reset();
+                    current->head[idx]->next = new WeightedEdge[5];
+                    current->head[idx]->cap = 5;
+                    current->head[idx]->node = id;
+                }
+                current->mtx->clear_bit(idx);
             }
-            return &current->head[idx];
+            return current->head[idx];
         }
-        current = &current->children[idx];
+        current = current->children[idx];
     }
     return nullptr;
 }
 
 DummyNode* Trie::RetrieveVertex(uint64_t id, bool insert_mode) {
-    TrieNode* current = &root;
+    TrieNode* current = root;
     for (int i = 0; i < depth; i++) {
         int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
         uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
         if (i < depth - 1) {
-            if (insert_mode && !current->children) {
-                return InsertVertex(current, id, i);
+            if (!current->children[idx]) {
+                if (insert_mode) {
+                    return InsertVertex(current, id, i);
+                }
+                else {
+                    return nullptr;
+                }
             }
         }
         else {
-            if (insert_mode && (!current->head || current->head[idx].node == -1)) {
+            if (insert_mode && (!current->head[idx] || current->head[idx]->node == -1)) {
                 return InsertVertex(current, id, i);
             }
-            if (current->head[idx].node == -1) {
+            if (!current->head[idx] || current->head[idx]->node == -1) {
                 return nullptr;
             }
-            return &current->head[idx];
+            return current->head[idx];
         }
-        current = &current->children[idx];
+        current = current->children[idx];
     }
     return nullptr;
 }
@@ -98,6 +101,7 @@ bool Trie::DeleteVertex(uint64_t id) {
     }
     tmp->node = -1;
     delete [] tmp->next;
+    delete tmp->flag;
     tmp->cap = tmp->cnt = 0;
     return true;
 }
@@ -105,7 +109,7 @@ bool Trie::DeleteVertex(uint64_t id) {
 long long Trie::size() {
     long long sz = 0;
     std::queue<std::pair<TrieNode*, int>> Q;
-    Q.emplace(&root, 0);
+    Q.emplace(root, 0);
     while (!Q.empty()) {
         TrieNode* u = Q.front().first;
         int d = Q.front().second;
@@ -114,8 +118,8 @@ long long Trie::size() {
             sz += (1 << num_bits[d]);
             if (d < depth - 1) {
                 for (int i = 0; i < (1 << num_bits[d]); i++) {
-                    if (u->children[i].children || u->children[i].head) {
-                        Q.emplace(&u->children[i], d + 1);
+                    if (u->children[i]) {
+                        Q.emplace(u->children[i], d + 1);
                     }
                 }
             }
@@ -131,9 +135,11 @@ Trie::Trie(int d, int _num_bits[]) {
         num_bits[i] = _num_bits[i];
         sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
     }
-    root.children = new TrieNode[1 << num_bits[0]];
-    cap = 1000;
-    dummy_nodes = new DummyNode*[cap];
+    root = new TrieNode();
+    root->sz = (1 << num_bits[0]);
+    root->children = new TrieNode*[root->sz];
+    std::memset(root->children, 0, sizeof(root->children) * root->sz);
+    root->mtx = new AtomicBitmap(root->sz);
 }
 
 Trie::Trie(int d, std::vector<int> _num_bits) {
@@ -143,11 +149,16 @@ Trie::Trie(int d, std::vector<int> _num_bits) {
         num_bits[i] = _num_bits[i];
         sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
     }
-    root.children = new TrieNode[1 << num_bits[0]];
-    cap = 1000;
-    dummy_nodes = new DummyNode*[cap];
+    root = new TrieNode();
+    root->sz = (1 << num_bits[0]);
+    root->children = new TrieNode*[root->sz];
+    std::memset(root->children, 0, sizeof(root->children) * root->sz);
+    root->mtx = new AtomicBitmap(root->sz);
 }
 
 Trie::~Trie() {
-    if (dummy_nodes) delete [] dummy_nodes;
+    delete root;
+    for (auto u : dummy_nodes) {
+        delete [] u;
+    }
 }
