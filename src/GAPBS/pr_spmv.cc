@@ -48,7 +48,7 @@ pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
 
       dangling_sum /= num_nodes;
       #pragma omp parallel for schedule(guided)
-      for (NodeID n=0; n < num_nodes; n++) {
+      for (NodeID n = 0; n < num_nodes; n++) {
         auto u = g->vertex_index->dummy_nodes[n];
         if (!u || u->node == -1) continue;
         ScoreT incoming_total = 0;

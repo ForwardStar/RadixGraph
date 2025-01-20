@@ -14,15 +14,11 @@
 
 #include "benchmark.h"
 #include "bitmap.h"
-#include "builder.h"
 #include "command_line.h"
-#include "graph.h"
 #include "pvector.h"
-#include "timer.h"
-#include "../../../index_algorithms.h"
-#include "../../../spruce_transaction.h"
+#include "../forward_star.h"
 
-pvector<NodeID> ShiloachVishkin(SpruceTransVer::TopBlock* g, uint32_t num_nodes);
+pvector<NodeID> ShiloachVishkin(ForwardStar* g, uint32_t num_nodes);
 
 void PrintCompStats(const Graph &g, const pvector<NodeID> &comp);
 
