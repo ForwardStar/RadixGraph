@@ -5,10 +5,9 @@
 
 class ForwardStar {
     private:
-        bool Insert(DummyNode* src, DummyNode* des, double weight, int type);      
+        bool Insert(DummyNode* src, DummyNode* des, double weight);      
     public:
         Trie* vertex_index = nullptr;
-        int global_timestamp;
 
         bool InsertEdge(uint64_t src, uint64_t des, double weight);
         bool UpdateEdge(uint64_t src, uint64_t des, double weight);

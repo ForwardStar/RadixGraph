@@ -52,8 +52,6 @@ typedef struct _dummy_node;
 typedef struct _weighted_edge {
     double weight; // edge property
     _dummy_node* forward; // forward pointer to dummy node of target vertex
-    int timestamp;
-    uint8_t type;
 } WeightedEdge;
 
 typedef struct _dummy_node {

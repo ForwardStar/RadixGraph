@@ -1,6 +1,6 @@
 #include "forward_star.h"
 
-bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight, int type) {
+bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
     int i = src->cnt.fetch_add(1);
     if (i >= src->cap) {
         uint8_t unlocked = 0;
@@ -19,7 +19,6 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight, int type
     if (i < src->cap) {
         src->next[i].forward = des;
         src->next[i].weight = weight;
-        src->next[i].type = type;
         return true;
     }
     return false;
@@ -29,7 +28,7 @@ bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
     src_ptr->deg.fetch_add(1);
-    Insert(src_ptr, des_ptr, weight, 0);
+    Insert(src_ptr, des_ptr, weight);
     return true;
 }
 
@@ -42,7 +41,7 @@ bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
     if (!des_ptr) {
         return false;
     }
-    Insert(src_ptr, des_ptr, weight, 1);
+    Insert(src_ptr, des_ptr, weight);
     return true;
 }
 
@@ -56,7 +55,7 @@ bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
         return false;
     }
     src_ptr->deg.fetch_sub(1);
-    Insert(src_ptr, des_ptr, 0, 2);
+    Insert(src_ptr, des_ptr, 0);
     return true;
 }
 
@@ -70,7 +69,6 @@ bool ForwardStar::GetNeighbours(uint64_t src, std::vector<WeightedEdge> &neighbo
 
 bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours) {
     if (src) {
-        std::vector<int> temp;
         int num = 0;
         int thread_id = omp_get_thread_num(), cnt = src->cnt, deg = src->deg;
         neighbours.resize(deg);
@@ -80,64 +78,30 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
             for (int i = cnt - 1; i >= 0; i--) {
                 auto e = &src->next[i];
                 neighbours[num].forward = e->forward;
-                neighbours[num].timestamp = e->timestamp;
-                neighbours[num].type = e->type;
                 neighbours[num].weight = e->weight;
                 ++num;
             }
         }
         else {
-            // UPDATE: found a non-deleted update edge;
-            // Done: found the original edge or conclude that edge was deleted.
-            const int UPDATE = thread_id * 2, DONE = thread_id * 2 + 1;
             for (int i = cnt - 1; i >= 0; i--) {
                 if (src->next[i].forward->node == -1) {
                     continue;
                 }
-                src->next[i].forward->flag->clear_bit(UPDATE);
-                src->next[i].forward->flag->clear_bit(DONE);
+                src->next[i].forward->flag->clear_bit(thread_id);
             }
             for (int i = cnt - 1; i >= 0; i--) {
                 auto e = &src->next[i];
                 if (e->forward->node == -1) {
                     continue;
                 }
-                if (!e->forward->flag->get_bit(DONE)) {
-                    if (e->type == 0) { // Insert
-                        if (!e->forward->flag->get_bit(UPDATE)) {
-                            // Have not found an updated edge, thus this edge is the latest
-                            neighbours[num].forward = e->forward;
-                            neighbours[num].timestamp = e->timestamp;
-                            neighbours[num].type = e->type;
-                            neighbours[num].weight = e->weight;
-                            ++num;
-                        }
-                        e->forward->flag->set_bit(DONE);
+                if (!e->forward->flag->get_bit(thread_id)) {
+                    if (e->weight != 0) { // Insert or Update
+                        // Have not found a previous log for this edge, thus this edge is the latest
+                        neighbours[num].forward = e->forward;
+                        neighbours[num].weight = e->weight;
+                        ++num;
                     }
-                    else if (e->type == 1) { // Update
-                        if (!e->forward->flag->get_bit(UPDATE)) {
-                            // Have not found another updated edge, thus this edge is the latest
-                            temp.emplace_back(i);
-                            e->forward->flag->set_bit(UPDATE);
-                        }
-                    }
-                    else { // Delete
-                        if (!e->forward->flag->get_bit(UPDATE)) {
-                            // The found updated edge was invalid (deleted before)
-                            e->forward->flag->clear_bit(UPDATE);
-                        }
-                        e->forward->flag->set_bit(DONE);
-                    }
-                }
-            }
-            for (auto i : temp) {
-                if (src->next[i].forward->flag->get_bit(UPDATE) && src->next[i].forward->flag->get_bit(DONE)) {
-                    // Both a non-deleted update edge and its original edge are found
-                    neighbours[num].forward = src->next[i].forward;
-                    neighbours[num].timestamp = src->next[i].timestamp;
-                    neighbours[num].type = src->next[i].type;
-                    neighbours[num].weight = src->next[i].weight;
-                    ++num;
+                    e->forward->flag->set_bit(thread_id);
                 }
             }
         }

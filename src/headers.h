@@ -19,6 +19,5 @@
 #include <omp.h>
 
 const int max_number_of_threads = omp_get_num_threads();
-const size_t bitmap_size = max_number_of_threads * 2;
 
 #endif

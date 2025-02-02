@@ -49,7 +49,7 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
                     dummy_nodes[i] = current->head[idx];
                 }
                 if (current->head[idx]->node == -1) {
-                    current->head[idx]->flag = new AtomicBitmap(bitmap_size);
+                    current->head[idx]->flag = new AtomicBitmap(max_number_of_threads);
                     current->head[idx]->flag->reset();
                     current->head[idx]->next = new WeightedEdge[5];
                     current->head[idx]->cap = 5;
