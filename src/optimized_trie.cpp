@@ -1,6 +1,6 @@
 #include "optimized_trie.h"
 
-DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
+DummyNode* Trie::InsertVertex(TrieNode* current, NodeID id, int d) {
     for (int i = d; i < depth; i++) {
         int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
         uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
@@ -64,7 +64,7 @@ DummyNode* Trie::InsertVertex(TrieNode* current, uint64_t id, int d) {
     return nullptr;
 }
 
-DummyNode* Trie::RetrieveVertex(uint64_t id, bool insert_mode) {
+DummyNode* Trie::RetrieveVertex(NodeID id, bool insert_mode) {
     TrieNode* current = root;
     for (int i = 0; i < depth; i++) {
         int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
@@ -93,7 +93,7 @@ DummyNode* Trie::RetrieveVertex(uint64_t id, bool insert_mode) {
     return nullptr;
 }
 
-bool Trie::DeleteVertex(uint64_t id) {
+bool Trie::DeleteVertex(NodeID id) {
     DummyNode* tmp = RetrieveVertex(id);
     if (tmp == nullptr) {
         return false;

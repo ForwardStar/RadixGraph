@@ -24,7 +24,7 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
     return false;
 }
 
-bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
+bool ForwardStar::InsertEdge(NodeID src, NodeID des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
     src_ptr->deg.fetch_add(1);
@@ -32,7 +32,7 @@ bool ForwardStar::InsertEdge(uint64_t src, uint64_t des, double weight) {
     return true;
 }
 
-bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
+bool ForwardStar::UpdateEdge(NodeID src, NodeID des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
@@ -45,7 +45,7 @@ bool ForwardStar::UpdateEdge(uint64_t src, uint64_t des, double weight) {
     return true;
 }
 
-bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
+bool ForwardStar::DeleteEdge(NodeID src, NodeID des) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
@@ -59,7 +59,7 @@ bool ForwardStar::DeleteEdge(uint64_t src, uint64_t des) {
     return true;
 }
 
-bool ForwardStar::GetNeighbours(uint64_t src, std::vector<WeightedEdge> &neighbours) {
+bool ForwardStar::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
@@ -113,7 +113,7 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
     return true;
 }
 
-std::vector<DummyNode*> ForwardStar::BFS(uint64_t src) {
+std::vector<DummyNode*> ForwardStar::BFS(NodeID src) {
     std::queue<DummyNode*> Q;
     AtomicBitmap vis(vertex_index->cnt);
     vis.reset();
@@ -137,7 +137,7 @@ std::vector<DummyNode*> ForwardStar::BFS(uint64_t src) {
     return res;
 }
 
-std::vector<double> ForwardStar::SSSP(uint64_t src) {
+std::vector<double> ForwardStar::SSSP(NodeID src) {
     std::vector<double> dist;
     dist.assign(vertex_index->cnt, 1e9);
     auto u = vertex_index->RetrieveVertex(src);

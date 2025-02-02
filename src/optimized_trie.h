@@ -55,7 +55,7 @@ typedef struct _weighted_edge {
 } WeightedEdge;
 
 typedef struct _dummy_node {
-    uint64_t node = -1; // this dummy node corresponds to which vertex
+    NodeID node = -1; // this dummy node corresponds to which vertex
     int idx = -1; // the index of this dummy node
     AtomicBitmap* flag = nullptr;
     WeightedEdge* next = nullptr;
@@ -107,11 +107,11 @@ class Trie {
         std::atomic<int> cnt = 0;
         std::atomic<uint8_t> mtx = 0;
 
-        inline DummyNode* InsertVertex(TrieNode* current, uint64_t id, int d);
+        inline DummyNode* InsertVertex(TrieNode* current, NodeID id, int d);
 
-        DummyNode* RetrieveVertex(uint64_t id, bool insert_mode=false);
+        DummyNode* RetrieveVertex(NodeID id, bool insert_mode=false);
 
-        bool DeleteVertex(uint64_t id);
+        bool DeleteVertex(NodeID id);
 
         long long size();
 

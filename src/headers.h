@@ -19,5 +19,6 @@
 #include <omp.h>
 
 const int max_number_of_threads = omp_get_num_threads();
+typedef uint32_t NodeID;
 
 #endif
