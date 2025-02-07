@@ -16,13 +16,9 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
         }
         src->mtx = 0;
     }
-    if (i < src->cap) {
-        src->next[i].forward = des;
-        src->next[i].weight = weight;
-        src->next[i].timestamp = global_timestamp++;
-        return true;
-    }
-    return false;
+    src->next[i].forward = des;
+    src->next[i].weight = weight;
+    return true;
 }
 
 bool ForwardStar::InsertEdge(NodeID src, NodeID des, double weight) {
@@ -60,28 +56,28 @@ bool ForwardStar::DeleteEdge(NodeID src, NodeID des) {
     return true;
 }
 
-bool ForwardStar::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp) {
+bool ForwardStar::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
     }
-    return GetNeighbours(src_ptr, neighbours, timestamp);
+    return GetNeighbours(src_ptr, neighbours);
 }
 
-bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
+bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours) {
     if (src) {
         int num = 0;
         int thread_id = omp_get_thread_num(), cnt = src->cnt, deg = src->deg;
         neighbours.resize(deg);
         for (int i = cnt - 1; i >= 0; i--) {
-            if (src->next[i].forward->node == -1 || src->next[i].timestamp > timestamp) {
+            if (src->next[i].forward->node == -1) {
                 continue;
             }
             src->next[i].forward->flag->clear_bit(thread_id);
         }
         for (int i = cnt - 1; i >= 0; i--) {
             auto e = &src->next[i];
-            if (e->forward->node == -1 || e->timestamp > timestamp) {
+            if (e->forward->node == -1) {
                 continue;
             }
             if (!e->forward->flag->get_bit(thread_id)) {
