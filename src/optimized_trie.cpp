@@ -32,10 +32,7 @@ DummyNode* Trie::InsertVertex(TrieNode* current, NodeID id, int d) {
                     current->head[idx] = new DummyNode();
                     current->head[idx]->idx = i;
                     if (i >= cap) {
-                        uint8_t unlocked = 0;
-                        while (!mtx.compare_exchange_strong(unlocked, 1)) {
-                            unlocked = 0;
-                        }
+                        while (mtx.test_and_set()) {}
                         if (i >= cap) {
                             auto des = new DummyNode*[cap * 2];
                             std::memset(des, 0, sizeof(des) * cap * 2);
@@ -44,7 +41,7 @@ DummyNode* Trie::InsertVertex(TrieNode* current, NodeID id, int d) {
                             dummy_nodes = des;
                             cap *= 2;
                         }
-                        mtx = 0;
+                        mtx.clear();
                     }
                     dummy_nodes[i] = current->head[idx];
                 }

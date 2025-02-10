@@ -3,19 +3,15 @@
 bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
     int i = src->cnt.fetch_add(1);
     if (i >= src->cap) {
-        uint8_t unlocked = 0;
-        while (!src->mtx.compare_exchange_strong(unlocked, 1)) {
-            unlocked = 0;
-        }
+        while (src->mtx.test_and_set()) {}
         if (i >= src->cap) {
             auto des = new WeightedEdge[src->cap * 2];
-            auto des2 = new int[src->cap * 2];
             std::copy(src->next, src->next + src->cap, des);
             delete [] src->next;
             src->next = des;
             src->cap *= 2;
         }
-        src->mtx = 0;
+        src->mtx.clear();
     }
     src->next[i].forward = des;
     src->next[i].weight = weight;

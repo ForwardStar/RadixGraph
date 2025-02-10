@@ -61,7 +61,7 @@ typedef struct _dummy_node {
     WeightedEdge* next = nullptr;
     int cap = 0;
     std::atomic<int> cnt = 0, deg = 0;
-    std::atomic<uint8_t> mtx = 0;
+    std::atomic_flag mtx = ATOMIC_FLAG_INIT;
 
     ~_dummy_node() {
         if (next) delete [] next;
@@ -105,7 +105,7 @@ class Trie {
         std::vector<int> num_bits, sum_bits;
         int depth = 0, space = 0, cap = 0;
         std::atomic<int> cnt = 0;
-        std::atomic<uint8_t> mtx = 0;
+        std::atomic_flag mtx = ATOMIC_FLAG_INIT;
 
         inline DummyNode* InsertVertex(TrieNode* current, NodeID id, int d);
 
