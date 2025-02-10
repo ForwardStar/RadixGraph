@@ -31,7 +31,18 @@ include_directories(${CMAKE_SOURCE_DIR}/Spruce/turf/include)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction/include)
 
-add_library(FSTAR STATIC src/forward_star.cpp src/optimized_trie.cpp)
+add_library(FSTAR STATIC src/GAPBS/bfs.cc 
+            src/GAPBS/bitmap.h 
+            src/GAPBS/benchmark.h
+            src/GAPBS/cc_sv.cc
+            src/GAPBS/platform_atomics.h
+            src/GAPBS/pr_spmv.cc
+            src/GAPBS/pvector.h
+            src/GAPBS/sliding_queue.h
+            src/GAPBS/sssp.cc
+            src/GAPBS/tc.cc
+            src/forward_star.cpp 
+            src/optimized_trie.cpp)
 
 # Add executable for your main program
 add_executable(forward_star
