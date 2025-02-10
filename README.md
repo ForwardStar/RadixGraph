@@ -1,5 +1,5 @@
-# Forward_star
-A graph data structure for optimizing graph traversals and graph OLAP tasks.
+# RadixGraph
+A fast and space-efficient graph data structure.
 
 # Compile and run
 ```sh
