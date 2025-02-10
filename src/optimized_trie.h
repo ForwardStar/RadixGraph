@@ -60,7 +60,7 @@ typedef struct _dummy_node {
     AtomicBitmap* flag = nullptr;
     WeightedEdge* next = nullptr;
     int cap = 0;
-    std::atomic<int> cnt = ATOMIC_FLAG_INIT, deg = ATOMIC_FLAG_INIT;
+    std::atomic<int> cnt, deg;
     std::atomic_flag mtx = ATOMIC_FLAG_INIT;
 
     ~_dummy_node() {
@@ -104,7 +104,7 @@ class Trie {
         DummyNode** dummy_nodes;
         std::vector<int> num_bits, sum_bits;
         int depth = 0, space = 0, cap = 0;
-        std::atomic<int> cnt = ATOMIC_FLAG_INIT;
+        std::atomic<int> cnt;
         std::atomic_flag mtx = ATOMIC_FLAG_INIT;
 
         inline DummyNode* InsertVertex(TrieNode* current, NodeID id, int d);

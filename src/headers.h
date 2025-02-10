@@ -1,6 +1,7 @@
 #ifndef HEADERS
 #define HEADERS
 
+#include <atomic>
 #include <iostream>
 #include <cmath>
 #include <cassert>
