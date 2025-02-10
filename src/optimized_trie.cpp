@@ -52,6 +52,7 @@ DummyNode* Trie::InsertVertex(TrieNode* current, NodeID id, int d) {
                     current->head[idx]->flag = new AtomicBitmap(max_number_of_threads);
                     current->head[idx]->flag->reset();
                     current->head[idx]->next = new WeightedEdge[5];
+                    current->head[idx]->timestamp = new int[5];
                     current->head[idx]->cap = 5;
                     current->head[idx]->node = id;
                 }
@@ -136,8 +137,14 @@ Trie::Trie(int d, int _num_bits[]) {
     }
     root = new TrieNode();
     root->sz = (1 << num_bits[0]);
-    root->children = new TrieNode*[root->sz];
-    std::memset(root->children, 0, sizeof(root->children) * root->sz);
+    if (d > 1) {
+        root->children = new TrieNode*[root->sz];
+        std::memset(root->children, 0, sizeof(root->children) * root->sz);
+    }
+    else {
+        root->head = new DummyNode*[root->sz];
+        std::memset(root->head, 0, sizeof(root->head) * root->sz);
+    }
     root->mtx = new AtomicBitmap(root->sz);
     cap = 1000;
     dummy_nodes = new DummyNode*[cap];
@@ -152,8 +159,14 @@ Trie::Trie(int d, std::vector<int> _num_bits) {
     }
     root = new TrieNode();
     root->sz = (1 << num_bits[0]);
-    root->children = new TrieNode*[root->sz];
-    std::memset(root->children, 0, sizeof(root->children) * root->sz);
+    if (d > 1) {
+        root->children = new TrieNode*[root->sz];
+        std::memset(root->children, 0, sizeof(root->children) * root->sz);
+    }
+    else {
+        root->head = new DummyNode*[root->sz];
+        std::memset(root->head, 0, sizeof(root->head) * root->sz);
+    }
     root->mtx = new AtomicBitmap(root->sz);
     cap = 1000;
     dummy_nodes = new DummyNode*[cap];

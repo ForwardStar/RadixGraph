@@ -2,6 +2,7 @@
 #define FORWARDSTAR
 
 #include "optimized_trie.h"
+#define MAXINT 2147483647
 
 class ForwardStar {
     private:
@@ -13,8 +14,8 @@ class ForwardStar {
         bool InsertEdge(NodeID src, NodeID des, double weight);
         bool UpdateEdge(NodeID src, NodeID des, double weight);
         bool DeleteEdge(NodeID src, NodeID des);
-        bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours);
-        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours);
+        bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp=MAXINT);
+        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp=MAXINT);
 
         std::vector<DummyNode*> BFS(NodeID src);
         std::vector<double> SSSP(NodeID src);

@@ -59,6 +59,7 @@ typedef struct _dummy_node {
     int idx = -1; // the index of this dummy node
     AtomicBitmap* flag = nullptr;
     WeightedEdge* next = nullptr;
+    int* timestamp = nullptr;
     int cap = 0;
     std::atomic<int> cnt = 0, deg = 0;
     std::atomic<uint8_t> mtx = 0;
@@ -66,6 +67,7 @@ typedef struct _dummy_node {
     ~_dummy_node() {
         if (next) delete [] next;
         if (flag) delete flag;
+        if (timestamp) delete [] timestamp;
     }
 } DummyNode;
 

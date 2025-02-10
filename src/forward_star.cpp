@@ -9,15 +9,20 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
         }
         if (i >= src->cap) {
             auto des = new WeightedEdge[src->cap * 2];
+            auto des2 = new int[src->cap * 2];
             std::copy(src->next, src->next + src->cap, des);
+            std::copy(src->timestamp, src->timestamp + src->cap, des2);
             delete [] src->next;
+            delete [] src->timestamp;
             src->next = des;
+            src->timestamp = des2;
             src->cap *= 2;
         }
         src->mtx = 0;
     }
     src->next[i].forward = des;
     src->next[i].weight = weight;
+    src->timestamp[i] = global_timestamp++;
     return true;
 }
 
@@ -56,28 +61,28 @@ bool ForwardStar::DeleteEdge(NodeID src, NodeID des) {
     return true;
 }
 
-bool ForwardStar::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours) {
+bool ForwardStar::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
     }
-    return GetNeighbours(src_ptr, neighbours);
+    return GetNeighbours(src_ptr, neighbours, timestamp);
 }
 
-bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours) {
+bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
     if (src) {
         int num = 0;
         int thread_id = omp_get_thread_num(), cnt = src->cnt, deg = src->deg;
         neighbours.resize(deg);
         for (int i = cnt - 1; i >= 0; i--) {
-            if (src->next[i].forward->node == -1) {
+            if (src->next[i].forward->node == -1 || src->timestamp[i] > timestamp) {
                 continue;
             }
             src->next[i].forward->flag->clear_bit(thread_id);
         }
         for (int i = cnt - 1; i >= 0; i--) {
             auto e = &src->next[i];
-            if (e->forward->node == -1) {
+            if (e->forward->node == -1 || src->timestamp[i] > timestamp) {
                 continue;
             }
             if (!e->forward->flag->get_bit(thread_id)) {
