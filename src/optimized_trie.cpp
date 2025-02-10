@@ -52,7 +52,6 @@ DummyNode* Trie::InsertVertex(TrieNode* current, NodeID id, int d) {
                     current->head[idx]->flag = new AtomicBitmap(max_number_of_threads);
                     current->head[idx]->flag->reset();
                     current->head[idx]->next = new WeightedEdge[5];
-                    current->head[idx]->timestamp = new int[5];
                     current->head[idx]->cap = 5;
                     current->head[idx]->node = id;
                 }
