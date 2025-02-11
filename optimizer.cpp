@@ -63,7 +63,6 @@ signed main(signed argc, char* argv[]) {
         u++;
         n = vertices.size();
         logu = ceil(log2(u));
-        cout << "n = " << n << ", u = " << u << endl;
     }
     u = (1ll << logu);
     vvld g(l);
