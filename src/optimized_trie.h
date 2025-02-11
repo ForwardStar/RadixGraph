@@ -50,7 +50,7 @@ typedef struct _weighted_edge;
 typedef struct _dummy_node;
 
 typedef struct _weighted_edge {
-    double weight = 0; // edge property
+    float weight = 0; // edge property
     _dummy_node* forward = nullptr; // forward pointer to dummy node of target vertex
 } WeightedEdge;
 
