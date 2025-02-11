@@ -49,13 +49,21 @@ signed main(signed argc, char* argv[]) {
             cerr << "Error: Cannot open file " << argv[1] << endl;
             return EXIT_FAILURE;
         }
-        ll num;
-        while (infile >> num) {
-            n++;
-            u = max(u, num);
+        set<ll> vertices;
+        string s;
+        while (getline(infile, s)) {
+            if (s[0] == '#') continue;
+            stringstream ss(s);
+            ll num;
+            while (ss >> num) {
+                u = max(u, num);
+                vertices.insert(num);
+            }
         }
         u++;
+        n = vertices.size();
         logu = ceil(log2(u));
+        cout << "n = " << n << ", u = " << u << endl;
     }
     u = (1ll << logu);
     vvld g(l);
