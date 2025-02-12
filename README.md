@@ -1,5 +1,5 @@
 # RadixGraph
-A fast and space-efficient graph data structure.
+A fast and space-efficient graph data structure. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
 # Compile and run
 ```sh
@@ -76,3 +76,6 @@ Average get neighbours time for spruce: 0.0801724s
 Average BFS time for forward star: 1.1841s
 Average BFS time for spruce: 3.05221s
 ```
+
+## License
+This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
