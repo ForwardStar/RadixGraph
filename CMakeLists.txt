@@ -16,12 +16,6 @@ if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-# Include directories for external libraries if needed (adjust paths as necessary)
-include_directories("/mnt/wd_ultrastar_8TB/sjf/GraphIndex/Comparisons/teseo-master/include")
-include_directories("/usr/local/include/sdsl")
-include_directories("/usr/local/include/tbb/")
-include_directories("/usr/local/libevent/2_1_12/include/")
-
 # Add Spruce, Junction, and Turf directories
 add_subdirectory(${CMAKE_SOURCE_DIR}/Spruce/Spruce spruce)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/Spruce/junction/include)
