@@ -102,20 +102,6 @@ int main(int argc, char* argv[]) {
         duration = end - start;
         std::cout << "Spruce: " << duration.count() << "s" << std::endl;
         std::cout << "Memory: " << get_proc_mem() - start_mem << std::endl;
-        
-        start = std::chrono::high_resolution_clock::now();
-        int sz = G_fstar.BFS(1).size();
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        std::cout << "Forward* BFS: " << duration.count() << "s" << std::endl;
-        std::cout << "BFS results: " << sz << std::endl;
-        
-        start = std::chrono::high_resolution_clock::now();
-        sz = spruce_bfs(spruce, 1).size();
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        std::cout << "Spruce BFS: " << duration.count() << "s" << std::endl;
-        std::cout << "BFS results: " << sz << std::endl;
 
         return 0;
     }
@@ -159,7 +145,7 @@ int main(int argc, char* argv[]) {
         }
         for (int i = 0; i < num_trials; i++) {
             // std::cout << "Trial " << i + 1 << ":" << std::endl;
-            ForwardStar G_fstar(d[now], a[now]);
+            ForwardStar G_fstar(d[now], a[now], true);
             SpruceTransVer spruce;
             std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
 
