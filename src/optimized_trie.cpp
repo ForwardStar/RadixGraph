@@ -37,10 +37,12 @@
              auto tmp = (DummyNode*)current->children[idx];
              if (!tmp || tmp->node == -1) {
                  current->mtx->set_bit_atomic(idx);
+                 tmp = (DummyNode*)current->children[idx];
                  if (!tmp) {
                      int i = cnt.fetch_add(1);
-                     auto tmp1 = new DummyNode();
-                     tmp1->idx = i;
+                     tmp = new DummyNode();
+                     tmp->idx = i;
+                     current->children[idx] = (uint64_t)tmp;
                      if (enable_query) {
                         if (i >= cap) {
                             while (mtx.test_and_set()) {}
@@ -54,11 +56,9 @@
                             }
                             mtx.clear();
                         }
-                        dummy_nodes[i] = tmp1;
+                        dummy_nodes[i] = tmp;
                      }
-                     current->children[idx] = (uint64_t)tmp1;
                  }
-                 tmp = (DummyNode*)current->children[idx];
                  if (tmp->node == -1) {
                      if (enable_query) {
                         tmp->flag = new AtomicBitmap(max_number_of_threads);
