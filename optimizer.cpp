@@ -64,6 +64,7 @@ signed main(signed argc, char* argv[]) {
         n = vertices.size();
         logu = ceil(log2(u));
     }
+    logu--;
     u = (1ll << logu);
     vvld g(l);
     vvl pre(l);
@@ -98,7 +99,8 @@ signed main(signed argc, char* argv[]) {
         if (s[i] == 0) l--;
     }
     if (s[0] == 0) l--;
-    cout << l << "\n";
+    cout << l + 1 << "\n";
+    cout << 1 << " ";
     rep(i, 0, s.size()) {
         if (s[i]) cout << s[i] << " ";
     }
