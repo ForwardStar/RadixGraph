@@ -87,27 +87,12 @@ typedef struct _dummy_node {
 class Trie {
     public:
         typedef struct _trie_node {
-            DummyNode** head = nullptr;
-            _trie_node** children = nullptr;
+            uint64_t* children = nullptr;
             AtomicBitmap* mtx = nullptr;
-            int sz = 0;
 
             ~_trie_node() {
                 if (children) {
-                    for (int i = 0; i < sz; i++) {
-                        if (children[i]) {
-                            delete children[i];
-                        }
-                    }
                     delete [] children;
-                }
-                if (head) {
-                    for (int i = 0; i < sz; i++) {
-                      if (head[i]) {
-                        delete head[i];
-                      }
-                    }
-                    delete [] head;
                 }
                 if (mtx) {
                     delete mtx;
