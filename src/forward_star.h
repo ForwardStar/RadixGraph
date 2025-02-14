@@ -33,7 +33,7 @@ class ForwardStar {
         std::vector<DummyNode*> BFS(NodeID src);
         std::vector<double> SSSP(NodeID src);
 
-        ForwardStar(int d, std::vector<int> _num_children, bool enable_query=false);
+        ForwardStar(int d, std::vector<int> _num_children, bool enable_query=true);
         ~ForwardStar();
 };
 
