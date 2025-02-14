@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
         edge_set.emplace(std::make_pair(u, v));
     }
 
-    ForwardStar G(d, a);
+    ForwardStar G(d, a, true);
     #pragma omp parallel for
     for (auto e : edges) {
         G.InsertEdge(e.first.first, e.first.second, e.second);

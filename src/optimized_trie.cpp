@@ -37,29 +37,33 @@
              auto tmp = (DummyNode*)current->children[idx];
              if (!tmp || tmp->node == -1) {
                  current->mtx->set_bit_atomic(idx);
+                 tmp = (DummyNode*)current->children[idx];
                  if (!tmp) {
                      int i = cnt.fetch_add(1);
-                     auto tmp1 = new DummyNode();
-                     tmp1->idx = i;
-                     if (i >= cap) {
-                         while (mtx.test_and_set()) {}
-                         if (i >= cap) {
-                             auto des = new DummyNode*[cap * 2];
-                             std::memset(des, 0, sizeof(des) * cap * 2);
-                             std::copy(dummy_nodes, dummy_nodes + cap, des);
-                             delete [] dummy_nodes;
-                             dummy_nodes = des;
-                             cap *= 2;
-                         }
-                         mtx.clear();
+                     tmp = new DummyNode();
+                     tmp->idx = i;
+                     current->children[idx] = (uint64_t)tmp;
+                     if (enable_query) {
+                        if (i >= cap) {
+                            while (mtx.test_and_set()) {}
+                            if (i >= cap) {
+                                auto des = new DummyNode*[cap * 2];
+                                std::memset(des, 0, sizeof(des) * cap * 2);
+                                std::copy(dummy_nodes, dummy_nodes + cap, des);
+                                delete [] dummy_nodes;
+                                dummy_nodes = des;
+                                cap *= 2;
+                            }
+                            mtx.clear();
+                        }
+                        dummy_nodes[i] = tmp;
                      }
-                     dummy_nodes[i] = tmp1;
-                     current->children[idx] = (uint64_t)tmp1;
                  }
-                 tmp = (DummyNode*)current->children[idx];
                  if (tmp->node == -1) {
-                     tmp->flag = new AtomicBitmap(max_number_of_threads);
-                     tmp->flag->reset();
+                     if (enable_query) {
+                        tmp->flag = new AtomicBitmap(max_number_of_threads);
+                        tmp->flag->reset();
+                     }
                      tmp->next = new WeightedEdge[5];
                      tmp->cap = 5;
                      tmp->node = id;
@@ -110,7 +114,7 @@
      }
      tmp->node = -1;
      delete [] tmp->next;
-     delete tmp->flag;
+     if (tmp->flag) delete tmp->flag;
      tmp->cap = tmp->cnt = 0;
      return true;
  }
@@ -137,7 +141,8 @@
      return sz;
  }
  
- Trie::Trie(int d, int _num_bits[]) {
+ Trie::Trie(int d, int _num_bits[], bool _enable_query) {
+     enable_query = _enable_query;
      depth = d;
      num_bits.resize(d), sum_bits.resize(d);
      for (int i = 0; i < d; i++) {
@@ -149,11 +154,14 @@
      root->children = new uint64_t[sz];
      std::memset(root->children, 0, sizeof(root->children) * sz);
      root->mtx = new AtomicBitmap(sz);
-     cap = 1000;
-     dummy_nodes = new DummyNode*[cap];
+     if (enable_query) {
+        cap = 1000;
+        dummy_nodes = new DummyNode*[cap];
+     }
  }
  
- Trie::Trie(int d, std::vector<int> _num_bits) {
+ Trie::Trie(int d, std::vector<int> _num_bits, bool _enable_query) {
+     enable_query = _enable_query;
      depth = d;
      num_bits.resize(d), sum_bits.resize(d);
      for (int i = 0; i < d; i++) {
@@ -165,8 +173,10 @@
      root->children = new uint64_t[sz];
      std::memset(root->children, 0, sizeof(root->children) * sz);
      root->mtx = new AtomicBitmap(sz);
-     cap = 1000;
-     dummy_nodes = new DummyNode*[cap];
+     if (enable_query) {
+        cap = 1000;
+        dummy_nodes = new DummyNode*[cap];
+     }
  }
  
  Trie::~Trie() {
@@ -187,13 +197,18 @@
                      }
                  }
              }
+             else {
+                for (int i = 0; i < (1 << num_bits[d]); i++) {
+                    if (u->children[i]) {
+                        auto tmp = (DummyNode*)u->children[i];
+                        delete tmp;
+                    }
+                }
+             }
          }
      }
      for (auto u : ptrs) {
          delete (TrieNode*)u;
      }
-     for (int i = 0; i < cnt; i++) {
-         delete dummy_nodes[i];
-     }
-     delete [] dummy_nodes;
+     if (dummy_nodes) delete [] dummy_nodes;
  }

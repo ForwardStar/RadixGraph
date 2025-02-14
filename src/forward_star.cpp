@@ -157,8 +157,8 @@ std::vector<double> ForwardStar::SSSP(NodeID src) {
     return dist;
 }
 
-ForwardStar::ForwardStar(int d, std::vector<int> _num_children) {
-    vertex_index = new Trie(d, _num_children);
+ForwardStar::ForwardStar(int d, std::vector<int> _num_children, bool enable_query) {
+    vertex_index = new Trie(d, _num_children, enable_query);
 }
 
 ForwardStar::~ForwardStar() {
