@@ -108,8 +108,8 @@ class Trie {
         long long size();
 
         Trie() {}
-        Trie(int d, int _num_bits[], bool _enable_query=false);
-        Trie(int d, std::vector<int> _num_bits, bool _enable_query=false);
+        Trie(int d, int _num_bits[], bool _enable_query=true);
+        Trie(int d, std::vector<int> _num_bits, bool _enable_query=true);
         ~Trie();
 };
 

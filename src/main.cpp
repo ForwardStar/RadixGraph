@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
         std::random_shuffle(edges.begin(), edges.end());
 
         int start_mem = get_proc_mem();
-        ForwardStar G_fstar(d, a);
+        ForwardStar G_fstar(d, a, false);
         auto start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)
         for (auto e : edges) G_fstar.InsertEdge(e.first, e.second, 0.5);
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
         }
         for (int i = 0; i < num_trials; i++) {
             // std::cout << "Trial " << i + 1 << ":" << std::endl;
-            ForwardStar G_fstar(d[now], a[now], true);
+            ForwardStar G_fstar(d[now], a[now]);
             SpruceTransVer spruce;
             std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
 

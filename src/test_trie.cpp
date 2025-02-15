@@ -34,8 +34,8 @@ int main() {
         std::cin >> ai;
         a.push_back(ai);
     }
-    Trie trie_base(d, a_base);
-    Trie trie_opt(d, a);
+    Trie trie_base(d, a_base, false);
+    Trie trie_opt(d, a, false);
     std::default_random_engine generator;
     unsigned long long maximum = u < 64 ? (1ull << u) - 1 : -1;
     std::uniform_int_distribution distribution(0ull, maximum);
