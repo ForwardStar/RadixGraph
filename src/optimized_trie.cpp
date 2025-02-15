@@ -26,8 +26,7 @@
                      auto tmp = new TrieNode();
                      int sz = (1 << num_bits[i + 1]);
                      tmp->mtx = new AtomicBitmap(sz);
-                     tmp->children = new uint64_t[sz];
-                     std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
+                     tmp->children = static_cast<uint64_t*>(mmap(nullptr, sz * sizeof(uint64_t), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
                      current->children[idx] = (uint64_t)tmp;
                  }
                  current->mtx->clear_bit(idx);
@@ -47,11 +46,7 @@
                         if (i >= cap) {
                             while (mtx.test_and_set()) {}
                             if (i >= cap) {
-                                auto des = new DummyNode*[cap * 2];
-                                std::memset(des, 0, sizeof(des) * cap * 2);
-                                std::copy(dummy_nodes, dummy_nodes + cap, des);
-                                delete [] dummy_nodes;
-                                dummy_nodes = des;
+                                dummy_nodes = (DummyNode**)realloc(dummy_nodes, cap * 2 * sizeof(DummyNode*));
                                 cap *= 2;
                             }
                             mtx.clear();
@@ -64,7 +59,7 @@
                         tmp->flag = new AtomicBitmap(max_number_of_threads);
                         tmp->flag->reset();
                      }
-                     tmp->next = new WeightedEdge[5];
+                     tmp->next = (WeightedEdge*)malloc(5 * sizeof(WeightedEdge));
                      tmp->cap = 5;
                      tmp->node = id;
                  }
@@ -151,12 +146,11 @@
      }
      root = new TrieNode();
      int sz = (1 << num_bits[0]);
-     root->children = new uint64_t[sz];
-     std::memset(root->children, 0, sizeof(root->children) * sz);
+     root->children = static_cast<uint64_t*>(mmap(nullptr, sz * sizeof(uint64_t), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
         cap = 1000;
-        dummy_nodes = new DummyNode*[cap];
+        dummy_nodes = (DummyNode**)malloc(cap * sizeof(DummyNode*));
      }
  }
  
@@ -170,19 +164,18 @@
      }
      root = new TrieNode();
      int sz = (1 << num_bits[0]);
-     root->children = new uint64_t[sz];
-     std::memset(root->children, 0, sizeof(root->children) * sz);
+     root->children = static_cast<uint64_t*>(mmap(nullptr, sz * sizeof(uint64_t), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
         cap = 1000;
-        dummy_nodes = new DummyNode*[cap];
+        dummy_nodes = (DummyNode**)malloc(cap * sizeof(DummyNode*));
      }
  }
  
  Trie::~Trie() {
-     std::vector<uint64_t> ptrs;
+     std::vector<std::pair<uint64_t, int>> ptrs;
      std::queue<std::pair<TrieNode*, int>> Q;
-     ptrs.emplace_back((uint64_t)root);
+     ptrs.emplace_back((uint64_t)root, 0);
      Q.emplace(root, 0);
      while (!Q.empty()) {
          TrieNode* u = Q.front().first;
@@ -192,7 +185,7 @@
              if (d < depth - 1) {
                  for (int i = 0; i < (1 << num_bits[d]); i++) {
                      if (u->children[i]) {
-                         ptrs.emplace_back(u->children[i]);
+                         ptrs.emplace_back(u->children[i], d + 1);
                          Q.emplace((TrieNode*)u->children[i], d + 1);
                      }
                  }
@@ -208,7 +201,9 @@
          }
      }
      for (auto u : ptrs) {
-         delete (TrieNode*)u;
+        auto tmp = (TrieNode*)u.first;
+        munmap(tmp->children, u.second * sizeof(uint64_t));
+        delete tmp->mtx;
      }
-     if (dummy_nodes) delete [] dummy_nodes;
+     if (dummy_nodes) free(dummy_nodes);
  }
