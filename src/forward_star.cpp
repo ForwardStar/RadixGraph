@@ -20,8 +20,8 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
     if (i >= src->cap) {
         while (src->mtx.test_and_set()) {}
         if (i >= src->cap) {
-            src->next = (WeightedEdge*)realloc(src->next, src->cap * 2 * sizeof(WeightedEdge));
-            src->cap *= 2;
+            src->next = (WeightedEdge*)realloc(src->next, int(src->cap * 1.5) * sizeof(WeightedEdge));
+            src->cap *= 1.5;
         }
         src->mtx.clear();
     }
