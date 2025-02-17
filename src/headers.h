@@ -31,8 +31,6 @@
 #include <unordered_set>
 #include <queue>
 #include <stack>
-#include <sys/mman.h>
-#include <unistd.h>
 #include <thread>
 #include <omp.h>
 

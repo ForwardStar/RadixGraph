@@ -26,7 +26,8 @@
                      auto tmp = new TrieNode();
                      int sz = (1 << num_bits[i + 1]);
                      tmp->mtx = new AtomicBitmap(sz);
-                     tmp->children = static_cast<uint64_t*>(mmap(nullptr, sz * sizeof(uint64_t), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+                     tmp->children = new uint64_t[sz];
+                     std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
                      current->children[idx] = (uint64_t)tmp;
                  }
                  current->mtx->clear_bit(idx);
@@ -146,7 +147,8 @@
      }
      root = new TrieNode();
      int sz = (1 << num_bits[0]);
-     root->children = static_cast<uint64_t*>(mmap(nullptr, sz * sizeof(uint64_t), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+     root->children = new uint64_t[sz];
+     std::memset(root->children, 0, sizeof(root->children));
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
         cap = 1000;
@@ -164,7 +166,8 @@
      }
      root = new TrieNode();
      int sz = (1 << num_bits[0]);
-     root->children = static_cast<uint64_t*>(mmap(nullptr, sz * sizeof(uint64_t), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+     root->children = new uint64_t[sz];
+     std::memset(root->children, 0, sizeof(root->children) * sz);
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
         cap = 1000;
@@ -173,9 +176,9 @@
  }
  
  Trie::~Trie() {
-     std::vector<std::pair<uint64_t, int>> ptrs;
+     std::vector<uint64_t> ptrs;
      std::queue<std::pair<TrieNode*, int>> Q;
-     ptrs.emplace_back((uint64_t)root, 0);
+     ptrs.emplace_back((uint64_t)root);
      Q.emplace(root, 0);
      while (!Q.empty()) {
          TrieNode* u = Q.front().first;
@@ -185,7 +188,7 @@
              if (d < depth - 1) {
                  for (int i = 0; i < (1 << num_bits[d]); i++) {
                      if (u->children[i]) {
-                         ptrs.emplace_back(u->children[i], d + 1);
+                         ptrs.emplace_back(u->children[i]);
                          Q.emplace((TrieNode*)u->children[i], d + 1);
                      }
                  }
@@ -201,9 +204,7 @@
          }
      }
      for (auto u : ptrs) {
-        auto tmp = (TrieNode*)u.first;
-        munmap(tmp->children, u.second * sizeof(uint64_t));
-        delete tmp->mtx;
+        delete (TrieNode*)u;
      }
      if (dummy_nodes) free(dummy_nodes);
  }

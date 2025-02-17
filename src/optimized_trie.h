@@ -89,6 +89,11 @@ class Trie {
         typedef struct _trie_node {
             uint64_t* children = nullptr;
             AtomicBitmap* mtx = nullptr;
+
+            ~_trie_node() {
+              if (mtx) delete mtx;
+              if (children) delete [] children;
+            }
         } TrieNode;
 
         TrieNode* root = nullptr;
