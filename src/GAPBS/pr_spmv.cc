@@ -49,10 +49,9 @@ pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
         std::vector<WeightedEdge> neighbours;
         g->GetNeighbours(u, neighbours);
         for (auto e : neighbours) {
-          auto v = e.forward;
-          incoming_total += outgoing_contrib[v->idx];
-          scores[u->idx] = base_score + kDamp * (incoming_total + dangling_sum);
+          incoming_total += outgoing_contrib[e.forward->idx];
         }
+        scores[u->idx] = base_score + kDamp * (incoming_total + dangling_sum);
       }
   }
   return scores;

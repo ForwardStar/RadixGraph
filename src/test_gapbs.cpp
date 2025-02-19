@@ -54,17 +54,13 @@ int main(int argc, char* argv[]) {
         std::cout << "Testing SSSP..." << std::endl;
         auto res4 = DeltaStep(&G, s, 2.0, n, m);
 
-        // Test LCC
-        std::cout << "Testing LCC..." << std::endl;
-        OrderedCount(&G, n);
-
         // Test WCC
         std::cout << "Testing WCC..." << std::endl;
         ShiloachVishkin(&G, n);
 
         // Test PageRank
         std::cout << "Testing PageRank..." << std::endl;
-        PageRankPull(&G, 100, n);
+        PageRankPull(&G, 10, n);
 
         return 0;
     }

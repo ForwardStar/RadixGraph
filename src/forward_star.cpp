@@ -78,25 +78,33 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
         int num = 0;
         int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
         neighbours.resize(deg);
-        for (int i = cnt - 1; i >= 0; i--) {
-            if (src->next[i].forward->node == -1) {
-                continue;
+        if (cnt == deg) {
+            for (int i = 0; i < cnt; i++) {
+                neighbours[i].forward = src->next[i].forward;
+                neighbours[i].weight = src->next[i].weight;
             }
-            src->next[i].forward->flag->clear_bit(thread_id);
         }
-        for (int i = cnt - 1; i >= 0; i--) {
-            auto e = &src->next[i];
-            if (e->forward->node == -1) {
-                continue;
-            }
-            if (!e->forward->flag->get_bit(thread_id)) {
-                if (e->weight != 0) { // Insert or Update
-                    // Have not found a previous log for this edge, thus this edge is the latest
-                    neighbours[num].forward = e->forward;
-                    neighbours[num].weight = e->weight;
-                    ++num;
+        else {
+            for (int i = cnt - 1; i >= 0; i--) {
+                if (src->next[i].forward->node == -1) {
+                    continue;
                 }
-                e->forward->flag->set_bit(thread_id);
+                src->next[i].forward->flag->clear_bit(thread_id);
+            }
+            for (int i = cnt - 1; i >= 0; i--) {
+                auto e = &src->next[i];
+                if (e->forward->node == -1) {
+                    continue;
+                }
+                if (!e->forward->flag->get_bit(thread_id)) {
+                    if (e->weight != 0) { // Insert or Update
+                        // Have not found a previous log for this edge, thus this edge is the latest
+                        neighbours[num].forward = e->forward;
+                        neighbours[num].weight = e->weight;
+                        ++num;
+                    }
+                    e->forward->flag->set_bit(thread_id);
+                }
             }
         }
     }

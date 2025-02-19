@@ -22,17 +22,18 @@ inline void RelaxEdges(ForwardStar* g, DummyNode* u, WeightT delta,
     g->GetNeighbours(u, neighbours);
     for (auto e : neighbours) {
         auto v = e.forward;
-        WeightT old_dist = dist[v->idx];
+        auto vidx = v->idx;
+        WeightT old_dist = dist[vidx];
         WeightT new_dist = dist[u->idx] + e.weight;
         while (new_dist < old_dist) {
-            if (compare_and_swap(dist[v->idx], old_dist, new_dist)) {
+            if (compare_and_swap(dist[vidx], old_dist, new_dist)) {
                 size_t dest_bin = new_dist / delta;
                 if (dest_bin >= local_bins.size())
                     local_bins.resize(dest_bin + 1);
                 local_bins[dest_bin].push_back(v);
                 break;
             }
-            old_dist = dist[v->idx];      // swap failed, recheck dist update & retry
+            old_dist = dist[vidx];      // swap failed, recheck dist update & retry
         }
     }
 }
