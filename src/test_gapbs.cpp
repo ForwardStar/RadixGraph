@@ -24,6 +24,51 @@
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
+    if (argc > 1) {
+        std::ifstream f("settings");
+        int d;
+        f >> d;
+        std::vector<int> a(d);
+        for (auto& i : a) f >> i;
+
+        std::ifstream fin(argv[argc - 1]);
+        uint64_t u, v, s;
+        bool has_source = false;
+        std::vector<std::pair<uint64_t, uint64_t>> edges;
+        int m = 0;
+        while (fin >> u >> v) {
+            edges.emplace_back(u, v);
+            if (!has_source) s = u, has_source = true;
+            m++;
+        }
+
+        ForwardStar G(d, a);
+        #pragma omp parallel for
+        for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5);
+        int n = G.vertex_index->cnt;
+
+        std::cout << "Testing BFS..." << std::endl;
+        auto p = DOBFS(&G, s, n, m, -1);
+
+        // Test SSSP
+        std::cout << "Testing SSSP..." << std::endl;
+        auto res4 = DeltaStep(&G, s, 2.0, n, m);
+
+        // Test LCC
+        std::cout << "Testing LCC..." << std::endl;
+        OrderedCount(&G, n);
+
+        // Test WCC
+        std::cout << "Testing WCC..." << std::endl;
+        ShiloachVishkin(&G, n);
+
+        // Test PageRank
+        std::cout << "Testing PageRank..." << std::endl;
+        PageRankPull(&G, 100, n);
+
+        return 0;
+    }
+
     int d = 3;
     std::vector<int> a = {7, 7, 6};
     int n = 100000, m = 10000000;

@@ -39,21 +39,21 @@
                  current->mtx->set_bit_atomic(idx);
                  tmp = (DummyNode*)current->children[idx];
                  if (!tmp) {
-                     int i = cnt.fetch_add(1);
                      tmp = new DummyNode();
-                     tmp->idx = i;
-                     current->children[idx] = (uint64_t)tmp;
+                     int i = cnt.fetch_add(1);
                      if (enable_query) {
                         if (i >= cap) {
                             while (mtx.test_and_set()) {}
                             if (i >= cap) {
-                                dummy_nodes = (DummyNode**)realloc(dummy_nodes, cap * 2 * sizeof(DummyNode*));
-                                cap *= 2;
+                                dummy_nodes.store((DummyNode**)realloc(dummy_nodes.load(), int(cap * 10) * sizeof(DummyNode*)));
+                                cap *= 10;
                             }
                             mtx.clear();
                         }
-                        dummy_nodes[i] = tmp;
+                        dummy_nodes.load()[i] = tmp;
                      }
+                     tmp->idx = i;
+                     current->children[idx] = (uint64_t)tmp;
                  }
                  if (tmp->node == -1) {
                      if (enable_query) {
@@ -151,8 +151,8 @@
      std::memset(root->children, 0, sizeof(root->children));
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
-        cap = 1000;
-        dummy_nodes = (DummyNode**)malloc(cap * sizeof(DummyNode*));
+        cap = 100000;
+        dummy_nodes.store((DummyNode**)malloc(cap * sizeof(DummyNode*)));
      }
  }
  
@@ -170,8 +170,8 @@
      std::memset(root->children, 0, sizeof(root->children) * sz);
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
-        cap = 1000;
-        dummy_nodes = (DummyNode**)malloc(cap * sizeof(DummyNode*));
+        cap = 100000;
+        dummy_nodes.store((DummyNode**)malloc(cap * sizeof(DummyNode*)));
      }
  }
  
