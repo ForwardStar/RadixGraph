@@ -80,8 +80,9 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
         neighbours.resize(deg);
         if (cnt == deg) {
             for (int i = 0; i < cnt; i++) {
-                neighbours[i].forward = src->next[i].forward;
-                neighbours[i].weight = src->next[i].weight;
+                auto e = &src->next[i];
+                neighbours[i].forward = e->forward;
+                neighbours[i].weight = e->weight;
             }
         }
         else {

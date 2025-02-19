@@ -46,7 +46,7 @@ pvector<NodeID> ShiloachVishkin(ForwardStar* g, uint32_t num_nodes) {
       g->GetNeighbours(u, neighbours);
       for (auto e : neighbours) {
         auto v = e.forward;
-        NodeID comp_u = comp[u->idx];
+        NodeID comp_u = comp[n];
         NodeID comp_v = comp[v->idx];
         if (comp_u == comp_v) continue;
         // Hooking condition so lower component ID wins independent of direction

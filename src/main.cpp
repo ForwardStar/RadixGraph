@@ -291,9 +291,14 @@ int main(int argc, char* argv[]) {
                     std::sort(neighbours_spruce.begin(), neighbours_spruce.end(), [](SpruceTransVer::WeightedOutEdgeSimple a, SpruceTransVer::WeightedOutEdgeSimple b) {
                         return a.des < b.des;
                     });
-                    assert(neighbours_fstar.size() == neighbours_spruce.size());
+                    if (neighbours_fstar.size() != neighbours_spruce.size()) {
+                        std::cout << "Get neighbours results wrong." << std::endl;
+                        exit(-1);
+                    }
                     for (int k = 0; k < neighbours_fstar.size(); k++) {
-                        assert(neighbours_fstar[k].forward->node == neighbours_spruce[k].des);
+                        if (neighbours_fstar[k].forward->node != neighbours_spruce[k].des) {
+                            std::cout << "Get neighbours results wrong." << std::endl;
+                        }
                     }
                 }
             }
@@ -318,9 +323,14 @@ int main(int argc, char* argv[]) {
                     return a->node < b->node;
                 });
                 std::sort(res_spruce.begin(), res_spruce.end());
-                assert(res_fstar.size() == res_spruce.size());
+                if (res_fstar.size() != res_spruce.size()) {
+                    std::cout << "BFS results wrong." << std::endl;
+                    exit(-1);
+                }
                 for (int j = 0; j < res_fstar.size(); j++) {
-                    assert(res_fstar[j]->node == res_spruce[j]);
+                    if (res_fstar[j]->node != res_spruce[j]) {
+                        std::cout << "BFS results wrong." << std::endl;
+                    }
                 }
             }
 

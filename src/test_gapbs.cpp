@@ -48,19 +48,35 @@ int main(int argc, char* argv[]) {
         int n = G.vertex_index->cnt;
 
         std::cout << "Testing BFS..." << std::endl;
+        auto start = std::chrono::high_resolution_clock::now();
         auto p = DOBFS(&G, s, n, m, -1);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
 
         // Test SSSP
         std::cout << "Testing SSSP..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
         auto res4 = DeltaStep(&G, s, 2.0, n, m);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
 
         // Test WCC
         std::cout << "Testing WCC..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
         ShiloachVishkin(&G, n);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
 
         // Test PageRank
         std::cout << "Testing PageRank..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
         PageRankPull(&G, 10, n);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
 
         return 0;
     }

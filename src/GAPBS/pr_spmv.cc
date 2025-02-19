@@ -30,7 +30,7 @@ pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
       #pragma omp parallel for reduction(+:dangling_sum)
       for (NodeID n = 0; n < num_nodes; n++) {
           auto u = g->vertex_index->dummy_nodes[n];
-          if (!u || u->node == -1) continue;
+          // if (!u || u->node == -1) continue;
           uint32_t out_degree = u->deg;
           if (out_degree == 0) {
               dangling_sum += scores[n];
@@ -44,14 +44,14 @@ pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
       #pragma omp parallel for schedule(guided)
       for (NodeID n = 0; n < num_nodes; n++) {
         auto u = g->vertex_index->dummy_nodes[n];
-        if (!u || u->node == -1) continue;
+        // if (!u || u->node == -1) continue;
         ScoreT incoming_total = 0;
         std::vector<WeightedEdge> neighbours;
         g->GetNeighbours(u, neighbours);
         for (auto e : neighbours) {
           incoming_total += outgoing_contrib[e.forward->idx];
         }
-        scores[u->idx] = base_score + kDamp * (incoming_total + dangling_sum);
+        scores[n] = base_score + kDamp * (incoming_total + dangling_sum);
       }
   }
   return scores;
