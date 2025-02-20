@@ -80,27 +80,20 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
         int num = 0;
         int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
         neighbours.resize(deg);
-        if (deg == cnt) {
-            for (int i = 0; i < cnt; i++) {
-                neighbours[i] = src->next[i];
-            }
+        for (int i = cnt - 1; i >= 0; i--) {
+            if (src->next[i].idx == -1) continue;
+            bitmap[thread_id]->clear_bit(src->next[i].idx);
         }
-        else {
-            for (int i = cnt - 1; i >= 0; i--) {
-                if (src->next[i].idx == -1) continue;
-                bitmap[thread_id]->clear_bit(src->next[i].idx);
-            }
-            for (int i = cnt - 1; i >= 0; i--) {
-                auto e = src->next[i];
-                if (e.idx == -1) continue;
-                if (!bitmap[thread_id]->get_bit(e.idx)) {
-                    if (e.weight != 0) { // Insert or Update
-                        // Have not found a previous log for this edge, thus this edge is the latest
-                        neighbours[num] = e;
-                        ++num;
-                    }
-                    bitmap[thread_id]->set_bit(e.idx);
+        for (int i = cnt - 1; i >= 0; i--) {
+            auto e = src->next[i];
+            if (e.idx == -1) continue;
+            if (!bitmap[thread_id]->get_bit(e.idx)) {
+                if (e.weight != 0) { // Insert or Update
+                    // Have not found a previous log for this edge, thus this edge is the latest
+                    neighbours[num] = e;
+                    ++num;
                 }
+                bitmap[thread_id]->set_bit(e.idx);
             }
         }
     }
