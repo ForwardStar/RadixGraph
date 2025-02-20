@@ -19,7 +19,7 @@
 inline void RelaxEdges(ForwardStar* g, DummyNode* u, WeightT delta,
                 pvector<WeightT> &dist, std::vector<std::vector<DummyNode*>> &local_bins) {
     std::vector<WeightedEdge> neighbours;
-    g->GetNeighbours(u, neighbours);
+    g->GetNeighboursByGlobalBitMap(u, neighbours);
     for (auto e : neighbours) {
         auto v = e.forward;
         int vidx = e.idx;

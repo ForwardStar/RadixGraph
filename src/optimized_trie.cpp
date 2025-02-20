@@ -26,6 +26,7 @@
                      auto tmp = new TrieNode();
                      int sz = (1 << num_bits[i + 1]);
                      tmp->mtx = new AtomicBitmap(sz);
+                     tmp->mtx->reset();
                      tmp->children = new uint64_t[sz];
                      std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
                      current->children[idx] = (uint64_t)tmp;

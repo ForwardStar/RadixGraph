@@ -26,8 +26,8 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
         src->mtx.clear();
     }
     src->next[i].forward = des;
-    if (enable_query) src->next[i].idx = des->idx;
     src->next[i].weight = weight;
+    if (enable_query) src->next[i].idx = des->idx;
     return true;
 }
 
@@ -111,6 +111,37 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
     return true;
 }
 
+bool ForwardStar::GetNeighboursByGlobalBitMap(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
+    if (src) {
+        int num = 0;
+        int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
+        neighbours.resize(deg);
+        for (int i = cnt - 1; i >= 0; i--) {
+            if (src->next[i].idx == -1) continue;
+            bitmap[thread_id]->clear_bit(src->next[i].idx);
+        }
+        for (int i = cnt - 1; i >= 0; i--) {
+            auto e = &src->next[i];
+            if (e->idx == -1) continue;
+            if (!bitmap[thread_id]->get_bit(e->idx)) {
+                if (e->weight != 0) { // Insert or Update
+                    // Have not found a previous log for this edge, thus this edge is the latest
+                    neighbours[num].forward = e->forward;
+                    neighbours[num].idx = e->idx;
+                    neighbours[num].weight = e->weight;
+                    ++num;
+                }
+                bitmap[thread_id]->set_bit(e->idx);
+            }
+        }
+    }
+    else {
+        return false;
+    }
+
+    return true;
+}
+
 std::vector<DummyNode*> ForwardStar::BFS(NodeID src) {
     std::queue<DummyNode*> Q;
     AtomicBitmap vis(vertex_index->cnt);
@@ -162,11 +193,17 @@ ForwardStar::ForwardStar(int d, std::vector<int> _num_children, bool _enable_que
     enable_query = _enable_query;
     if (enable_query) {
         degree = (std::atomic<int>*)calloc(CAP_DUMMY_NODES, sizeof(int));
+        bitmap = new AtomicBitmap*[max_number_of_threads];
+        for (int i = 0; i < max_number_of_threads; i++) bitmap[i] = new AtomicBitmap(CAP_DUMMY_NODES), bitmap[i]->reset();
     }
     vertex_index = new Trie(d, _num_children, enable_query);
 }
 
 ForwardStar::~ForwardStar() {
+    if (bitmap) {
+        for (int i = 0; i < max_number_of_threads; i++) delete bitmap[i];
+        delete [] bitmap;
+    }
     if (degree) free(degree);
     delete vertex_index;
 }
