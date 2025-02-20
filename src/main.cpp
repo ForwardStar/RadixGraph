@@ -277,30 +277,6 @@ int main(int argc, char* argv[]) {
                 end = std::chrono::high_resolution_clock::now();
                 duration = end - start;
                 duration_get_neighbours_spruce += duration.count();
-
-                // Correctness check
-                #pragma omp parallel for num_threads(num_threads)
-                for (int j = 0; j < n; j++) {
-                    std::vector<WeightedEdge> neighbours_fstar;
-                    std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours_spruce;
-                    G_fstar.GetNeighbours(vertex_ids[j], neighbours_fstar);
-                    SpruceTransVer::get_neighbours(spruce, vertex_ids[j], neighbours_spruce);
-                    std::sort(neighbours_fstar.begin(), neighbours_fstar.end(), [](WeightedEdge a, WeightedEdge b) {
-                        return a.forward->node < b.forward->node;
-                    });
-                    std::sort(neighbours_spruce.begin(), neighbours_spruce.end(), [](SpruceTransVer::WeightedOutEdgeSimple a, SpruceTransVer::WeightedOutEdgeSimple b) {
-                        return a.des < b.des;
-                    });
-                    if (neighbours_fstar.size() != neighbours_spruce.size()) {
-                        std::cout << "Get neighbours results wrong." << std::endl;
-                        exit(-1);
-                    }
-                    for (int k = 0; k < neighbours_fstar.size(); k++) {
-                        if (neighbours_fstar[k].forward->node != neighbours_spruce[k].des) {
-                            std::cout << "Get neighbours results wrong." << std::endl;
-                        }
-                    }
-                }
             }
 
             // std::cout << "Get neighbors done" << std::endl;

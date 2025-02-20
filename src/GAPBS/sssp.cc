@@ -53,15 +53,16 @@ pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_
   // default delta is 2.0
   pvector<WeightT> dist(num_nodes, kDistInf);
   auto u = g->vertex_index->RetrieveVertex(source);
-  dist[u->idx] = 0;
-  pvector<DummyNode*> frontier(num_edges);
+  int uidx = u->idx;
+  dist[uidx] = 0;
+  pvector<int> frontier(num_edges);
   // two element arrays for double buffering curr=iter&1, next=(iter+1)&1
   size_t shared_indexes[2] = {0, kMaxBin};
   size_t frontier_tails[2] = {1, 0};
-  frontier[0] = u;
+  frontier[0] = uidx;
   #pragma omp parallel
   {
-    std::vector<std::vector<DummyNode*> > local_bins(0);
+    std::vector<std::vector<int> > local_bins(0);
     size_t iter = 0;
     while (shared_indexes[iter&1] != kMaxBin) {
       size_t &curr_bin_index = shared_indexes[iter&1];
@@ -71,16 +72,16 @@ pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_
       #pragma omp for nowait schedule(dynamic, 64)
       for (size_t i=0; i < curr_frontier_tail; i++) {
         auto u = frontier[i];
-        if (dist[u->idx] >= delta * static_cast<WeightT>(curr_bin_index))
-          RelaxEdges(g, u, delta, dist, local_bins);
+        if (dist[u] >= delta * static_cast<WeightT>(curr_bin_index))
+          RelaxEdges(g, g->vertex_index->dummy_nodes[u], delta, dist, local_bins);
       }
       while (curr_bin_index < local_bins.size() &&
              !local_bins[curr_bin_index].empty() &&
              local_bins[curr_bin_index].size() < kBinSizeThreshold) {
-        std::vector<DummyNode*> curr_bin_copy = local_bins[curr_bin_index];
+        std::vector<int> curr_bin_copy = local_bins[curr_bin_index];
         local_bins[curr_bin_index].resize(0);
         for (auto u : curr_bin_copy)
-          RelaxEdges(g, u, delta, dist, local_bins);
+          RelaxEdges(g, g->vertex_index->dummy_nodes[u], delta, dist, local_bins);
       }
       for (size_t i=curr_bin_index; i < local_bins.size(); i++) {
         if (!local_bins[i].empty()) {

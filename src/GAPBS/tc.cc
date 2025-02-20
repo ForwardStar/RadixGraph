@@ -50,31 +50,31 @@ std::vector<double> OrderedCount(ForwardStar* g, uint32_t num_vertices) {
           return a.idx < b.idx;
         });
         for (auto e : u_neighbours) {
-            auto v = e.forward;
-            if (e.idx > uidx) {
+            auto v = e.idx;
+            if (v > uidx) {
                 break;
             }
             auto it = u_neighbours.begin();
             std::vector<WeightedEdge> v_neighbours;
-            g->GetNeighbours(v, v_neighbours);
+            g->GetNeighbours(g->vertex_index->dummy_nodes[v], v_neighbours);
             std::sort(v_neighbours.begin(), v_neighbours.end(), [](WeightedEdge a, WeightedEdge b) {
               return a.idx < b.idx;
             });
             for (auto e1 : v_neighbours) {
-                auto w = e1.forward;
-                if (e1.idx > e.idx) {
+                auto w = e1.idx;
+                if (w > v) {
                     break;
                 }
-                while (it->idx < e1.idx) {
+                while (it->idx < w) {
                     it++;
                 }
-                if (e1.idx == it->idx) {
+                if (w == it->idx) {
                     triangles_u += 2;
                     triangles_v += 2;
                     triangles_per_vertex[e1.idx] += 2;
                 }
             }
-            triangles_per_vertex[e.idx] += triangles_v;
+            triangles_per_vertex[v] += triangles_v;
             triangles_v = 0;
         }
         triangles_per_vertex[uidx] += triangles_u;

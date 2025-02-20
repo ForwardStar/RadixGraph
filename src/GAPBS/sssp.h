@@ -17,11 +17,10 @@
 #include "../forward_star.h"
 
 inline void RelaxEdges(ForwardStar* g, DummyNode* u, WeightT delta,
-                pvector<WeightT> &dist, std::vector<std::vector<DummyNode*>> &local_bins) {
+                pvector<WeightT> &dist, std::vector<std::vector<int>> &local_bins) {
     std::vector<WeightedEdge> neighbours;
-    g->GetNeighboursByGlobalBitMap(u, neighbours);
+    g->GetNeighbours(u, neighbours);
     for (auto e : neighbours) {
-        auto v = e.forward;
         int vidx = e.idx;
         WeightT old_dist = dist[vidx];
         WeightT new_dist = dist[u->idx] + e.weight;
@@ -30,7 +29,7 @@ inline void RelaxEdges(ForwardStar* g, DummyNode* u, WeightT delta,
                 size_t dest_bin = new_dist / delta;
                 if (dest_bin >= local_bins.size())
                     local_bins.resize(dest_bin + 1);
-                local_bins[dest_bin].push_back(v);
+                local_bins[dest_bin].push_back(vidx);
                 break;
             }
             old_dist = dist[vidx];      // swap failed, recheck dist update & retry

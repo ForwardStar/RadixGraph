@@ -67,14 +67,12 @@ typedef struct _dummy_node;
 
 typedef struct _weighted_edge {
     float weight = 0; // edge property
-    int idx = -1; // the index of destination
-    _dummy_node* forward = nullptr; // forward pointer to dummy node of target vertex
+    int idx = -1; // the index of destination's dummy node
 } WeightedEdge;
 
 typedef struct _dummy_node {
     NodeID node = -1; // this dummy node corresponds to which vertex
     int idx = -1; // the index of this dummy node
-    AtomicBitmap* flag = nullptr;
     WeightedEdge* next = nullptr;
     int cap = 0;
     std::atomic<int> cnt, deg;
@@ -82,7 +80,6 @@ typedef struct _dummy_node {
 
     ~_dummy_node() {
         if (next) free(next);
-        if (flag) delete flag;
     }
 } DummyNode;
 

@@ -25,9 +25,8 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
         }
         src->mtx.clear();
     }
-    src->next[i].forward = des;
     src->next[i].weight = weight;
-    if (enable_query) src->next[i].idx = des->idx;
+    src->next[i].idx = des->idx;
     return true;
 }
 
@@ -81,41 +80,6 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
         int num = 0;
         int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
         neighbours.resize(deg);
-        for (int i = cnt - 1; i >= 0; i--) {
-            // if (src->next[i].forward->node == -1) {
-            //     continue;
-            // }
-            src->next[i].forward->flag->clear_bit(thread_id);
-        }
-        for (int i = cnt - 1; i >= 0; i--) {
-            auto e = &src->next[i];
-            // if (e->forward->node == -1) {
-            //     continue;
-            // }
-            if (!e->forward->flag->get_bit(thread_id)) {
-                if (e->weight != 0) { // Insert or Update
-                    // Have not found a previous log for this edge, thus this edge is the latest
-                    neighbours[num].forward = e->forward;
-                    neighbours[num].idx = e->idx;
-                    neighbours[num].weight = e->weight;
-                    ++num;
-                }
-                e->forward->flag->set_bit(thread_id);
-            }
-        }
-    }
-    else {
-        return false;
-    }
-
-    return true;
-}
-
-bool ForwardStar::GetNeighboursByGlobalBitMap(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
-    if (src) {
-        int num = 0;
-        int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
-        neighbours.resize(deg);
         if (deg == cnt) {
             for (int i = 0; i < cnt; i++) {
                 neighbours[i] = src->next[i];
@@ -162,9 +126,9 @@ std::vector<DummyNode*> ForwardStar::BFS(NodeID src) {
         std::vector<WeightedEdge> neighbours;
         GetNeighbours(u, neighbours);
         for (auto e : neighbours) {
-            if (!vis.get_bit(e.forward->idx)) {
-                vis.set_bit(e.forward->idx);
-                Q.push(e.forward);
+            if (!vis.get_bit(e.idx)) {
+                vis.set_bit(e.idx);
+                Q.push(vertex_index->dummy_nodes[e.idx]);
             }
         }
     }
@@ -184,10 +148,10 @@ std::vector<double> ForwardStar::SSSP(NodeID src) {
         std::vector<WeightedEdge> neighbours;
         GetNeighbours(v, neighbours);
         for (auto e : neighbours) {
-            auto w = e.forward;
-            if (dist[v->idx] + e.weight < dist[w->idx]) {
-                dist[w->idx] = dist[v->idx] + e.weight;
-                Q.emplace(-dist[w->idx], w);
+            auto w = e.idx;
+            if (dist[v->idx] + e.weight < dist[w]) {
+                dist[w] = dist[v->idx] + e.weight;
+                Q.emplace(-dist[w], vertex_index->dummy_nodes[w]);
             }
         }
     }

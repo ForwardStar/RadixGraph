@@ -43,7 +43,7 @@ pvector<NodeID> ShiloachVishkin(ForwardStar* g, uint32_t num_nodes) {
     for (NodeID n=0; n < num_nodes; n++) {
       auto u = g->vertex_index->dummy_nodes[n];
       std::vector<WeightedEdge> neighbours;
-      g->GetNeighboursByGlobalBitMap(u, neighbours);
+      g->GetNeighbours(u, neighbours);
       for (auto e : neighbours) {
         NodeID comp_u = comp[n];
         NodeID comp_v = comp[e.idx];

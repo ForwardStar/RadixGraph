@@ -33,7 +33,6 @@ class ForwardStar {
         bool DeleteEdge(NodeID src, NodeID des);
         bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
         bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
-        bool GetNeighboursByGlobalBitMap(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
 
         std::vector<DummyNode*> BFS(NodeID src);
         std::vector<double> SSSP(NodeID src);

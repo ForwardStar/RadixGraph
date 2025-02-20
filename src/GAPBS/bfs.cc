@@ -38,9 +38,8 @@ int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
             auto u = g->vertex_index->dummy_nodes[i];
             // if (!u || u->node == -1) continue;
             std::vector<WeightedEdge> neighbours;
-            g->GetNeighboursByGlobalBitMap(u, neighbours);
+            g->GetNeighbours(u, neighbours);
             for (auto e : neighbours) {
-                auto v = e.forward;
                 int vidx = e.idx;
                 if (front.get_bit(vidx)) {
                     parent[i] = vidx;
@@ -55,26 +54,25 @@ int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
 }
 
 int64_t TDStep(ForwardStar* g, pvector<NodeID> &parent,
-               SlidingQueue<DummyNode*> &queue) {
+               SlidingQueue<int> &queue) {
     int64_t scout_count = 0;
     long int thread_times[64] = {0};
     #pragma omp parallel
     {
-        QueueBuffer<DummyNode*> lqueue(queue);
+        QueueBuffer<int> lqueue(queue);
         #pragma omp for reduction(+ : scout_count) nowait schedule(dynamic)
         for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
-            DummyNode* u = *q_iter;
-            NodeID from_node_id = u->idx;
+            NodeID from_node_id = *q_iter;
+            DummyNode* u = g->vertex_index->dummy_nodes[from_node_id];
             std::vector<WeightedEdge> neighbours;
-            g->GetNeighboursByGlobalBitMap(u, neighbours);
+            g->GetNeighbours(u, neighbours);
             for (auto e : neighbours) {
-                auto v = e.forward;
                 int vidx = e.idx;
                 NodeID curr_val = parent[vidx];
                 if (curr_val == -1) {
                     if (compare_and_swap(parent[vidx], curr_val, from_node_id)) {
-                        lqueue.push_back(e.forward);
-                        scout_count += e.forward->deg;
+                        lqueue.push_back(vidx);
+                        scout_count += g->degree[vidx];
                     }
                 }
             }
@@ -85,25 +83,22 @@ int64_t TDStep(ForwardStar* g, pvector<NodeID> &parent,
     return scout_count;
 }
 
-void QueueToBitmap(const SlidingQueue<DummyNode*> &queue, Bitmap &bm) {
+void QueueToBitmap(const SlidingQueue<int> &queue, Bitmap &bm) {
   #pragma omp parallel for
   for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
-    NodeID u = (*q_iter)->idx;
-    bm.set_bit_atomic(u);
+    bm.set_bit_atomic(*q_iter);
   }
 }
 
 void BitmapToQueue(ForwardStar* g, int vertex_num, const Bitmap &bm,
-                   SlidingQueue<DummyNode*> &queue) {
+                   SlidingQueue<int> &queue) {
   #pragma omp parallel
   {
-    QueueBuffer<DummyNode*> lqueue(queue);
+    QueueBuffer<int> lqueue(queue);
     #pragma omp for nowait
     for (NodeID n = 0; n < vertex_num; n++)
       if (bm.get_bit(n)) {
-        auto u = g->vertex_index->dummy_nodes[n];
-        // if (!u || u->node == -1) continue;
-        lqueue.push_back(u);
+        lqueue.push_back(n);
       }
     lqueue.flush();
   }
@@ -126,8 +121,8 @@ pvector<NodeID> DOBFS(ForwardStar* g, NodeID source, int vertex_num, int edge_nu
     pvector<NodeID> parent = InitParent(g, vertex_num);
     parent[u->idx] = u->idx;
 
-    SlidingQueue<DummyNode*> queue(vertex_num);
-    queue.push_back(u);
+    SlidingQueue<int> queue(vertex_num);
+    queue.push_back(u->idx);
     queue.slide_window();
     Bitmap curr(vertex_num);
     curr.reset();

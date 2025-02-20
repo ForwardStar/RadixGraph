@@ -49,10 +49,6 @@
                      current->children[idx] = (uint64_t)tmp;
                  }
                  if (tmp->node == -1) {
-                     if (enable_query) {
-                        tmp->flag = new AtomicBitmap(max_number_of_threads);
-                        tmp->flag->reset();
-                     }
                      tmp->next = (WeightedEdge*)malloc(8 * sizeof(WeightedEdge));
                      tmp->cap = 8;
                      tmp->node = id;
@@ -103,7 +99,6 @@
      }
      tmp->node = -1;
      delete [] tmp->next;
-     if (tmp->flag) delete tmp->flag;
      tmp->cap = tmp->cnt = 0;
      return true;
  }
