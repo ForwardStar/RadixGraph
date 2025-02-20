@@ -41,9 +41,8 @@ pvector<NodeID> ShiloachVishkin(ForwardStar* g, uint32_t num_nodes) {
     num_iter++;
     #pragma omp parallel for
     for (NodeID n=0; n < num_nodes; n++) {
-      auto u = g->vertex_index->dummy_nodes[n];
       std::vector<WeightedEdge> neighbours;
-      g->GetNeighbours(u, neighbours);
+      g->GetNeighbours(g->vertex_index->dummy_nodes[n], neighbours);
       for (auto e : neighbours) {
         NodeID comp_u = comp[n];
         NodeID comp_v = comp[e.idx];

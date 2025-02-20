@@ -77,12 +77,9 @@ bool ForwardStar::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbour
 
 bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
     if (src) {
-        int num = 0;
+        int num = 0, k = 0;
         int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
         neighbours.resize(deg);
-        for (int i = cnt - 1; i >= 0; i--) {
-            bitmap[thread_id]->clear_bit(src->next[i].idx);
-        }
         for (int i = cnt - 1; i >= 0; i--) {
             auto e = src->next[i];
             if (!bitmap[thread_id]->get_bit(e.idx)) {
@@ -97,8 +94,12 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
                 for (int j = i - 1; j >= 0; j--) {
                     neighbours[num++] = src->next[j];
                 }
+                k = i;
                 break;
             }
+        }
+        for (int i = k; i < cnt; i++) {
+            bitmap[thread_id]->clear_bit(src->next[i].idx);
         }
     }
     else {

@@ -35,10 +35,8 @@ int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
     #pragma omp parallel for reduction(+ : awake_count) schedule(dynamic, 1024)
     for (int i = 0; i < vertex_num; i++) {
         if (parent[i] == -1) {
-            auto u = g->vertex_index->dummy_nodes[i];
-            // if (!u || u->node == -1) continue;
             std::vector<WeightedEdge> neighbours;
-            g->GetNeighbours(u, neighbours);
+            g->GetNeighbours(g->vertex_index->dummy_nodes[i], neighbours);
             for (auto e : neighbours) {
                 int vidx = e.idx;
                 if (front.get_bit(vidx)) {
@@ -63,9 +61,8 @@ int64_t TDStep(ForwardStar* g, pvector<NodeID> &parent,
         #pragma omp for reduction(+ : scout_count) nowait schedule(dynamic)
         for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
             NodeID from_node_id = *q_iter;
-            DummyNode* u = g->vertex_index->dummy_nodes[from_node_id];
             std::vector<WeightedEdge> neighbours;
-            g->GetNeighbours(u, neighbours);
+            g->GetNeighbours(g->vertex_index->dummy_nodes[from_node_id], neighbours);
             for (auto e : neighbours) {
                 int vidx = e.idx;
                 NodeID curr_val = parent[vidx];
@@ -117,12 +114,13 @@ pvector<NodeID> InitParent(ForwardStar* g, int vertex_num) {
 pvector<NodeID> DOBFS(ForwardStar* g, NodeID source, int vertex_num, int edge_num, int src_out_degree, int alpha,
                       int beta) {
     auto u = g->vertex_index->RetrieveVertex(source);
+    int uidx = u->idx;
     if (src_out_degree == -1) src_out_degree = u->deg;
     pvector<NodeID> parent = InitParent(g, vertex_num);
-    parent[u->idx] = u->idx;
+    parent[uidx] = uidx;
 
     SlidingQueue<int> queue(vertex_num);
-    queue.push_back(u->idx);
+    queue.push_back(uidx);
     queue.slide_window();
     Bitmap curr(vertex_num);
     curr.reset();
