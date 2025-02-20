@@ -29,7 +29,6 @@ pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
 
       #pragma omp parallel for reduction(+:dangling_sum)
       for (NodeID n = 0; n < num_nodes; n++) {
-          auto u = g->vertex_index->dummy_nodes[n];
           // if (!u || u->node == -1) continue;
           uint32_t out_degree = g->degree[n];
           if (out_degree == 0) {
@@ -46,10 +45,15 @@ pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
         auto u = g->vertex_index->dummy_nodes[n];
         // if (!u || u->node == -1) continue;
         ScoreT incoming_total = 0;
-        std::vector<WeightedEdge> neighbours;
-        g->GetNeighboursByGlobalBitMap(u, neighbours);
-        for (auto e : neighbours) {
-          incoming_total += outgoing_contrib[e.idx];
+        int cnt = u->cnt;
+        for (int i = cnt - 1; i >= 0; i--) {
+            auto e = u->next[i];
+            if (e.idx == -1) continue;
+            if (e.weight != 0) {
+              incoming_total += outgoing_contrib[e.idx];
+            }
+            // Don't need bitmap in PageRank (and other value comp tasks)
+            outgoing_contrib[e.idx] = 0;
         }
         scores[n] = base_score + kDamp * (incoming_total + dangling_sum);
       }

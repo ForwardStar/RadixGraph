@@ -43,40 +43,41 @@ std::vector<double> OrderedCount(ForwardStar* g, uint32_t num_vertices) {
     #pragma omp for schedule(dynamic, 256)
     for (NodeID n = 0; n < num_vertices; n++) {
         auto u = g->vertex_index->dummy_nodes[n];
+        int uidx = u->idx;
         std::vector<WeightedEdge> u_neighbours;
         g->GetNeighbours(u, u_neighbours);
         std::sort(u_neighbours.begin(), u_neighbours.end(), [](WeightedEdge a, WeightedEdge b) {
-          return a.forward->idx < b.forward->idx;
+          return a.idx < b.idx;
         });
         for (auto e : u_neighbours) {
             auto v = e.forward;
-            if (v->idx > u->idx) {
+            if (e.idx > uidx) {
                 break;
             }
             auto it = u_neighbours.begin();
             std::vector<WeightedEdge> v_neighbours;
             g->GetNeighbours(v, v_neighbours);
             std::sort(v_neighbours.begin(), v_neighbours.end(), [](WeightedEdge a, WeightedEdge b) {
-              return a.forward->idx < b.forward->idx;
+              return a.idx < b.idx;
             });
             for (auto e1 : v_neighbours) {
                 auto w = e1.forward;
-                if (w->idx > v->idx) {
+                if (e1.idx > e.idx) {
                     break;
                 }
-                while (it->forward->idx < w->idx) {
+                while (it->idx < e1.idx) {
                     it++;
                 }
-                if (w->idx == it->forward->idx) {
+                if (e1.idx == it->idx) {
                     triangles_u += 2;
                     triangles_v += 2;
-                    triangles_per_vertex[w->idx] += 2;
+                    triangles_per_vertex[e1.idx] += 2;
                 }
             }
-            triangles_per_vertex[v->idx] += triangles_v;
+            triangles_per_vertex[e.idx] += triangles_v;
             triangles_v = 0;
         }
-        triangles_per_vertex[u->idx] += triangles_u;
+        triangles_per_vertex[uidx] += triangles_u;
         triangles_u = 0;
     }
   }
@@ -84,7 +85,7 @@ std::vector<double> OrderedCount(ForwardStar* g, uint32_t num_vertices) {
   std::vector<double> lcc_values(num_vertices);
   #pragma omp parallel for
   for (NodeID v = 0; v < num_vertices; v++) {
-      uint32_t degree = g->vertex_index->dummy_nodes[v]->deg;
+      uint32_t degree = g->degree[v];
       uint64_t max_num_edges = degree * (degree - 1);
       if (max_num_edges != 0) {
           lcc_values[v] = ((double) triangles_per_vertex[v]) / max_num_edges;

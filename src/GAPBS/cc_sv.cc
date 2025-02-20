@@ -45,10 +45,8 @@ pvector<NodeID> ShiloachVishkin(ForwardStar* g, uint32_t num_nodes) {
       std::vector<WeightedEdge> neighbours;
       g->GetNeighboursByGlobalBitMap(u, neighbours);
       for (auto e : neighbours) {
-        auto v = e.forward;
-        int vidx = e.idx;
         NodeID comp_u = comp[n];
-        NodeID comp_v = comp[vidx];
+        NodeID comp_v = comp[e.idx];
         if (comp_u == comp_v) continue;
         // Hooking condition so lower component ID wins independent of direction
         NodeID high_comp = comp_u > comp_v ? comp_u : comp_v;

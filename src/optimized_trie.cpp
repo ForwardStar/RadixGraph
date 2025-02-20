@@ -53,8 +53,8 @@
                         tmp->flag = new AtomicBitmap(max_number_of_threads);
                         tmp->flag->reset();
                      }
-                     tmp->next = (WeightedEdge*)malloc(5 * sizeof(WeightedEdge));
-                     tmp->cap = 5;
+                     tmp->next = (WeightedEdge*)malloc(8 * sizeof(WeightedEdge));
+                     tmp->cap = 8;
                      tmp->node = id;
                  }
                  current->mtx->clear_bit(idx);
