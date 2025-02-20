@@ -26,6 +26,7 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
         src->mtx.clear();
     }
     src->next[i].forward = des;
+    if (enable_query) src->next[i].idx = des->idx;
     src->next[i].weight = weight;
     return true;
 }
@@ -82,6 +83,7 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
             for (int i = 0; i < cnt; i++) {
                 auto e = &src->next[i];
                 neighbours[i].forward = e->forward;
+                neighbours[i].idx = e->idx;
                 neighbours[i].weight = e->weight;
             }
         }
@@ -101,6 +103,7 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
                     if (e->weight != 0) { // Insert or Update
                         // Have not found a previous log for this edge, thus this edge is the latest
                         neighbours[num].forward = e->forward;
+                        neighbours[num].idx = e->idx;
                         neighbours[num].weight = e->weight;
                         ++num;
                     }
@@ -163,7 +166,8 @@ std::vector<double> ForwardStar::SSSP(NodeID src) {
     return dist;
 }
 
-ForwardStar::ForwardStar(int d, std::vector<int> _num_children, bool enable_query) {
+ForwardStar::ForwardStar(int d, std::vector<int> _num_children, bool _enable_query) {
+    enable_query = _enable_query;
     vertex_index = new Trie(d, _num_children, enable_query);
 }
 

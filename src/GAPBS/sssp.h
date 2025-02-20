@@ -22,7 +22,7 @@ inline void RelaxEdges(ForwardStar* g, DummyNode* u, WeightT delta,
     g->GetNeighbours(u, neighbours);
     for (auto e : neighbours) {
         auto v = e.forward;
-        auto vidx = v->idx;
+        int vidx = e.idx;
         WeightT old_dist = dist[vidx];
         WeightT new_dist = dist[u->idx] + e.weight;
         while (new_dist < old_dist) {

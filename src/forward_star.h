@@ -23,6 +23,7 @@ class ForwardStar {
         bool Insert(DummyNode* src, DummyNode* des, double weight);      
     public:
         Trie* vertex_index = nullptr;
+        bool enable_query = true;
 
         bool InsertEdge(NodeID src, NodeID des, double weight);
         bool UpdateEdge(NodeID src, NodeID des, double weight);
@@ -33,7 +34,7 @@ class ForwardStar {
         std::vector<DummyNode*> BFS(NodeID src);
         std::vector<double> SSSP(NodeID src);
 
-        ForwardStar(int d, std::vector<int> _num_children, bool enable_query=true);
+        ForwardStar(int d, std::vector<int> _num_children, bool _enable_query=true);
         ~ForwardStar();
 };
 
