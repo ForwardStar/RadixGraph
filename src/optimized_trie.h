@@ -17,6 +17,7 @@
 #define TRIE
 
 #include "headers.h"
+#define CAP_DUMMY_NODES 50000000
 
 // Revised from GAPBS: https://github.com/sbeamer/gapbs
 class AtomicBitmap {
@@ -100,9 +101,8 @@ class Trie {
         TrieNode* root = nullptr;
         DummyNode** dummy_nodes = nullptr;
         std::vector<int> num_bits, sum_bits;
-        int depth = 0, space = 0, cap = 0;
+        int depth = 0, space = 0;
         std::atomic<int> cnt;
-        std::atomic_flag mtx = ATOMIC_FLAG_INIT;
         bool enable_query = true;
 
         inline DummyNode* InsertVertex(TrieNode* current, NodeID id, int d);

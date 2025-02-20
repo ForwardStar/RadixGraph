@@ -31,7 +31,7 @@ pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
       for (NodeID n = 0; n < num_nodes; n++) {
           auto u = g->vertex_index->dummy_nodes[n];
           // if (!u || u->node == -1) continue;
-          uint32_t out_degree = u->deg;
+          uint32_t out_degree = g->degree[n];
           if (out_degree == 0) {
               dangling_sum += scores[n];
           }

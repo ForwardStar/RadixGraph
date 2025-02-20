@@ -35,6 +35,7 @@ bool ForwardStar::InsertEdge(NodeID src, NodeID des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
     src_ptr->deg.fetch_add(1);
+    if (enable_query) degree[src_ptr->idx].fetch_add(1);
     Insert(src_ptr, des_ptr, weight);
     return true;
 }
@@ -62,6 +63,7 @@ bool ForwardStar::DeleteEdge(NodeID src, NodeID des) {
         return false;
     }
     src_ptr->deg.fetch_sub(1);
+    if (enable_query) degree[src_ptr->idx].fetch_sub(1);
     Insert(src_ptr, des_ptr, 0);
     return true;
 }
@@ -79,36 +81,26 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
         int num = 0;
         int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
         neighbours.resize(deg);
-        if (cnt == deg) {
-            for (int i = 0; i < cnt; i++) {
-                auto e = &src->next[i];
-                neighbours[i].forward = e->forward;
-                neighbours[i].idx = e->idx;
-                neighbours[i].weight = e->weight;
-            }
+        for (int i = cnt - 1; i >= 0; i--) {
+            // if (src->next[i].forward->node == -1) {
+            //     continue;
+            // }
+            src->next[i].forward->flag->clear_bit(thread_id);
         }
-        else {
-            for (int i = cnt - 1; i >= 0; i--) {
-                if (src->next[i].forward->node == -1) {
-                    continue;
+        for (int i = cnt - 1; i >= 0; i--) {
+            auto e = &src->next[i];
+            // if (e->forward->node == -1) {
+            //     continue;
+            // }
+            if (!e->forward->flag->get_bit(thread_id)) {
+                if (e->weight != 0) { // Insert or Update
+                    // Have not found a previous log for this edge, thus this edge is the latest
+                    neighbours[num].forward = e->forward;
+                    neighbours[num].idx = e->idx;
+                    neighbours[num].weight = e->weight;
+                    ++num;
                 }
-                src->next[i].forward->flag->clear_bit(thread_id);
-            }
-            for (int i = cnt - 1; i >= 0; i--) {
-                auto e = &src->next[i];
-                if (e->forward->node == -1) {
-                    continue;
-                }
-                if (!e->forward->flag->get_bit(thread_id)) {
-                    if (e->weight != 0) { // Insert or Update
-                        // Have not found a previous log for this edge, thus this edge is the latest
-                        neighbours[num].forward = e->forward;
-                        neighbours[num].idx = e->idx;
-                        neighbours[num].weight = e->weight;
-                        ++num;
-                    }
-                    e->forward->flag->set_bit(thread_id);
-                }
+                e->forward->flag->set_bit(thread_id);
             }
         }
     }
@@ -168,9 +160,13 @@ std::vector<double> ForwardStar::SSSP(NodeID src) {
 
 ForwardStar::ForwardStar(int d, std::vector<int> _num_children, bool _enable_query) {
     enable_query = _enable_query;
+    if (enable_query) {
+        degree = (std::atomic<int>*)calloc(CAP_DUMMY_NODES, sizeof(int));
+    }
     vertex_index = new Trie(d, _num_children, enable_query);
 }
 
 ForwardStar::~ForwardStar() {
+    if (degree) free(degree);
     delete vertex_index;
 }

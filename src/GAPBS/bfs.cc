@@ -41,8 +41,9 @@ int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
             g->GetNeighbours(u, neighbours);
             for (auto e : neighbours) {
                 auto v = e.forward;
-                if (front.get_bit(v->idx)) {
-                    parent[i] = v->idx;
+                int vidx = e.idx;
+                if (front.get_bit(vidx)) {
+                    parent[i] = vidx;
                     awake_count++;
                     next.set_bit(i);
                     break;
@@ -68,9 +69,10 @@ int64_t TDStep(ForwardStar* g, pvector<NodeID> &parent,
             g->GetNeighbours(u, neighbours);
             for (auto e : neighbours) {
                 auto v = e.forward;
-                NodeID curr_val = parent[v->idx];
+                int vidx = e.idx;
+                NodeID curr_val = parent[vidx];
                 if (curr_val == -1) {
-                    if (compare_and_swap(parent[v->idx], curr_val, from_node_id)) {
+                    if (compare_and_swap(parent[vidx], curr_val, from_node_id)) {
                         lqueue.push_back(e.forward);
                         scout_count += e.forward->deg;
                     }

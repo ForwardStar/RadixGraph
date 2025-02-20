@@ -24,6 +24,8 @@ class ForwardStar {
     public:
         Trie* vertex_index = nullptr;
         bool enable_query = true;
+        std::atomic<int>* degree = nullptr;
+        std::atomic<int> cnt;
 
         bool InsertEdge(NodeID src, NodeID des, double weight);
         bool UpdateEdge(NodeID src, NodeID des, double weight);
