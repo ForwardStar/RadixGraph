@@ -45,8 +45,8 @@
                         if (i >= cap) {
                             while (mtx.test_and_set()) {}
                             if (i >= cap) {
-                                dummy_nodes = (DummyNode**)realloc(dummy_nodes, int(cap * 10) * sizeof(DummyNode*));
-                                cap *= 10;
+                                dummy_nodes = (DummyNode**)realloc(dummy_nodes, cap * 2 * sizeof(DummyNode*));
+                                cap *= 2;
                             }
                             mtx.clear();
                         }
@@ -151,7 +151,7 @@
      std::memset(root->children, 0, sizeof(root->children));
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
-        cap = 100000;
+        cap = 10000000;
         dummy_nodes = (DummyNode**)malloc(cap * sizeof(DummyNode*));
      }
  }
@@ -170,7 +170,7 @@
      std::memset(root->children, 0, sizeof(root->children) * sz);
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
-        cap = 100000;
+        cap = 10000000;
         dummy_nodes = (DummyNode**)malloc(cap * sizeof(DummyNode*));
      }
  }
