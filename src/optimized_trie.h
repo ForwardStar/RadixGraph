@@ -79,7 +79,7 @@ typedef struct _dummy_node {
     std::atomic_flag mtx = ATOMIC_FLAG_INIT;
 
     ~_dummy_node() {
-        if (next) delete [] next;
+        if (next) free(next);
         if (flag) delete flag;
     }
 } DummyNode;
@@ -91,12 +91,8 @@ class Trie {
             AtomicBitmap* mtx = nullptr;
 
             ~_trie_node() {
-                if (children) {
-                    delete [] children;
-                }
-                if (mtx) {
-                    delete mtx;
-                }
+              if (mtx) delete mtx;
+              if (children) delete [] children;
             }
         } TrieNode;
 

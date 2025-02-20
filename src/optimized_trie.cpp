@@ -39,32 +39,28 @@
                  current->mtx->set_bit_atomic(idx);
                  tmp = (DummyNode*)current->children[idx];
                  if (!tmp) {
-                     int i = cnt.fetch_add(1);
                      tmp = new DummyNode();
-                     tmp->idx = i;
-                     current->children[idx] = (uint64_t)tmp;
+                     int i = cnt.fetch_add(1);
                      if (enable_query) {
                         if (i >= cap) {
                             while (mtx.test_and_set()) {}
                             if (i >= cap) {
-                                auto des = new DummyNode*[cap * 2];
-                                std::memset(des, 0, sizeof(des) * cap * 2);
-                                std::copy(dummy_nodes, dummy_nodes + cap, des);
-                                delete [] dummy_nodes;
-                                dummy_nodes = des;
-                                cap *= 2;
+                                dummy_nodes = (DummyNode**)realloc(dummy_nodes, int(cap * 10) * sizeof(DummyNode*));
+                                cap *= 10;
                             }
                             mtx.clear();
                         }
                         dummy_nodes[i] = tmp;
                      }
+                     tmp->idx = i;
+                     current->children[idx] = (uint64_t)tmp;
                  }
                  if (tmp->node == -1) {
                      if (enable_query) {
                         tmp->flag = new AtomicBitmap(max_number_of_threads);
                         tmp->flag->reset();
                      }
-                     tmp->next = new WeightedEdge[5];
+                     tmp->next = (WeightedEdge*)malloc(5 * sizeof(WeightedEdge));
                      tmp->cap = 5;
                      tmp->node = id;
                  }
@@ -152,11 +148,11 @@
      root = new TrieNode();
      int sz = (1 << num_bits[0]);
      root->children = new uint64_t[sz];
-     std::memset(root->children, 0, sizeof(root->children) * sz);
+     std::memset(root->children, 0, sizeof(root->children));
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
-        cap = 1000;
-        dummy_nodes = new DummyNode*[cap];
+        cap = 100000;
+        dummy_nodes = (DummyNode**)malloc(cap * sizeof(DummyNode*));
      }
  }
  
@@ -174,8 +170,8 @@
      std::memset(root->children, 0, sizeof(root->children) * sz);
      root->mtx = new AtomicBitmap(sz);
      if (enable_query) {
-        cap = 1000;
-        dummy_nodes = new DummyNode*[cap];
+        cap = 100000;
+        dummy_nodes = (DummyNode**)malloc(cap * sizeof(DummyNode*));
      }
  }
  
@@ -208,7 +204,7 @@
          }
      }
      for (auto u : ptrs) {
-         delete (TrieNode*)u;
+        delete (TrieNode*)u;
      }
-     if (dummy_nodes) delete [] dummy_nodes;
+     if (dummy_nodes) free(dummy_nodes);
  }

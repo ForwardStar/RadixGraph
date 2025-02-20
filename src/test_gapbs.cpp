@@ -24,6 +24,63 @@
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
+    if (argc > 1) {
+        std::ifstream f("settings");
+        int d;
+        f >> d;
+        std::vector<int> a(d);
+        for (auto& i : a) f >> i;
+
+        std::ifstream fin(argv[argc - 1]);
+        uint64_t u, v, s;
+        bool has_source = false;
+        std::vector<std::pair<uint64_t, uint64_t>> edges;
+        int m = 0;
+        while (fin >> u >> v) {
+            edges.emplace_back(u, v);
+            if (!has_source) s = u, has_source = true;
+            m++;
+        }
+
+        ForwardStar G(d, a);
+        #pragma omp parallel for
+        for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5);
+        int n = G.vertex_index->cnt;
+
+        std::cout << "Testing BFS..." << std::endl;
+        auto start = std::chrono::high_resolution_clock::now();
+        auto p = DOBFS(&G, s, n, m, -1);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
+
+        // Test SSSP
+        std::cout << "Testing SSSP..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        auto res4 = DeltaStep(&G, s, 2.0, n, m);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
+
+        // Test WCC
+        std::cout << "Testing WCC..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        ShiloachVishkin(&G, n);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
+
+        // Test PageRank
+        std::cout << "Testing PageRank..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        PageRankPull(&G, 10, n);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
+
+        return 0;
+    }
+
     int d = 3;
     std::vector<int> a = {7, 7, 6};
     int n = 100000, m = 10000000;

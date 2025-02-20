@@ -2,6 +2,7 @@
 A fast and space-efficient graph data structure. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
 # Compile and run
+You need to run RadixGraph on Linux platform with openMP. We recommend using compiler ``GCC 10+``.
 ```sh
 git clone https://github.com/ForwardStar/forward_star.git --recurse-submodules
 cmake .

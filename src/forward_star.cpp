@@ -20,11 +20,8 @@ bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
     if (i >= src->cap) {
         while (src->mtx.test_and_set()) {}
         if (i >= src->cap) {
-            auto des = new WeightedEdge[src->cap * 2];
-            std::copy(src->next, src->next + src->cap, des);
-            delete [] src->next;
-            src->next = des;
-            src->cap *= 2;
+            src->next = (WeightedEdge*)realloc(src->next, int(src->cap * 1.5) * sizeof(WeightedEdge));
+            src->cap *= 1.5;
         }
         src->mtx.clear();
     }
@@ -81,25 +78,34 @@ bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neigh
         int num = 0;
         int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
         neighbours.resize(deg);
-        for (int i = cnt - 1; i >= 0; i--) {
-            if (src->next[i].forward->node == -1) {
-                continue;
+        if (cnt == deg) {
+            for (int i = 0; i < cnt; i++) {
+                auto e = &src->next[i];
+                neighbours[i].forward = e->forward;
+                neighbours[i].weight = e->weight;
             }
-            src->next[i].forward->flag->clear_bit(thread_id);
         }
-        for (int i = cnt - 1; i >= 0; i--) {
-            auto e = &src->next[i];
-            if (e->forward->node == -1) {
-                continue;
-            }
-            if (!e->forward->flag->get_bit(thread_id)) {
-                if (e->weight != 0) { // Insert or Update
-                    // Have not found a previous log for this edge, thus this edge is the latest
-                    neighbours[num].forward = e->forward;
-                    neighbours[num].weight = e->weight;
-                    ++num;
+        else {
+            for (int i = cnt - 1; i >= 0; i--) {
+                if (src->next[i].forward->node == -1) {
+                    continue;
                 }
-                e->forward->flag->set_bit(thread_id);
+                src->next[i].forward->flag->clear_bit(thread_id);
+            }
+            for (int i = cnt - 1; i >= 0; i--) {
+                auto e = &src->next[i];
+                if (e->forward->node == -1) {
+                    continue;
+                }
+                if (!e->forward->flag->get_bit(thread_id)) {
+                    if (e->weight != 0) { // Insert or Update
+                        // Have not found a previous log for this edge, thus this edge is the latest
+                        neighbours[num].forward = e->forward;
+                        neighbours[num].weight = e->weight;
+                        ++num;
+                    }
+                    e->forward->flag->set_bit(thread_id);
+                }
             }
         }
     }
