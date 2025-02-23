@@ -49,8 +49,8 @@
                      current->children[idx] = (uint64_t)tmp;
                  }
                  if (tmp->node == -1) {
-                     tmp->next = (WeightedEdge*)malloc(8 * sizeof(WeightedEdge));
-                     tmp->cap = 8;
+                     tmp->next = (WeightedEdge*)malloc(max_number_of_threads * sizeof(WeightedEdge));
+                     tmp->cap = max_number_of_threads;
                      tmp->node = id;
                  }
                  current->mtx->clear_bit(idx);
