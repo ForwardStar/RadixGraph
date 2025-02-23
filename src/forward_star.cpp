@@ -16,17 +16,7 @@
 #include "forward_star.h"
 
 bool ForwardStar::Insert(DummyNode* src, DummyNode* des, double weight) {
-    int i = src->cnt.fetch_add(1);
-    if (i >= src->cap) {
-        while (src->mtx.test_and_set()) {}
-        if (i >= src->cap) {
-            src->next = (WeightedEdge*)realloc(src->next, int(src->cap * 1.5) * sizeof(WeightedEdge));
-            src->cap *= 1.5;
-        }
-        src->mtx.clear();
-    }
-    src->next[i].weight = weight;
-    src->next[i].idx = des->idx;
+    src->next.emplace_back(weight, des->idx);
     return true;
 }
 
@@ -78,7 +68,7 @@ bool ForwardStar::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbour
 bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
     if (src) {
         int num = 0, k = 0;
-        int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? int(src->cnt) : timestamp, deg = src->deg;
+        int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? src->next.size() : timestamp, deg = src->deg;
         neighbours.resize(deg);
         for (int i = cnt - 1; i >= 0; i--) {
             auto e = src->next[i];

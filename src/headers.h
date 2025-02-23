@@ -33,6 +33,7 @@
 #include <stack>
 #include <thread>
 #include <omp.h>
+#include <tbb/concurrent_vector.h>
 
 // I don't know why sometimes omp_get_num_threads() does not work...
 const int max_number_of_threads = std::max(64, omp_get_num_threads());

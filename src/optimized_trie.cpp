@@ -36,7 +36,7 @@
          }
          else {
              auto tmp = (DummyNode*)current->children[idx];
-             if (!tmp || tmp->node == -1) {
+             if (!tmp || tmp->idx == -1) {
                  current->mtx->set_bit_atomic(idx);
                  tmp = (DummyNode*)current->children[idx];
                  if (!tmp) {
@@ -48,11 +48,7 @@
                      tmp->idx = i;
                      current->children[idx] = (uint64_t)tmp;
                  }
-                 if (tmp->node == -1) {
-                     tmp->next = (WeightedEdge*)malloc(max_number_of_threads * sizeof(WeightedEdge));
-                     tmp->cap = max_number_of_threads;
-                     tmp->node = id;
-                 }
+                 tmp->node = id;
                  current->mtx->clear_bit(idx);
              }
              return tmp;
@@ -97,9 +93,7 @@
      if (tmp == nullptr) {
          return false;
      }
-     tmp->node = -1;
-     delete [] tmp->next;
-     tmp->cap = tmp->cnt = 0;
+     tmp->idx = -1;
      return true;
  }
  

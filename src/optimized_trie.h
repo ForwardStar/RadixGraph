@@ -73,14 +73,8 @@ typedef struct _weighted_edge {
 typedef struct _dummy_node {
     NodeID node = -1; // this dummy node corresponds to which vertex
     int idx = -1; // the index of this dummy node
-    WeightedEdge* next = nullptr;
-    int cap = 0;
-    std::atomic<int> cnt, deg;
-    std::atomic_flag mtx = ATOMIC_FLAG_INIT;
-
-    ~_dummy_node() {
-        if (next) free(next);
-    }
+    tbb::concurrent_vector<WeightedEdge> next;
+    std::atomic<int> deg;
 } DummyNode;
 
 class Trie {

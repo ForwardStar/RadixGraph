@@ -8,6 +8,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_package(TBB REQUIRED)  # Find TBB
+
 # Enable OpenMP
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
@@ -77,6 +79,6 @@ add_executable(test_gapbs
 )
 
 # Link libraries (Spruce depends on junction and turf)
-target_link_libraries(forward_star PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX)
-target_link_libraries(test_trie PRIVATE OpenMP::OpenMP_CXX)
-target_link_libraries(test_gapbs PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries(forward_star PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(test_trie PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(test_gapbs PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
