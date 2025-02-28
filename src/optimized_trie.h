@@ -92,9 +92,9 @@ class Trie {
         TrieNode* root = nullptr;
         DummyNode** dummy_nodes = nullptr;
         std::vector<int> num_bits, sum_bits;
-        int depth = 0, space = 0;
+        int depth = 0, space = 0, cap = CAP_DUMMY_NODES;
         std::atomic<int> cnt;
-        bool enable_query = true;
+        std::atomic_flag mtx = ATOMIC_FLAG_INIT;
 
         inline DummyNode* InsertVertex(TrieNode* current, NodeID id, int d);
 
@@ -105,8 +105,8 @@ class Trie {
         long long size();
 
         Trie() {}
-        Trie(int d, int _num_bits[], bool _enable_query=true);
-        Trie(int d, std::vector<int> _num_bits, bool _enable_query=true);
+        Trie(int d, int _num_bits[]);
+        Trie(int d, std::vector<int> _num_bits);
         ~Trie();
 };
 

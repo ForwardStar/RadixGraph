@@ -153,7 +153,7 @@ ForwardStar::ForwardStar(int d, std::vector<int> _num_children, bool _enable_que
         bitmap = new AtomicBitmap*[max_number_of_threads];
         for (int i = 0; i < max_number_of_threads; i++) bitmap[i] = new AtomicBitmap(CAP_DUMMY_NODES), bitmap[i]->reset();
     }
-    vertex_index = new Trie(d, _num_children, enable_query);
+    vertex_index = new Trie(d, _num_children);
 }
 
 ForwardStar::~ForwardStar() {

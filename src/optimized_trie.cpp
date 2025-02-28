@@ -42,9 +42,13 @@
                  if (!tmp) {
                      tmp = new DummyNode();
                      int i = cnt.fetch_add(1);
-                     if (enable_query) {
-                        dummy_nodes[i] = tmp;
+                     if (i >= cap) {
+                        while (mtx.test_and_set()) {}
+                        dummy_nodes = (DummyNode**)realloc(dummy_nodes, cap * sizeof(DummyNode*));
+                        cap *= 1.5;
+                        mtx.clear();
                      }
+                     dummy_nodes[i] = tmp;
                      tmp->idx = i;
                      current->children[idx] = (uint64_t)tmp;
                  }
@@ -119,8 +123,7 @@
      return sz;
  }
  
- Trie::Trie(int d, int _num_bits[], bool _enable_query) {
-     enable_query = _enable_query;
+ Trie::Trie(int d, int _num_bits[]) {
      depth = d;
      num_bits.resize(d), sum_bits.resize(d);
      for (int i = 0; i < d; i++) {
@@ -132,13 +135,10 @@
      root->children = new uint64_t[sz];
      std::memset(root->children, 0, sizeof(root->children));
      root->mtx = new AtomicBitmap(sz);
-     if (enable_query) {
-        dummy_nodes = (DummyNode**)malloc(CAP_DUMMY_NODES * sizeof(DummyNode*));
-     }
+     dummy_nodes = (DummyNode**)malloc(CAP_DUMMY_NODES * sizeof(DummyNode*));
  }
  
- Trie::Trie(int d, std::vector<int> _num_bits, bool _enable_query) {
-     enable_query = _enable_query;
+ Trie::Trie(int d, std::vector<int> _num_bits) {
      depth = d;
      num_bits.resize(d), sum_bits.resize(d);
      for (int i = 0; i < d; i++) {
@@ -150,9 +150,7 @@
      root->children = new uint64_t[sz];
      std::memset(root->children, 0, sizeof(root->children) * sz);
      root->mtx = new AtomicBitmap(sz);
-     if (enable_query) {
-        dummy_nodes = (DummyNode**)malloc(CAP_DUMMY_NODES * sizeof(DummyNode*));
-     }
+     dummy_nodes = (DummyNode**)malloc(CAP_DUMMY_NODES * sizeof(DummyNode*));
  }
  
  Trie::~Trie() {
