@@ -28,15 +28,46 @@ class ForwardStar {
         std::atomic<int> cnt;
         AtomicBitmap** bitmap = nullptr;
 
+        /*  InsertEdge(): insert an edge to RadixGraph;
+            src: the source vertex of the edge;
+            des: the destination vertex of the edge;
+            weight: the weight of the edge. */
         bool InsertEdge(NodeID src, NodeID des, double weight);
+        /*  UpdateEdge(): update an edge to RadixGraph;
+            src: the source vertex of the edge;
+            des: the destination vertex of the edge;
+            weight: the updated weight of the edge. */
         bool UpdateEdge(NodeID src, NodeID des, double weight);
+        /*  DeleteEdge(): delete an edge from RadixGraph;
+            src: the source vertex of the edge;
+            des: the destination vertex of the edge. */
         bool DeleteEdge(NodeID src, NodeID des);
+        /*  GetNeighbours(): get neighbours given a vertex ID;
+            src: the target vertex ID;
+            neighbours: neighbour edges of src are stored in this array;
+            timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
         bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
+        /*  GetNeighbours(): get neighbours given a vertex dummy node;
+            src: the target vertex dummy node;
+            neighbours: neighbour edges of src are stored in this array;
+            timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
         bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
 
+        /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
+            src: the source vertex ID;
+            Returns an array of dummy nodes containing all reachable vertices.
+        */
         std::vector<DummyNode*> BFS(NodeID src);
+        /*  SSSP(): get shortest distances from a given vertex ID (single-threaded);
+            src: the source vertex ID;
+            Returns an array of numbers containing shortest distances to all vertices.
+        */
         std::vector<double> SSSP(NodeID src);
 
+        /*  ForwardStar(): initialization of a RadixGraph instance;
+            d: depth of the SORT (vertex index);
+            _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
+            enable_query: whether to enable querying components. */ 
         ForwardStar(int d, std::vector<int> _num_children, bool _enable_query=true);
         ~ForwardStar();
 };

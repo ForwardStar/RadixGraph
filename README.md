@@ -78,5 +78,8 @@ Average BFS time for forward star: 1.1841s
 Average BFS time for spruce: 3.05221s
 ```
 
-## License
+# API
+You can find full APIs with comments from ``src/forward_star.h``.
+
+# License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
