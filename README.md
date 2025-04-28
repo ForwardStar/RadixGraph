@@ -1,6 +1,8 @@
 # RadixGraph
 A fast and space-efficient graph data structure. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
+See APIs with comments from ``src/forward_star.h``.
+
 # Compile and run
 You need to run RadixGraph on Linux platform with openMP. We recommend using compiler ``GCC 10+``.
 ```sh
@@ -77,9 +79,6 @@ Average get neighbours time for spruce: 0.0801724s
 Average BFS time for forward star: 1.1841s
 Average BFS time for spruce: 3.05221s
 ```
-
-# API
-You can find full APIs with comments from ``src/forward_star.h``.
 
 # License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
