@@ -74,10 +74,12 @@ signed main(signed argc, char* argv[]) {
     rep(i, 0, logu + 1) {
         g[0][i] = (1ll << i);
     }
+    g[0][0] = 0;
     rep(i, 1, l) {
-        rep(j, 0, logu + 1) {
+        rep(j, 1, logu + 1) {
             rep(k, 0, j + 1) {
                 ld cost = (1.0 - pow(ld(u - (1ll << logu - k)) / u, n)) * (1ll << j);
+                if (k == j) cost = 0;
                 if (g[i - 1][k] + cost >= g[i][j]) continue;
                 cost = (1.0 - prob(u, n, (1ll << logu - k))) * (1ll << j);
                 if (g[i - 1][k] + cost < g[i][j]) {
@@ -102,6 +104,6 @@ signed main(signed argc, char* argv[]) {
         if (s[i]) cout << s[i] << " ";
     }
     cout << "\n";
-    cout << g[l - 1][logu] << "\n";
+    // cout << g[l - 1][logu] << "\n";
     return 0;
 }
