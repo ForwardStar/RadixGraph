@@ -43,7 +43,7 @@ pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
       for (NodeID n = 0; n < num_nodes; n++) {
         ScoreT incoming_total = 0;
         std::vector<WeightedEdge> neighbours;
-        g->GetNeighbours(g->vertex_index->dummy_nodes[n], neighbours);
+        g->GetNeighboursByOffset(n, neighbours);
         for (auto e : neighbours) {
           incoming_total += outgoing_contrib[e.idx];
         }

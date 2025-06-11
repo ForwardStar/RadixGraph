@@ -16,14 +16,14 @@
 #include "pvector.h"
 #include "../forward_star.h"
 
-inline void RelaxEdges(ForwardStar* g, DummyNode* u, WeightT delta,
+inline void RelaxEdges(ForwardStar* g, int u, WeightT delta,
                 pvector<WeightT> &dist, std::vector<std::vector<int>> &local_bins) {
     std::vector<WeightedEdge> neighbours;
-    g->GetNeighbours(u, neighbours);
+    g->GetNeighboursByOffset(u, neighbours);
     for (auto e : neighbours) {
         int vidx = e.idx;
         WeightT old_dist = dist[vidx];
-        WeightT new_dist = dist[u->idx] + e.weight;
+        WeightT new_dist = dist[u] + e.weight;
         while (new_dist < old_dist) {
             if (compare_and_swap(dist[vidx], old_dist, new_dist)) {
                 size_t dest_bin = new_dist / delta;

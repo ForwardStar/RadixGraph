@@ -47,17 +47,17 @@ class ForwardStar {
             neighbours: neighbour edges of src are stored in this array;
             timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
         bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
-        /*  GetNeighbours(): get neighbours given a vertex dummy node;
-            src: the target vertex dummy node;
+        /*  GetNeighboursByOffset(): get neighbours given a vertex dummy node;
+            src: the offset of the source vertex;
             neighbours: neighbour edges of src are stored in this array;
             timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
-        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
+        bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
 
         /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
             src: the source vertex ID;
             Returns an array of dummy nodes containing all reachable vertices.
         */
-        std::vector<DummyNode*> BFS(NodeID src);
+        std::vector<uint64_t> BFS(NodeID src);
         /*  SSSP(): get shortest distances from a given vertex ID (single-threaded);
             src: the source vertex ID;
             Returns an array of numbers containing shortest distances to all vertices.

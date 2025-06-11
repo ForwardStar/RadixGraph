@@ -134,21 +134,17 @@ int main(int argc, char* argv[]) {
     std::vector<uint64_t> res2;
     for (int i = 0; i < n; i++) {
         if (p[i] != -1) {
-            res2.emplace_back(G.vertex_index->dummy_nodes[i]->node);
+            res2.emplace_back(G.vertex_index->dummy_nodes[i].node);
         }
     }
-    std::sort(res1.begin(), res1.end(), [](DummyNode* a, DummyNode* b) {
-        return a->node < b->node;
-    });
-    std::sort(res2.begin(), res2.end(), [](NodeID a, NodeID b) {
-        return a < b;
-    });
+    std::sort(res1.begin(), res1.end());
+    std::sort(res2.begin(), res2.end());
     if (res1.size() != res2.size()) {
         std::cout << "BFS wrong results detected. Expected size = " << res1.size() << ", actual size = " << res2.size() << std::endl;
         return 0;
     }
     for (int i = 0; i < res1.size(); i++) {
-        if (res1[i]->node != res2[i]) {
+        if (res1[i] != res2[i]) {
             std::cout << "BFS wrong results detected. Wrong node id." << std::endl;
             return 0;
         }
@@ -165,7 +161,7 @@ int main(int argc, char* argv[]) {
     }
     for (int i = 0; i < res3.size(); i++) {
         if ((res3[i] <= 1e9 || res4[i] <= 1e9) && abs(res3[i] - res4[i]) > 1e-6) {
-            std::cout << "SSSP wrong results detected. Distance of node " << G.vertex_index->dummy_nodes[i]->node << " is expected to be: " << res3[i] << ", actual: " << res4[i] << std::endl;
+            std::cout << "SSSP wrong results detected. Distance of node " << G.vertex_index->dummy_nodes[i].node << " is expected to be: " << res3[i] << ", actual: " << res4[i] << std::endl;
             return 0;
         }
     }

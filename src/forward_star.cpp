@@ -62,61 +62,57 @@ bool ForwardStar::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbour
     if (!src_ptr) {
         return false;
     }
-    return GetNeighbours(src_ptr, neighbours, timestamp);
+    return GetNeighbours(src_ptr->idx, neighbours, timestamp);
 }
 
-bool ForwardStar::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
-    if (src) {
-        int num = 0, k = 0;
-        int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? src->next.size() : timestamp, deg = src->deg;
-        neighbours.resize(deg);
-        for (int i = cnt - 1; i >= 0; i--) {
-            auto e = src->next[i];
-            if (!bitmap[thread_id]->get_bit(e.idx)) {
-                if (e.weight != 0) { // Insert or Update
-                    // Have not found a previous log for this edge, thus this edge is the latest
-                    neighbours[num++] = e;
-                }
-                bitmap[thread_id]->set_bit(e.idx);
+bool ForwardStar::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp) {
+    auto& src_ptr = vertex_index->dummy_nodes[src];
+    int num = 0, k = 0;
+    int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? src_ptr.next.size() : timestamp, deg = src_ptr.deg;
+    neighbours.resize(deg);
+    for (int i = cnt - 1; i >= 0; i--) {
+        auto e = src_ptr.next[i];
+        if (!bitmap[thread_id]->get_bit(e.idx)) {
+            if (e.weight != 0) { // Insert or Update
+                // Have not found a previous log for this edge, thus this edge is the latest
+                neighbours[num++] = e;
             }
-            if (deg - num == i) {
-                // Edge num = log num, all previous logs are materialized
-                for (int j = i - 1; j >= 0; j--) {
-                    neighbours[num++] = src->next[j];
-                }
-                k = i;
-                break;
-            }
+            bitmap[thread_id]->set_bit(e.idx);
         }
-        for (int i = k; i < cnt; i++) {
-            bitmap[thread_id]->clear_bit(src->next[i].idx);
+        if (deg - num == i) {
+            // Edge num = log num, all previous logs are materialized
+            for (int j = i - 1; j >= 0; j--) {
+                neighbours[num++] = src_ptr.next[j];
+            }
+            k = i;
+            break;
         }
     }
-    else {
-        return false;
+    for (int i = k; i < cnt; i++) {
+        bitmap[thread_id]->clear_bit(src_ptr.next[i].idx);
     }
 
     return true;
 }
 
-std::vector<DummyNode*> ForwardStar::BFS(NodeID src) {
-    std::queue<DummyNode*> Q;
+std::vector<uint64_t> ForwardStar::BFS(NodeID src) {
+    std::queue<int> Q;
     AtomicBitmap vis(vertex_index->cnt);
     vis.reset();
     auto src_ptr = vertex_index->RetrieveVertex(src);
     vis.set_bit(src_ptr->idx);
-    Q.push(src_ptr);
-    std::vector<DummyNode*> res;
+    Q.push(src_ptr->idx);
+    std::vector<uint64_t> res;
     while (!Q.empty()) {
         auto u = Q.front();
         Q.pop();
-        res.push_back(u);
+        res.push_back(vertex_index->dummy_nodes[u].node);
         std::vector<WeightedEdge> neighbours;
-        GetNeighbours(u, neighbours);
+        GetNeighboursByOffset(u, neighbours);
         for (auto e : neighbours) {
             if (!vis.get_bit(e.idx)) {
                 vis.set_bit(e.idx);
-                Q.push(vertex_index->dummy_nodes[e.idx]);
+                Q.push(e.idx);
             }
         }
     }
@@ -127,19 +123,19 @@ std::vector<double> ForwardStar::SSSP(NodeID src) {
     std::vector<double> dist;
     dist.assign(vertex_index->cnt, 1e9);
     auto u = vertex_index->RetrieveVertex(src);
-    std::priority_queue<std::pair<double, DummyNode*>> Q;
+    std::priority_queue<std::pair<double, int>> Q;
     dist[u->idx] = 0;
-    Q.emplace(0, u);
+    Q.emplace(0, u->idx);
     while (!Q.empty()) {
         auto v = Q.top().second;
         Q.pop();
         std::vector<WeightedEdge> neighbours;
-        GetNeighbours(v, neighbours);
+        GetNeighboursByOffset(v, neighbours);
         for (auto e : neighbours) {
             auto w = e.idx;
-            if (dist[v->idx] + e.weight < dist[w]) {
-                dist[w] = dist[v->idx] + e.weight;
-                Q.emplace(-dist[w], vertex_index->dummy_nodes[w]);
+            if (dist[v] + e.weight < dist[w]) {
+                dist[w] = dist[v] + e.weight;
+                Q.emplace(-dist[w], w);
             }
         }
     }

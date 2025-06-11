@@ -90,11 +90,10 @@ class Trie {
         } TrieNode;
 
         TrieNode* root = nullptr;
-        DummyNode** dummy_nodes = nullptr;
+        tbb::concurrent_vector<DummyNode> dummy_nodes;
         std::vector<int> num_bits, sum_bits;
         int depth = 0, space = 0, cap = CAP_DUMMY_NODES;
         std::atomic<int> cnt;
-        std::atomic_flag mtx = ATOMIC_FLAG_INIT;
 
         inline DummyNode* InsertVertex(TrieNode* current, NodeID id, int d);
 

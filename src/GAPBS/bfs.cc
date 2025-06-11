@@ -36,7 +36,7 @@ int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
     for (int i = 0; i < vertex_num; i++) {
         if (parent[i] == -1) {
             std::vector<WeightedEdge> neighbours;
-            g->GetNeighbours(g->vertex_index->dummy_nodes[i], neighbours);
+            g->GetNeighboursByOffset(i, neighbours);
             for (auto e : neighbours) {
                 int vidx = e.idx;
                 if (front.get_bit(vidx)) {
@@ -62,7 +62,7 @@ int64_t TDStep(ForwardStar* g, pvector<NodeID> &parent,
         for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
             NodeID from_node_id = *q_iter;
             std::vector<WeightedEdge> neighbours;
-            g->GetNeighbours(g->vertex_index->dummy_nodes[from_node_id], neighbours);
+            g->GetNeighboursByOffset(from_node_id, neighbours);
             for (auto e : neighbours) {
                 int vidx = e.idx;
                 NodeID curr_val = parent[vidx];

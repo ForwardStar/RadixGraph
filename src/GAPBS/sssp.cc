@@ -73,7 +73,7 @@ pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_
       for (size_t i=0; i < curr_frontier_tail; i++) {
         auto u = frontier[i];
         if (dist[u] >= delta * static_cast<WeightT>(curr_bin_index))
-          RelaxEdges(g, g->vertex_index->dummy_nodes[u], delta, dist, local_bins);
+          RelaxEdges(g, u, delta, dist, local_bins);
       }
       while (curr_bin_index < local_bins.size() &&
              !local_bins[curr_bin_index].empty() &&
@@ -81,7 +81,7 @@ pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_
         std::vector<int> curr_bin_copy = local_bins[curr_bin_index];
         local_bins[curr_bin_index].resize(0);
         for (auto u : curr_bin_copy)
-          RelaxEdges(g, g->vertex_index->dummy_nodes[u], delta, dist, local_bins);
+          RelaxEdges(g, u, delta, dist, local_bins);
       }
       for (size_t i=curr_bin_index; i < local_bins.size(); i++) {
         if (!local_bins[i].empty()) {
