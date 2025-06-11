@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "forward_star.h"
+#include "radixgraph.h"
 #include "../Spruce/Spruce/src/spruce_transaction.h"
 
 uint64_t max_uid = 0;
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
         std::random_shuffle(edges.begin(), edges.end());
 
         int start_mem = get_proc_mem();
-        ForwardStar G_fstar(d, a, false);
+        RadixGraph G_fstar(d, a, false);
         auto start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)
         for (auto e : edges) G_fstar.InsertEdge(e.first, e.second, 0.5);
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
         }
         for (int i = 0; i < num_trials; i++) {
             // std::cout << "Trial " << i + 1 << ":" << std::endl;
-            ForwardStar G_fstar(d[now], a[now]);
+            RadixGraph G_fstar(d[now], a[now]);
             SpruceTransVer spruce;
             std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
 
@@ -313,19 +313,19 @@ int main(int argc, char* argv[]) {
         }
         ++now;
 
-        std::cout << "Average insertion time for forward star: " << duration_insert_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average insertion time for spruce: " << duration_insert_edge_spruce / num_trials << "s" << std::endl;
+        std::cout << "Average insertion time for RadixGraph: " << duration_insert_edge_fstar / num_trials << "s" << std::endl;
+        std::cout << "Average insertion time for Spruce: " << duration_insert_edge_spruce / num_trials << "s" << std::endl;
         std::cout << std::endl;
-        std::cout << "Average deletion time for forward star: " << duration_delete_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average deletion time for spruce: " << duration_delete_edge_spruce / num_trials << "s" << std::endl;
+        std::cout << "Average deletion time for RadixGraph: " << duration_delete_edge_fstar / num_trials << "s" << std::endl;
+        std::cout << "Average deletion time for Spruce: " << duration_delete_edge_spruce / num_trials << "s" << std::endl;
         std::cout << std::endl;
-        std::cout << "Average update time for forward star: " << duration_update_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average update time for spruce: " << duration_update_edge_spruce / num_trials << "s" << std::endl;
+        std::cout << "Average update time for RadixGraph: " << duration_update_edge_fstar / num_trials << "s" << std::endl;
+        std::cout << "Average update time for Spruce: " << duration_update_edge_spruce / num_trials << "s" << std::endl;
         std::cout << std::endl;
-        std::cout << "Average get neighbours time for forward star: " << duration_get_neighbours_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average get neighbours time for spruce: " << duration_get_neighbours_spruce / num_trials << "s" << std::endl;
+        std::cout << "Average get neighbours time for RadixGraph: " << duration_get_neighbours_fstar / num_trials << "s" << std::endl;
+        std::cout << "Average get neighbours time for Spruce: " << duration_get_neighbours_spruce / num_trials << "s" << std::endl;
         std::cout << std::endl;
-        std::cout << "Average BFS time for forward star: " << duration_bfs_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average BFS time for spruce: " << duration_bfs_spruce / num_trials << "s" << std::endl;
+        std::cout << "Average BFS time for RadixGraph: " << duration_bfs_fstar / num_trials << "s" << std::endl;
+        std::cout << "Average BFS time for Spruce: " << duration_bfs_spruce / num_trials << "s" << std::endl;
     }
 }

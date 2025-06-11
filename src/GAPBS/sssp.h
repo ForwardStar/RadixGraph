@@ -14,9 +14,9 @@
 #include "benchmark.h"
 #include "platform_atomics.h"
 #include "pvector.h"
-#include "../forward_star.h"
+#include "../radixgraph.h"
 
-inline void RelaxEdges(ForwardStar* g, int u, WeightT delta,
+inline void RelaxEdges(RadixGraph* g, int u, WeightT delta,
                 pvector<WeightT> &dist, std::vector<std::vector<int>> &local_bins) {
     std::vector<WeightedEdge> neighbours;
     g->GetNeighboursByOffset(u, neighbours);
@@ -37,6 +37,6 @@ inline void RelaxEdges(ForwardStar* g, int u, WeightT delta,
     }
 }
 
-pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_t num_nodes, long num_edges);
+pvector<WeightT> DeltaStep(RadixGraph* g, NodeID source, WeightT delta, uint32_t num_nodes, long num_edges);
 
 #endif //GRAPHINDEX_SSSP_H

@@ -7,8 +7,8 @@
 
 #include "benchmark.h"
 #include "pvector.h"
-#include "../forward_star.h"
+#include "../radixgraph.h"
 
-std::vector<double> OrderedCount(ForwardStar* g, uint32_t num_vertices);
+std::vector<double> OrderedCount(RadixGraph* g, uint32_t num_vertices);
 
 #endif //GRAPHINDEX_TC_H

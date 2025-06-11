@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef FORWARDSTAR
-#define FORWARDSTAR
+#ifndef RG
+#define RG
 
 #include "optimized_trie.h"
 
-class ForwardStar {
+class RadixGraph {
     private:
         bool Insert(DummyNode* src, DummyNode* des, double weight);      
     public:
-        Trie* vertex_index = nullptr;
+        SORT* vertex_index = nullptr;
         bool enable_query = true;
         std::atomic<int>* degree = nullptr;
-        std::atomic<int> cnt;
         AtomicBitmap** bitmap = nullptr;
+ 
+        /* Sample edge and vertex;
+           See detail structures in ``optimized_trie.h``.
+        */
+        WeightedEdge sample_edge = {/* weight */0.5, /* offset */2};
+        DummyNode sample_vertex = {/* ID */10, /* Offset */0, /* Del_time */0, /* EdgeArr */tbb::concurrent_vector<WeightedEdge>(), /* Degree */0};
 
         /*  InsertEdge(): insert an edge to RadixGraph;
             src: the source vertex of the edge;
@@ -48,14 +53,14 @@ class ForwardStar {
             timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
         bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
         /*  GetNeighboursByOffset(): get neighbours given a vertex dummy node;
-            src: the offset of the source vertex;
+            src: the offset of the source vertex, i.e., the logical ID of the vertex;
             neighbours: neighbour edges of src are stored in this array;
             timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
         bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
 
         /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
             src: the source vertex ID;
-            Returns an array of dummy nodes containing all reachable vertices.
+            Returns an array of all reachable vertex IDs.
         */
         std::vector<uint64_t> BFS(NodeID src);
         /*  SSSP(): get shortest distances from a given vertex ID (single-threaded);
@@ -64,12 +69,12 @@ class ForwardStar {
         */
         std::vector<double> SSSP(NodeID src);
 
-        /*  ForwardStar(): initialization of a RadixGraph instance;
+        /*  RadixGraph(): initialization of a RadixGraph instance;
             d: depth of the SORT (vertex index);
             _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
-            enable_query: whether to enable querying components. */ 
-        ForwardStar(int d, std::vector<int> _num_children, bool _enable_query=true);
-        ~ForwardStar();
+            enable_query: whether to enable querying components (bitmaps). */ 
+        RadixGraph(int d, std::vector<int> _num_children, bool _enable_query=true);
+        ~RadixGraph();
 };
 
 #endif

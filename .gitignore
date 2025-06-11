@@ -7,10 +7,10 @@ build
 CMakeTmp
 junction
 spruce
-forward_star
+radixgraph
 test_trie
 test_gapbs
-libFSTAR.a
+libRG.a
 *.e
 *.v
 *.properties

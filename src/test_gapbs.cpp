@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include "headers.h"
-#include "forward_star.h"
+#include "radixgraph.h"
 #include "./GAPBS/bfs.h"
 #include "./GAPBS/sssp.h"
 #include "./GAPBS/tc.h"
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
             m++;
         }
 
-        ForwardStar G(d, a);
+        RadixGraph G(d, a);
         #pragma omp parallel for
         for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5);
         int n = G.vertex_index->cnt;
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
         edge_set.emplace(std::make_pair(u, v));
     }
 
-    ForwardStar G(d, a);
+    RadixGraph G(d, a);
     #pragma omp parallel for
     for (auto e : edges) {
         G.InsertEdge(e.first.first, e.first.second, e.second);
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     std::vector<uint64_t> res2;
     for (int i = 0; i < n; i++) {
         if (p[i] != -1) {
-            res2.emplace_back(G.vertex_index->dummy_nodes[i].node);
+            res2.emplace_back(G.vertex_index->vertex_table[i].node);
         }
     }
     std::sort(res1.begin(), res1.end());
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     }
     for (int i = 0; i < res3.size(); i++) {
         if ((res3[i] <= 1e9 || res4[i] <= 1e9) && abs(res3[i] - res4[i]) > 1e-6) {
-            std::cout << "SSSP wrong results detected. Distance of node " << G.vertex_index->dummy_nodes[i].node << " is expected to be: " << res3[i] << ", actual: " << res4[i] << std::endl;
+            std::cout << "SSSP wrong results detected. Distance of node " << G.vertex_index->vertex_table[i].node << " is expected to be: " << res3[i] << ", actual: " << res4[i] << std::endl;
             return 0;
         }
     }

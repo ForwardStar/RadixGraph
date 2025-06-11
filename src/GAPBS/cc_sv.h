@@ -9,8 +9,8 @@
 #include "benchmark.h"
 #include "bitmap.h"
 #include "pvector.h"
-#include "../forward_star.h"
+#include "../radixgraph.h"
 
-pvector<NodeID> ShiloachVishkin(ForwardStar* g, uint32_t num_nodes);
+pvector<NodeID> ShiloachVishkin(RadixGraph* g, uint32_t num_nodes);
 
 #endif //GRAPHINDEX_CC_SV_H

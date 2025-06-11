@@ -49,7 +49,7 @@ const size_t kMaxBin = std::numeric_limits<size_t>::max() / 2;
 const size_t kBinSizeThreshold = 1000;
 
 
-pvector<WeightT> DeltaStep(ForwardStar* g, NodeID source, WeightT delta, uint32_t num_nodes, long num_edges) {
+pvector<WeightT> DeltaStep(RadixGraph* g, NodeID source, WeightT delta, uint32_t num_nodes, long num_edges) {
   // default delta is 2.0
   pvector<WeightT> dist(num_nodes, kDistInf);
   auto u = g->vertex_index->RetrieveVertex(source);

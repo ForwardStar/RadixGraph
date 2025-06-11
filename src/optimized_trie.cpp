@@ -15,7 +15,7 @@
  */
  #include "optimized_trie.h"
 
- DummyNode* Trie::InsertVertex(TrieNode* current, NodeID id, int d) {
+ DummyNode* SORT::InsertVertex(SORTNode* current, NodeID id, int d) {
      for (int i = d; i < depth; i++) {
          int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
          uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
@@ -23,7 +23,7 @@
              if (!current->children[idx]) {
                  current->mtx->set_bit_atomic(idx);
                  if (!current->children[idx]) {
-                     auto tmp = new TrieNode();
+                     auto tmp = new SORTNode();
                      int sz = (1 << num_bits[i + 1]);
                      tmp->mtx = new AtomicBitmap(sz);
                      tmp->mtx->reset();
@@ -41,7 +41,7 @@
                  tmp = (DummyNode*)current->children[idx];
                  if (!tmp) {
                      int i = cnt.fetch_add(1);
-                     tmp = &(*dummy_nodes.grow_by(1));
+                     tmp = &(*vertex_table.grow_by(1));
                      tmp->idx = i;
                      current->children[idx] = (uint64_t)tmp;
                  }
@@ -50,13 +50,13 @@
              }
              return tmp;
          }
-         current = (TrieNode*)current->children[idx];
+         current = (SORTNode*)current->children[idx];
      }
      return nullptr;
  }
  
- DummyNode* Trie::RetrieveVertex(NodeID id, bool insert_mode) {
-     TrieNode* current = root;
+ DummyNode* SORT::RetrieveVertex(NodeID id, bool insert_mode) {
+     SORTNode* current = root;
      for (int i = 0; i < depth; i++) {
          int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
          uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
@@ -80,12 +80,12 @@
              }
              return tmp;
          }
-         current = (TrieNode*)current->children[idx];
+         current = (SORTNode*)current->children[idx];
      }
      return nullptr;
  }
  
- bool Trie::DeleteVertex(NodeID id) {
+ bool SORT::DeleteVertex(NodeID id) {
      DummyNode* tmp = RetrieveVertex(id);
      if (tmp == nullptr) {
          return false;
@@ -94,12 +94,12 @@
      return true;
  }
  
- long long Trie::size() {
+ long long SORT::size() {
      long long sz = 0;
-     std::queue<std::pair<TrieNode*, int>> Q;
+     std::queue<std::pair<SORTNode*, int>> Q;
      Q.emplace(root, 0);
      while (!Q.empty()) {
-         TrieNode* u = Q.front().first;
+         SORTNode* u = Q.front().first;
          int d = Q.front().second;
          Q.pop();
          if (d < depth) {
@@ -107,7 +107,7 @@
              if (d < depth - 1) {
                  for (int i = 0; i < (1 << num_bits[d]); i++) {
                      if (u->children[i]) {
-                         Q.emplace((TrieNode*)u->children[i], d + 1);
+                         Q.emplace((SORTNode*)u->children[i], d + 1);
                      }
                  }
              }
@@ -116,41 +116,41 @@
      return sz;
  }
  
- Trie::Trie(int d, int _num_bits[]) {
+ SORT::SORT(int d, int _num_bits[]) {
      depth = d;
      num_bits.resize(d), sum_bits.resize(d);
      for (int i = 0; i < d; i++) {
          num_bits[i] = _num_bits[i];
          sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
      }
-     root = new TrieNode();
+     root = new SORTNode();
      int sz = (1 << num_bits[0]);
      root->children = new uint64_t[sz];
      std::memset(root->children, 0, sizeof(root->children));
      root->mtx = new AtomicBitmap(sz);
  }
  
- Trie::Trie(int d, std::vector<int> _num_bits) {
+ SORT::SORT(int d, std::vector<int> _num_bits) {
      depth = d;
      num_bits.resize(d), sum_bits.resize(d);
      for (int i = 0; i < d; i++) {
          num_bits[i] = _num_bits[i];
          sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
      }
-     root = new TrieNode();
+     root = new SORTNode();
      int sz = (1 << num_bits[0]);
      root->children = new uint64_t[sz];
      std::memset(root->children, 0, sizeof(root->children) * sz);
      root->mtx = new AtomicBitmap(sz);
  }
  
- Trie::~Trie() {
+ SORT::~SORT() {
      std::vector<uint64_t> ptrs;
-     std::queue<std::pair<TrieNode*, int>> Q;
+     std::queue<std::pair<SORTNode*, int>> Q;
      ptrs.emplace_back((uint64_t)root);
      Q.emplace(root, 0);
      while (!Q.empty()) {
-         TrieNode* u = Q.front().first;
+         SORTNode* u = Q.front().first;
          int d = Q.front().second;
          Q.pop();
          if (d < depth) {
@@ -158,13 +158,13 @@
                  for (int i = 0; i < (1 << num_bits[d]); i++) {
                      if (u->children[i]) {
                          ptrs.emplace_back(u->children[i]);
-                         Q.emplace((TrieNode*)u->children[i], d + 1);
+                         Q.emplace((SORTNode*)u->children[i], d + 1);
                      }
                  }
              }
          }
      }
      for (auto u : ptrs) {
-        delete (TrieNode*)u;
+        delete (SORTNode*)u;
      }
  }

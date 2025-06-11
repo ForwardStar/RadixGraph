@@ -28,7 +28,7 @@ them in parent array as negative numbers. Thus the encoding of parent is:
     Computing, Networking, Storage and Analysis (SC), Salt Lake City, Utah,
     November 2012.
 */
-int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
+int64_t BUStep(RadixGraph* g, pvector<NodeID> &parent, Bitmap &front,
                Bitmap &next, int vertex_num) {
     int64_t awake_count = 0;
     next.reset();
@@ -51,7 +51,7 @@ int64_t BUStep(ForwardStar* g, pvector<NodeID> &parent, Bitmap &front,
     return awake_count;
 }
 
-int64_t TDStep(ForwardStar* g, pvector<NodeID> &parent,
+int64_t TDStep(RadixGraph* g, pvector<NodeID> &parent,
                SlidingQueue<int> &queue) {
     int64_t scout_count = 0;
     long int thread_times[64] = {0};
@@ -87,7 +87,7 @@ void QueueToBitmap(const SlidingQueue<int> &queue, Bitmap &bm) {
   }
 }
 
-void BitmapToQueue(ForwardStar* g, int vertex_num, const Bitmap &bm,
+void BitmapToQueue(RadixGraph* g, int vertex_num, const Bitmap &bm,
                    SlidingQueue<int> &queue) {
   #pragma omp parallel
   {
@@ -102,7 +102,7 @@ void BitmapToQueue(ForwardStar* g, int vertex_num, const Bitmap &bm,
   queue.slide_window();
 }
 
-pvector<NodeID> InitParent(ForwardStar* g, int vertex_num) {
+pvector<NodeID> InitParent(RadixGraph* g, int vertex_num) {
     pvector<NodeID> parent(vertex_num);
     #pragma omp parallel for
     for (NodeID n = 0; n < vertex_num; n++) {
@@ -111,7 +111,7 @@ pvector<NodeID> InitParent(ForwardStar* g, int vertex_num) {
     return parent;
 }
 
-pvector<NodeID> DOBFS(ForwardStar* g, NodeID source, int vertex_num, int edge_num, int src_out_degree, int alpha,
+pvector<NodeID> DOBFS(RadixGraph* g, NodeID source, int vertex_num, int edge_num, int src_out_degree, int alpha,
                       int beta) {
     auto u = g->vertex_index->RetrieveVertex(source);
     int uidx = u->idx;

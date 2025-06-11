@@ -30,7 +30,7 @@ more consistent performance for undirected graphs.
 // The hooking condition (comp_u < comp_v) may not coincide with the edge's
 // direction, so we use a min-max swap such that lower component IDs propagate
 // independent of the edge's direction.
-pvector<NodeID> ShiloachVishkin(ForwardStar* g, uint32_t num_nodes) {
+pvector<NodeID> ShiloachVishkin(RadixGraph* g, uint32_t num_nodes) {
   pvector<NodeID> comp(num_nodes);
   #pragma omp parallel for
   for (NodeID n=0; n < num_nodes; n++) comp[n] = n;

@@ -32,7 +32,7 @@ degree. This is beneficial if the average degree is high enough and if the
 degree distribution is sufficiently non-uniform. To decide whether or not
 to relabel the graph, we use the heuristic in WorthRelabelling.
 */
-std::vector<double> OrderedCount(ForwardStar* g, uint32_t num_vertices) {
+std::vector<double> OrderedCount(RadixGraph* g, uint32_t num_vertices) {
   size_t total = 0;
   auto triangles_per_vertex = (std::atomic<uint32_t>*)malloc(sizeof(std::atomic<uint32_t>) * num_vertices);
   #pragma omp parallel

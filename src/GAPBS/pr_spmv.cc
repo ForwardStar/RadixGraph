@@ -16,7 +16,7 @@ but it is not necesarily the fastest way to implement it. It performs each
 iteration as a sparse-matrix vector multiply (SpMV), and values are not visible
 until the next iteration (like Jacobi-style method).
 */
-pvector<ScoreT> PageRankPull(ForwardStar* g, int max_iters,
+pvector<ScoreT> PageRankPull(RadixGraph* g, int max_iters,
                              uint32_t num_nodes, double epsilon) {
 
   const ScoreT init_score = 1.0f / num_nodes;

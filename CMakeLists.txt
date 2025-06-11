@@ -27,7 +27,7 @@ include_directories(${CMAKE_SOURCE_DIR}/Spruce/turf/include)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction)
 include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction/include)
 
-add_library(FSTAR STATIC src/GAPBS/bfs.cc 
+add_library(RG STATIC src/GAPBS/bfs.cc 
             src/GAPBS/bitmap.h 
             src/GAPBS/benchmark.h
             src/GAPBS/cc_sv.cc
@@ -37,16 +37,16 @@ add_library(FSTAR STATIC src/GAPBS/bfs.cc
             src/GAPBS/sliding_queue.h
             src/GAPBS/sssp.cc
             src/GAPBS/tc.cc
-            src/forward_star.cpp 
+            src/radixgraph.cpp 
             src/optimized_trie.cpp)
 
 # Add executable for your main program
-add_executable(forward_star
+add_executable(radixgraph
     src/main.cpp
-    src/forward_star.cpp
+    src/radixgraph.cpp
     src/optimized_trie.cpp
     src/headers.h
-    src/forward_star.h
+    src/radixgraph.h
     src/optimized_trie.h
 )
 
@@ -59,7 +59,7 @@ add_executable(test_trie
 
 add_executable(test_gapbs
     src/test_gapbs.cpp
-    src/forward_star.cpp
+    src/radixgraph.cpp
     src/optimized_trie.cpp
     src/headers.h
     src/GAPBS/bfs.cc
@@ -67,7 +67,7 @@ add_executable(test_gapbs
     src/GAPBS/tc.cc
     src/GAPBS/pr_spmv.cc
     src/GAPBS/cc_sv.cc
-    src/forward_star.h
+    src/radixgraph.h
     src/optimized_trie.h
     src/GAPBS/bfs.h
     src/GAPBS/benchmark.h
@@ -79,6 +79,6 @@ add_executable(test_gapbs
 )
 
 # Link libraries (Spruce depends on junction and turf)
-target_link_libraries(forward_star PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(radixgraph PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX TBB::tbb)
 target_link_libraries(test_trie PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
 target_link_libraries(test_gapbs PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
