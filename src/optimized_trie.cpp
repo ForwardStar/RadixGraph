@@ -43,6 +43,8 @@
                      int i = cnt.fetch_add(1);
                      tmp = &(*vertex_table.grow_by(1));
                      tmp->idx = i;
+                     tmp->next.store(new WeightedEdgeArray(8));
+                     tmp->cap = 8;
                      current->children[idx] = (uint64_t)tmp;
                  }
                  tmp->node = id;

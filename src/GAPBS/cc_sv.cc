@@ -42,8 +42,10 @@ pvector<NodeID> ShiloachVishkin(RadixGraph* g, uint32_t num_nodes) {
     #pragma omp parallel for
     for (NodeID n=0; n < num_nodes; n++) {
       std::vector<WeightedEdge> neighbours;
-      g->GetNeighboursByOffset(n, neighbours);
-      for (auto e : neighbours) {
+      auto u = g->vertex_index->RetrieveVertex(n);
+      if (u == nullptr) continue;
+      g->GetNeighbours(u, neighbours);
+      for (auto& e : neighbours) {
         NodeID comp_u = comp[n];
         NodeID comp_v = comp[e.idx];
         if (comp_u == comp_v) continue;

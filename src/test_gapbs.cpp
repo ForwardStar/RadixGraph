@@ -36,8 +36,11 @@ int main(int argc, char* argv[]) {
         bool has_source = false;
         std::vector<std::pair<uint64_t, uint64_t>> edges;
         int m = 0;
+        uint64_t maxu = 0;
         while (fin >> u >> v) {
             edges.emplace_back(u, v);
+            maxu = std::max(maxu, u + 1);
+            maxu = std::max(maxu, v + 1);
             if (!has_source) s = u, has_source = true;
             m++;
         }
@@ -65,7 +68,7 @@ int main(int argc, char* argv[]) {
         // Test WCC
         std::cout << "Testing WCC..." << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        ShiloachVishkin(&G, n);
+        ShiloachVishkin(&G, maxu);
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Time: " << duration.count() << "s" << std::endl;
@@ -73,7 +76,7 @@ int main(int argc, char* argv[]) {
         // Test PageRank
         std::cout << "Testing PageRank..." << std::endl;
         start = std::chrono::high_resolution_clock::now();
-        PageRankPull(&G, 10, n);
+        PageRankPull(&G, 10, maxu);
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Time: " << duration.count() << "s" << std::endl;

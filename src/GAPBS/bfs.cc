@@ -69,7 +69,7 @@ int64_t TDStep(RadixGraph* g, pvector<NodeID> &parent,
                 if (curr_val == -1) {
                     if (compare_and_swap(parent[vidx], curr_val, from_node_id)) {
                         lqueue.push_back(vidx);
-                        scout_count += g->degree[vidx];
+                        scout_count += g->vertex_index->vertex_table[vidx].deg.load();
                     }
                 }
             }

@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
         std::random_shuffle(edges.begin(), edges.end());
 
         int start_mem = get_proc_mem();
-        RadixGraph G_fstar(d, a, false);
+        RadixGraph G_fstar(d, a);
         auto start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for num_threads(num_threads)
         for (auto e : edges) G_fstar.InsertEdge(e.first, e.second, 0.5);

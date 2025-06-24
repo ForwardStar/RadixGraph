@@ -29,7 +29,9 @@ pvector<ScoreT> PageRankPull(RadixGraph* g, int max_iters,
 
       #pragma omp parallel for reduction(+:dangling_sum)
       for (NodeID n = 0; n < num_nodes; n++) {
-          uint32_t out_degree = g->degree[n];
+          auto u = g->vertex_index->RetrieveVertex(n);
+          if (u == nullptr) continue;
+          uint32_t out_degree = u->deg;
           if (out_degree == 0) {
               dangling_sum += scores[n];
           }
@@ -43,8 +45,10 @@ pvector<ScoreT> PageRankPull(RadixGraph* g, int max_iters,
       for (NodeID n = 0; n < num_nodes; n++) {
         ScoreT incoming_total = 0;
         std::vector<WeightedEdge> neighbours;
-        g->GetNeighboursByOffset(n, neighbours);
-        for (auto e : neighbours) {
+        auto u = g->vertex_index->RetrieveVertex(n);
+        if (u == nullptr) continue;
+        g->GetNeighbours(u, neighbours);
+        for (auto& e : neighbours) {
           incoming_total += outgoing_contrib[e.idx];
         }
         scores[n] = base_score + kDamp * (incoming_total + dangling_sum);

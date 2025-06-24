@@ -16,7 +16,23 @@
 #include "radixgraph.h"
 
 bool RadixGraph::Insert(DummyNode* src, DummyNode* des, double weight) {
-    src->next.emplace_back(weight, des->idx);
+    while (src->mtx.test_and_set()) {}
+    if (src->size.load() >= src->cap.load()) {
+        auto old_array = src->next.load();
+        auto new_array = new WeightedEdgeArray(src->cap * 1.5);
+        for (int i = 0; i < src->cap; i++) {
+            new_array->edge[i] = old_array->edge[i];
+        }
+        src->next.store(new_array);
+        src->cap.store(src->cap.load() * 1.5);
+        if (old_array->threads_analytical.load() == 0 && old_array->threads_get_neighbor.load() == 0) {
+            delete old_array;
+        }
+    }
+    int i = src->size.fetch_add(1);
+    src->next.load()->edge[i].weight = weight;
+    src->next.load()->edge[i].idx = des->idx;
+    src->mtx.clear();
     return true;
 }
 
@@ -24,7 +40,6 @@ bool RadixGraph::InsertEdge(NodeID src, NodeID des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
     src_ptr->deg.fetch_add(1);
-    if (enable_query) degree[src_ptr->idx].fetch_add(1);
     Insert(src_ptr, des_ptr, weight);
     return true;
 }
@@ -52,7 +67,6 @@ bool RadixGraph::DeleteEdge(NodeID src, NodeID des) {
         return false;
     }
     src_ptr->deg.fetch_sub(1);
-    if (enable_query) degree[src_ptr->idx].fetch_sub(1);
     Insert(src_ptr, des_ptr, 0);
     return true;
 }
@@ -62,34 +76,59 @@ bool RadixGraph::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours
     if (!src_ptr) {
         return false;
     }
-    return GetNeighbours(src_ptr->idx, neighbours, timestamp);
+    return GetNeighbours(src_ptr, neighbours, timestamp);
+}
+
+bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
+    int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? src->size.load() : timestamp;
+    auto next = src->next.load();
+    next->threads_get_neighbor.fetch_add(1);
+    for (int i = cnt - 1; i >= 0; i--) {
+        auto& e = next->edge[i];
+        // Avoid read-write conflicts: check e.idx first
+        if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
+            if (e.weight != 0) { // Insert or Update
+                // Have not found a previous log for this edge, thus this edge is the latest
+                neighbours.emplace_back(e);
+            }
+            bitmap[thread_id]->set_bit(e.idx);
+        }
+    }
+    for (int i = 0; i < cnt; i++) {
+        if (next->edge[i].idx != -1) bitmap[thread_id]->clear_bit(next->edge[i].idx);
+    }
+    next->threads_get_neighbor.fetch_sub(1);
+    if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0 && next != src->next.load()) {
+        // If array pointer changes, this array has been obseleted, and if no other querying process, then delete this array;
+        delete next;
+    }
+
+    return true;
 }
 
 bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp) {
     auto& src_ptr = vertex_index->vertex_table[src];
-    int num = 0, k = 0;
-    int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? src_ptr.next.size() : timestamp, deg = src_ptr.deg;
-    neighbours.resize(deg);
+    int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? src_ptr.size.load() : timestamp;
+    auto next = src_ptr.next.load();
+    next->threads_get_neighbor.fetch_add(1);
     for (int i = cnt - 1; i >= 0; i--) {
-        auto e = src_ptr.next[i];
-        if (!bitmap[thread_id]->get_bit(e.idx)) {
+        auto& e = next->edge[i];
+        // Avoid read-write conflicts: check e.idx first
+        if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
             if (e.weight != 0) { // Insert or Update
                 // Have not found a previous log for this edge, thus this edge is the latest
-                neighbours[num++] = e;
+                neighbours.emplace_back(e);
             }
             bitmap[thread_id]->set_bit(e.idx);
         }
-        if (deg - num == i) {
-            // Edge num = log num, all previous logs are materialized
-            for (int j = i - 1; j >= 0; j--) {
-                neighbours[num++] = src_ptr.next[j];
-            }
-            k = i;
-            break;
-        }
     }
-    for (int i = k; i < cnt; i++) {
-        bitmap[thread_id]->clear_bit(src_ptr.next[i].idx);
+    for (int i = 0; i < cnt; i++) {
+        if (next->edge[i].idx != -1) bitmap[thread_id]->clear_bit(next->edge[i].idx);
+    }
+    next->threads_get_neighbor.fetch_sub(1);
+    if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0 && next != src_ptr.next.load()) {
+        // If array pointer changes, this array has been obseleted, and if no other querying process, then delete this array;
+        delete next;
     }
 
     return true;
@@ -142,13 +181,9 @@ std::vector<double> RadixGraph::SSSP(NodeID src) {
     return dist;
 }
 
-RadixGraph::RadixGraph(int d, std::vector<int> _num_children, bool _enable_query) {
-    enable_query = _enable_query;
-    if (enable_query) {
-        degree = (std::atomic<int>*)calloc(CAP_DUMMY_NODES, sizeof(int));
-        bitmap = new AtomicBitmap*[max_number_of_threads];
-        for (int i = 0; i < max_number_of_threads; i++) bitmap[i] = new AtomicBitmap(CAP_DUMMY_NODES), bitmap[i]->reset();
-    }
+RadixGraph::RadixGraph(int d, std::vector<int> _num_children) {
+    bitmap = new AtomicBitmap*[max_number_of_threads];
+    for (int i = 0; i < max_number_of_threads; i++) bitmap[i] = new AtomicBitmap(CAP_DUMMY_NODES), bitmap[i]->reset();
     vertex_index = new SORT(d, _num_children);
 }
 
@@ -157,6 +192,5 @@ RadixGraph::~RadixGraph() {
         for (int i = 0; i < max_number_of_threads; i++) delete bitmap[i];
         delete [] bitmap;
     }
-    if (degree) free(degree);
     delete vertex_index;
 }

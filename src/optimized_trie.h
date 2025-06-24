@@ -75,6 +75,19 @@ typedef struct _weighted_edge {
     int idx = -1; 
 } WeightedEdge;
 
+class WeightedEdgeArray {
+    public:
+      WeightedEdge* edge = nullptr;
+      std::atomic<int> threads_get_neighbor = 0;
+      std::atomic<int> threads_analytical = 0;
+      WeightedEdgeArray(int m) {
+        edge = new WeightedEdge[m];
+      }
+      ~WeightedEdgeArray() {
+        delete [] edge;
+      }
+};
+
 /* DummyNode:
    - Stores the information of a vertex;
    - N.node: the vertex ID of this DummyNode;
@@ -87,8 +100,13 @@ typedef struct _weighted_edge {
 typedef struct _dummy_node {
     NodeID node = -1;
     int idx = -1, del_time = 0;
-    tbb::concurrent_vector<WeightedEdge> next;
+    std::atomic<int> size = 0, cap = 0;
+    std::atomic_flag mtx;
+    std::atomic<WeightedEdgeArray*> next;
     std::atomic<int> deg;
+    ~_dummy_node() {
+      delete next.load();
+    }
 } DummyNode;
 
 class SORT {

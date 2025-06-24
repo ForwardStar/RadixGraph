@@ -23,15 +23,13 @@ class RadixGraph {
         bool Insert(DummyNode* src, DummyNode* des, double weight);      
     public:
         SORT* vertex_index = nullptr;
-        bool enable_query = true;
-        std::atomic<int>* degree = nullptr;
         AtomicBitmap** bitmap = nullptr;
  
         /* Sample edge and vertex;
            See detail structures in ``optimized_trie.h``.
         */
         WeightedEdge sample_edge = {/* weight */0.5, /* offset */2};
-        DummyNode sample_vertex = {/* ID */10, /* Offset */0, /* Del_time */0, /* EdgeArr */tbb::concurrent_vector<WeightedEdge>(), /* Degree */0};
+        DummyNode sample_vertex = {/* ID */10, /* Offset */0, /* Del_time */0, /* Size */0, /* Cap */0, /* mtx */0, /* EdgeArr */nullptr, /* Degree */0};
 
         /*  InsertEdge(): insert an edge to RadixGraph;
             src: the source vertex of the edge;
@@ -48,10 +46,11 @@ class RadixGraph {
             des: the destination vertex of the edge. */
         bool DeleteEdge(NodeID src, NodeID des);
         /*  GetNeighbours(): get neighbours given a vertex ID;
-            src: the target vertex ID;
+            src: the target vertex ID or dummy node pointer;
             neighbours: neighbour edges of src are stored in this array;
             timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
         bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
+        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
         /*  GetNeighboursByOffset(): get neighbours given a vertex dummy node;
             src: the offset of the source vertex, i.e., the logical ID of the vertex;
             neighbours: neighbour edges of src are stored in this array;
@@ -73,7 +72,7 @@ class RadixGraph {
             d: depth of the SORT (vertex index);
             _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
             enable_query: whether to enable querying components (bitmaps). */ 
-        RadixGraph(int d, std::vector<int> _num_children, bool _enable_query=true);
+        RadixGraph(int d, std::vector<int> _num_children);
         ~RadixGraph();
 };
 
