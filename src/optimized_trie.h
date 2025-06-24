@@ -77,11 +77,14 @@ typedef struct _weighted_edge {
 
 class WeightedEdgeArray {
     public:
+      std::atomic<int> size = 0, cap = 0, deg = 0;
       WeightedEdge* edge = nullptr;
+      std::atomic<int> checkpoint = 0; // The latest snapshot location
       std::atomic<int> threads_get_neighbor = 0;
       std::atomic<int> threads_analytical = 0;
       WeightedEdgeArray(int m) {
         edge = new WeightedEdge[m];
+        cap = m;
       }
       ~WeightedEdgeArray() {
         delete [] edge;
@@ -94,16 +97,13 @@ class WeightedEdgeArray {
    - N.idx: the offset (logical ID) of this vertex;
    - N.del_time: the deletion time of this vertex;
    - N.next: the edge array pointer;
-   - N.deg: the degree of the vertex (stored for analytical tasks);
-   Note that we do not store ``Size`` since it can be retrieved by next.size(); N.idx is stored for practical implementation but can be removed.
+   Note that we do not store ``Size`` since it can be retrieved by next->size; N.idx is stored for practical implementation but can be removed.
 */
 typedef struct _dummy_node {
     NodeID node = -1;
     int idx = -1, del_time = 0;
-    std::atomic<int> size = 0, cap = 0;
     std::atomic_flag mtx;
     std::atomic<WeightedEdgeArray*> next;
-    std::atomic<int> deg;
     ~_dummy_node() {
       delete next.load();
     }

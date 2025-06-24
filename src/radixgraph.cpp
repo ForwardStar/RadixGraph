@@ -15,23 +15,25 @@
  */
 #include "radixgraph.h"
 
-bool RadixGraph::Insert(DummyNode* src, DummyNode* des, double weight) {
+thread_local int RadixGraph::thread_id_local = -1;
+
+bool RadixGraph::Insert(DummyNode* src, DummyNode* des, double weight, int delta_deg) {
     while (src->mtx.test_and_set()) {}
-    if (src->size.load() >= src->cap.load()) {
-        auto old_array = src->next.load();
-        auto new_array = new WeightedEdgeArray(src->cap * 1.5);
-        for (int i = 0; i < src->cap; i++) {
-            new_array->edge[i] = old_array->edge[i];
-        }
+    auto next = src->next.load();
+    if (next->size.load() >= next->cap.load()) {
+        auto deg = next->deg.load();
+        auto new_array = new WeightedEdgeArray(deg * 1.5 + 8); // +8 to avoid empty edge array
+        LogCompaction(next, new_array);
         src->next.store(new_array);
-        src->cap.store(src->cap.load() * 1.5);
-        if (old_array->threads_analytical.load() == 0 && old_array->threads_get_neighbor.load() == 0) {
-            delete old_array;
+        if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
+            delete next;
         }
     }
-    int i = src->size.fetch_add(1);
-    src->next.load()->edge[i].weight = weight;
-    src->next.load()->edge[i].idx = des->idx;
+    next = src->next.load();
+    int i = next->size.fetch_add(1);
+    next->deg.fetch_add(delta_deg);
+    next->edge[i].weight = weight;
+    next->edge[i].idx = des->idx;
     src->mtx.clear();
     return true;
 }
@@ -39,8 +41,7 @@ bool RadixGraph::Insert(DummyNode* src, DummyNode* des, double weight) {
 bool RadixGraph::InsertEdge(NodeID src, NodeID des, double weight) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
-    src_ptr->deg.fetch_add(1);
-    Insert(src_ptr, des_ptr, weight);
+    Insert(src_ptr, des_ptr, weight, 1);
     return true;
 }
 
@@ -53,7 +54,7 @@ bool RadixGraph::UpdateEdge(NodeID src, NodeID des, double weight) {
     if (!des_ptr) {
         return false;
     }
-    Insert(src_ptr, des_ptr, weight);
+    Insert(src_ptr, des_ptr, weight, 0);
     return true;
 }
 
@@ -66,36 +67,53 @@ bool RadixGraph::DeleteEdge(NodeID src, NodeID des) {
     if (!des_ptr) {
         return false;
     }
-    src_ptr->deg.fetch_sub(1);
-    Insert(src_ptr, des_ptr, 0);
+    Insert(src_ptr, des_ptr, 0, -1);
     return true;
 }
 
-bool RadixGraph::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp) {
+bool RadixGraph::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot) {
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr) {
         return false;
     }
-    return GetNeighbours(src_ptr, neighbours, timestamp);
+    return GetNeighbours(src_ptr, neighbours, is_snapshot);
 }
 
-bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
-    int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? src->size.load() : timestamp;
+bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot) {
+    if (src >= vertex_index->cnt) {
+        return false;
+    }
+    return GetNeighbours(&vertex_index->vertex_table[src], neighbours, is_snapshot);
+}
+
+bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot) {
     auto next = src->next.load();
     next->threads_get_neighbor.fetch_add(1);
-    for (int i = cnt - 1; i >= 0; i--) {
-        auto& e = next->edge[i];
-        // Avoid read-write conflicts: check e.idx first
-        if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
-            if (e.weight != 0) { // Insert or Update
-                // Have not found a previous log for this edge, thus this edge is the latest
-                neighbours.emplace_back(e);
+    int cnt = is_snapshot ? next->checkpoint.load() : next->size.load();
+    if (!is_snapshot) {
+        // Full log compaction, usually used in graph updates
+        int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
+        for (int i = cnt - 1; i >= 0; i--) {
+            auto& e = next->edge[i];
+            // Avoid read-write conflicts: check e.idx first
+            if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
+                if (e.weight != 0) { // Insert or Update
+                    // Have not found a previous log for this edge, thus this edge is the latest
+                    neighbours.emplace_back(e);
+                }
+                bitmap[thread_id]->set_bit(e.idx);
             }
-            bitmap[thread_id]->set_bit(e.idx);
+        }
+        for (int i = 0; i < cnt; i++) {
+            if (next->edge[i].idx != -1) bitmap[thread_id]->clear_bit(next->edge[i].idx);
         }
     }
-    for (int i = 0; i < cnt; i++) {
-        if (next->edge[i].idx != -1) bitmap[thread_id]->clear_bit(next->edge[i].idx);
+    else {
+        // Snapshot read, usually used in graph analytics
+        for (int i = 0; i < cnt; i++) {
+            auto& e = next->edge[i];
+            neighbours.emplace_back(e);
+        }
     }
     next->threads_get_neighbor.fetch_sub(1);
     if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0 && next != src->next.load()) {
@@ -106,29 +124,25 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
     return true;
 }
 
-bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp) {
-    auto& src_ptr = vertex_index->vertex_table[src];
-    int thread_id = omp_get_thread_num(), cnt = timestamp == -1 ? src_ptr.size.load() : timestamp;
-    auto next = src_ptr.next.load();
-    next->threads_get_neighbor.fetch_add(1);
-    for (int i = cnt - 1; i >= 0; i--) {
-        auto& e = next->edge[i];
-        // Avoid read-write conflicts: check e.idx first
-        if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
+bool RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr) {
+    int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
+    int num = 0;
+    // Full log compaction, used in graph updates
+    for (int i = old_arr->size - 1; i >= 0; i--) {
+        auto& e = old_arr->edge[i];
+        if (!bitmap[thread_id]->get_bit(e.idx)) {
             if (e.weight != 0) { // Insert or Update
                 // Have not found a previous log for this edge, thus this edge is the latest
-                neighbours.emplace_back(e);
+                new_arr->edge[num++] = e;
             }
             bitmap[thread_id]->set_bit(e.idx);
         }
     }
-    for (int i = 0; i < cnt; i++) {
-        if (next->edge[i].idx != -1) bitmap[thread_id]->clear_bit(next->edge[i].idx);
-    }
-    next->threads_get_neighbor.fetch_sub(1);
-    if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0 && next != src_ptr.next.load()) {
-        // If array pointer changes, this array has been obseleted, and if no other querying process, then delete this array;
-        delete next;
+    new_arr->size.store(num);
+    new_arr->checkpoint.store(num);
+    new_arr->deg.store(num);
+    for (int i = 0; i < old_arr->size; i++) {
+        bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
     }
 
     return true;

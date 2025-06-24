@@ -20,8 +20,11 @@
 
 class RadixGraph {
     private:
-        bool Insert(DummyNode* src, DummyNode* des, double weight);      
+        bool Insert(DummyNode* src, DummyNode* des, double weight, int delta_deg);
+        bool LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr);
     public:
+        static thread_local int thread_id_local;
+
         SORT* vertex_index = nullptr;
         AtomicBitmap** bitmap = nullptr;
  
@@ -29,7 +32,7 @@ class RadixGraph {
            See detail structures in ``optimized_trie.h``.
         */
         WeightedEdge sample_edge = {/* weight */0.5, /* offset */2};
-        DummyNode sample_vertex = {/* ID */10, /* Offset */0, /* Del_time */0, /* Size */0, /* Cap */0, /* mtx */0, /* EdgeArr */nullptr, /* Degree */0};
+        DummyNode sample_vertex = {/* ID */10, /* Offset */0, /* Del_time */0, /* mtx */0, /* EdgeArr */nullptr};
 
         /*  InsertEdge(): insert an edge to RadixGraph;
             src: the source vertex of the edge;
@@ -48,14 +51,14 @@ class RadixGraph {
         /*  GetNeighbours(): get neighbours given a vertex ID;
             src: the target vertex ID or dummy node pointer;
             neighbours: neighbour edges of src are stored in this array;
-            timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
-        bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
-        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
+            is_snapshot: whether to read a graph snapshot or full edge logs. */
+        bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=true);
+        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=true);
         /*  GetNeighboursByOffset(): get neighbours given a vertex dummy node;
             src: the offset of the source vertex, i.e., the logical ID of the vertex;
             neighbours: neighbour edges of src are stored in this array;
-            timestamp: the version (size) of the edge array, -1 means retrieving the latest version. */
-        bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp=-1);
+            is_snapshot: whether to read a graph snapshot or full edge logs. */
+        bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=true);
 
         /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
             src: the source vertex ID;

@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 
         RadixGraph G(d, a);
         #pragma omp parallel for
-        for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5);
+        for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5), G.InsertEdge(e.second, e.first, 0.5);
         int n = G.vertex_index->cnt;
 
         std::cout << "Testing BFS..." << std::endl;
