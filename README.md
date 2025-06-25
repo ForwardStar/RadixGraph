@@ -34,50 +34,50 @@ std::vector<std::vector<int>> a = {
 # Experimental results (16-threaded)
 ```
 n = 10000, m = 10000000
-Average insertion time for forward star: 0.422699s
-Average insertion time for spruce: 1.51126s
+Average insertion time for RadixGraph: 0.634027s
+Average insertion time for Spruce: 1.07461s
 
-Average deletion time for forward star: 0.00203847s
-Average deletion time for spruce: 0.0340424s
+Average deletion time for RadixGraph: 0.00200624s
+Average deletion time for Spruce: 0.00313379s
 
-Average update time for forward star: 0.00570543s
-Average update time for spruce: 0.116295s
+Average update time for RadixGraph: 0.00238965s
+Average update time for Spruce: 0.0118663s
 
-Average get neighbours time for forward star: 0.0604059s
-Average get neighbours time for spruce: 0.0153609s
+Average get neighbours time for RadixGraph: 0.00259046s
+Average get neighbours time for Spruce: 0.00441188s
 
-Average BFS time for forward star: 0.574411s
-Average BFS time for spruce: 1.53121s
+Average BFS time for RadixGraph: 0.0183108s
+Average BFS time for Spruce: 0.787641s
 n = 100000, m = 10000000
-Average insertion time for forward star: 0.936805s
-Average insertion time for spruce: 1.84409s
+Average insertion time for RadixGraph: 0.7155s
+Average insertion time for Spruce: 1.23096s
 
-Average deletion time for forward star: 0.00497156s
-Average deletion time for spruce: 0.0682484s
+Average deletion time for RadixGraph: 0.00136374s
+Average deletion time for Spruce: 0.0124691s
 
-Average update time for forward star: 0.0197878s
-Average update time for spruce: 0.139953s
+Average update time for RadixGraph: 0.0014669s
+Average update time for Spruce: 0.0202966s
 
-Average get neighbours time for forward star: 0.0351155s
-Average get neighbours time for spruce: 0.0339793s
+Average get neighbours time for RadixGraph: 0.0142622s
+Average get neighbours time for Spruce: 0.0122289s
 
-Average BFS time for forward star: 0.542994s
-Average BFS time for spruce: 1.88408s
+Average BFS time for RadixGraph: 0.0630945s
+Average BFS time for Spruce: 0.997874s
 n = 1000000, m = 10000000
-Average insertion time for forward star: 2.02932s
-Average insertion time for spruce: 2.75474s
+Average insertion time for RadixGraph: 0.979794s
+Average insertion time for Spruce: 1.66883s
 
-Average deletion time for forward star: 0.00801279s
-Average deletion time for spruce: 0.0532879s
+Average deletion time for RadixGraph: 0.00144994s
+Average deletion time for Spruce: 0.0157172s
 
-Average update time for forward star: 0.0423716s
-Average update time for spruce: 0.00622348s
+Average update time for RadixGraph: 0.00152506s
+Average update time for Spruce: 0.000704472s
 
-Average get neighbours time for forward star: 0.124021s
-Average get neighbours time for spruce: 0.0801724s
+Average get neighbours time for RadixGraph: 0.106581s
+Average get neighbours time for Spruce: 0.0436538s
 
-Average BFS time for forward star: 1.1841s
-Average BFS time for spruce: 3.05221s
+Average BFS time for RadixGraph: 0.301307s
+Average BFS time for Spruce: 1.4709s
 ```
 
 # License

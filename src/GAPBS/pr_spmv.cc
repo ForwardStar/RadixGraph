@@ -31,7 +31,7 @@ pvector<ScoreT> PageRankPull(RadixGraph* g, int max_iters,
       for (NodeID n = 0; n < num_nodes; n++) {
           auto u = g->vertex_index->RetrieveVertex(n);
           if (u == nullptr) continue;
-          uint32_t out_degree = u->next.load()->checkpoint_deg.load();
+          uint32_t out_degree = u->next.load()->snapshot_deg.load();
           if (out_degree == 0) {
               dangling_sum += scores[n];
           }

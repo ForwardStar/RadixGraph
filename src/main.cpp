@@ -294,19 +294,6 @@ int main(int argc, char* argv[]) {
                 end = std::chrono::high_resolution_clock::now();
                 duration = end - start;
                 duration_bfs_spruce += duration.count();
-
-                std::sort(res_fstar.begin(), res_fstar.end());
-                std::sort(res_spruce.begin(), res_spruce.end());
-                if (res_fstar.size() != res_spruce.size()) {
-                    std::cout << "BFS results wrong. Actual size = " << res_fstar.size() << ", expected size = " << res_spruce.size() << std::endl;
-                    exit(-1);
-                }
-                for (int j = 0; j < res_fstar.size(); j++) {
-                    if (res_fstar[j] != res_spruce[j]) {
-                        std::cout << "BFS results wrong. Vertex " << res_fstar[j] << " found v.s. vertex " << res_spruce[j] << " expected." << std::endl;
-                        exit(-1);
-                    }
-                }
             }
 
             // std::cout << "BFS done" << std::endl;

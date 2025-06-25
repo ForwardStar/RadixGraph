@@ -77,17 +77,27 @@ typedef struct _weighted_edge {
 
 class WeightedEdgeArray {
     public:
-      std::atomic<int> size = 0, cap = 0, deg = 0;
+      std::atomic<int> size = 0, cap = 0; // Size and capacity of the array
       WeightedEdge* edge = nullptr;
-      std::atomic<int> checkpoint_deg = 0; // The latest snapshot degree
-      std::atomic<int> threads_get_neighbor = 0;
-      std::atomic<int> threads_analytical = 0;
+      std::atomic<WeightedEdgeArray*> prev_arr = nullptr;
+      std::atomic<WeightedEdgeArray*> next_arr = nullptr; // Snapshots are chained together
+      int snapshot_timestamp = 0;
+      std::atomic<int> snapshot_deg = 0, deg = 0; // The snapshot degree and latest degree
+      std::atomic<int> threads_get_neighbor = 0, threads_analytical = 0; // How many threads reading this snapshot
       WeightedEdgeArray(int m) {
         edge = new WeightedEdge[m];
         cap = m;
       }
       ~WeightedEdgeArray() {
         delete [] edge;
+        WeightedEdgeArray* tmp = next_arr.load();
+        if (tmp) {
+          tmp->prev_arr.store(prev_arr.load());
+        }
+        tmp = prev_arr.load();
+        if (tmp) {
+          tmp->next_arr.store(next_arr.load());
+        }
       }
 };
 
@@ -101,7 +111,7 @@ class WeightedEdgeArray {
 */
 typedef struct _dummy_node {
     NodeID node = -1;
-    int idx = -1, del_time = 0;
+    int idx = -1, del_time = -1;
     std::atomic_flag mtx;
     std::atomic<WeightedEdgeArray*> next;
     ~_dummy_node() {
@@ -111,6 +121,8 @@ typedef struct _dummy_node {
 
 class SORT {
     public:
+        static std::atomic<int> global_timestamp;
+
         typedef struct _sort_node {
             uint64_t* children = nullptr;
             AtomicBitmap* mtx = nullptr;

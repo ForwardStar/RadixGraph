@@ -15,7 +15,10 @@
  */
  #include "optimized_trie.h"
 
+ std::atomic<int> SORT::global_timestamp = 0;
+
  DummyNode* SORT::InsertVertex(SORTNode* current, NodeID id, int d) {
+     global_timestamp++;
      for (int i = d; i < depth; i++) {
          int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
          uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
@@ -87,11 +90,13 @@
  }
  
  bool SORT::DeleteVertex(NodeID id) {
+     global_timestamp++;
      DummyNode* tmp = RetrieveVertex(id);
      if (tmp == nullptr) {
          return false;
      }
-     tmp->idx = -1;
+     // Do not delete the vertex directly; defer it to get_neighbor and log compaction.
+     tmp->del_time = global_timestamp;
      return true;
  }
  
