@@ -102,10 +102,10 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
                     // Have not found a previous log for this edge, thus this edge is the latest
                     neighbours.emplace_back(e);
                 }
-                bitmap[thread_id]->set_bit(e.idx);
+                if (i >= next->checkpoint_deg) bitmap[thread_id]->set_bit(e.idx);
             }
         }
-        for (int i = 0; i < cnt; i++) {
+        for (int i = next->checkpoint_deg; i < cnt; i++) {
             if (next->edge[i].idx != -1) bitmap[thread_id]->clear_bit(next->edge[i].idx);
         }
     }
@@ -145,13 +145,13 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
                 }
                 new_arr->edge[num++] = e;
             }
-            bitmap[thread_id]->set_bit(e.idx);
+            if (i >= old_arr->checkpoint_deg) bitmap[thread_id]->set_bit(e.idx);
         }
     }
     new_arr->size.store(num);
     new_arr->checkpoint_deg.store(num);
     new_arr->deg.store(num);
-    for (int i = 0; i < old_arr->size; i++) {
+    for (int i = old_arr->checkpoint_deg; i < old_arr->size; i++) {
         bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
     }
 
