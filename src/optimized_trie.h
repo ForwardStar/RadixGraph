@@ -79,7 +79,7 @@ class WeightedEdgeArray {
     public:
       std::atomic<int> size = 0, cap = 0, deg = 0;
       WeightedEdge* edge = nullptr;
-      std::atomic<int> checkpoint = 0; // The latest snapshot location
+      std::atomic<int> checkpoint_deg = 0; // The latest snapshot degree
       std::atomic<int> threads_get_neighbor = 0;
       std::atomic<int> threads_analytical = 0;
       WeightedEdgeArray(int m) {

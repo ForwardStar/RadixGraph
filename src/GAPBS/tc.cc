@@ -83,7 +83,7 @@ std::vector<double> OrderedCount(RadixGraph* g, uint32_t num_vertices) {
   std::vector<double> lcc_values(num_vertices);
   #pragma omp parallel for
   for (NodeID v = 0; v < num_vertices; v++) {
-      uint32_t degree = g->vertex_index->vertex_table[v].next.load()->deg.load();
+      uint32_t degree = g->vertex_index->vertex_table[v].next.load()->checkpoint_deg.load();
       uint64_t max_num_edges = degree * (degree - 1);
       if (max_num_edges != 0) {
           lcc_values[v] = ((double) triangles_per_vertex[v]) / max_num_edges;

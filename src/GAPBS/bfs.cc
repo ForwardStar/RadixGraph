@@ -69,7 +69,7 @@ int64_t TDStep(RadixGraph* g, pvector<NodeID> &parent,
                 if (curr_val == -1) {
                     if (compare_and_swap(parent[vidx], curr_val, from_node_id)) {
                         lqueue.push_back(vidx);
-                        scout_count += g->vertex_index->vertex_table[vidx].next.load()->deg.load();
+                        scout_count += g->vertex_index->vertex_table[vidx].next.load()->checkpoint_deg.load();
                     }
                 }
             }
@@ -115,7 +115,7 @@ pvector<NodeID> DOBFS(RadixGraph* g, NodeID source, int vertex_num, int edge_num
                       int beta) {
     auto u = g->vertex_index->RetrieveVertex(source);
     int uidx = u->idx;
-    if (src_out_degree == -1) src_out_degree = u->next.load()->deg.load();
+    if (src_out_degree == -1) src_out_degree = u->next.load()->checkpoint_deg.load();
     pvector<NodeID> parent = InitParent(g, vertex_num);
     parent[uidx] = uidx;
 

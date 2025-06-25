@@ -21,7 +21,7 @@
 class RadixGraph {
     private:
         bool Insert(DummyNode* src, DummyNode* des, double weight, int delta_deg);
-        bool LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr);
+        WeightedEdgeArray* LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr);
     public:
         static thread_local int thread_id_local;
 

@@ -22,8 +22,9 @@ bool RadixGraph::Insert(DummyNode* src, DummyNode* des, double weight, int delta
     auto next = src->next.load();
     if (next->size.load() >= next->cap.load()) {
         auto deg = next->deg.load();
-        auto new_array = new WeightedEdgeArray(deg * 1.5 + 8); // +8 to avoid empty edge array
-        LogCompaction(next, new_array);
+        deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
+        auto new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
+        new_array = LogCompaction(next, new_array);
         src->next.store(new_array);
         if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
             delete next;
@@ -89,7 +90,7 @@ bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neigh
 bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot) {
     auto next = src->next.load();
     next->threads_get_neighbor.fetch_add(1);
-    int cnt = is_snapshot ? next->checkpoint.load() : next->size.load();
+    int cnt = is_snapshot ? next->checkpoint_deg.load() : next->size.load();
     if (!is_snapshot) {
         // Full log compaction, usually used in graph updates
         int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
@@ -124,7 +125,7 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
     return true;
 }
 
-bool RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr) {
+WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr) {
     int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
     int num = 0;
     // Full log compaction, used in graph updates
@@ -133,19 +134,28 @@ bool RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* ne
         if (!bitmap[thread_id]->get_bit(e.idx)) {
             if (e.weight != 0) { // Insert or Update
                 // Have not found a previous log for this edge, thus this edge is the latest
+                if (num >= new_arr->cap) {
+                    // Normally should not happen. In case for invalid operations like duplicate edges, deleting or updating non-existing edges.
+                    auto tmp = new_arr;
+                    new_arr = new WeightedEdgeArray(num * 2);
+                    for (int j = 0; j < num; j++) {
+                        new_arr->edge[j] = tmp->edge[j];
+                    }
+                    delete tmp;
+                }
                 new_arr->edge[num++] = e;
             }
             bitmap[thread_id]->set_bit(e.idx);
         }
     }
     new_arr->size.store(num);
-    new_arr->checkpoint.store(num);
+    new_arr->checkpoint_deg.store(num);
     new_arr->deg.store(num);
     for (int i = 0; i < old_arr->size; i++) {
         bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
     }
 
-    return true;
+    return new_arr;
 }
 
 std::vector<uint64_t> RadixGraph::BFS(NodeID src) {
