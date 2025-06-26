@@ -101,7 +101,7 @@ bool RadixGraph::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours
         // Vertex not exist or deleted
         return false;
     }
-    return GetNeighbours(src_ptr, neighbours, is_snapshot);
+    return GetNeighbours(src_ptr, neighbours, is_snapshot, timestamp);
 }
 
 bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
@@ -115,7 +115,7 @@ bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neigh
         // Vertex deleted
         return false;
     }
-    return GetNeighbours(src_ptr, neighbours, is_snapshot);
+    return GetNeighbours(src_ptr, neighbours, is_snapshot, timestamp);
 }
 
 bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
