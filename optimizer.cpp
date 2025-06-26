@@ -99,6 +99,7 @@ signed main(signed argc, char* argv[]) {
         if (s[i] == 0) l--;
     }
     if (s[0] == 0) l--;
+    cout << l << endl;
     rep(i, 0, s.size()) {
         if (s[i]) cout << s[i] << " ";
     }
