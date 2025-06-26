@@ -75,7 +75,7 @@ signed main(signed argc, char* argv[]) {
         g[0][i] = (1ll << i);
     }
     rep(i, 1, l) {
-        rep(j, 1, logu + 1) {
+        rep(j, 0, logu + 1) {
             rep(k, 0, j + 1) {
                 ld cost = (1.0 - pow(ld(u - (1ll << logu - k)) / u, n)) * (1ll << j);
                 if (g[i - 1][k] + cost >= g[i][j]) continue;
