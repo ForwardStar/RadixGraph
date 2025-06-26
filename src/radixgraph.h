@@ -23,7 +23,6 @@ class RadixGraph {
         bool Insert(DummyNode* src, int des, float weight, int delta_deg);
         WeightedEdgeArray* LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr);
     public:
-        static std::atomic<int> global_timestamp;
         static thread_local int thread_id_local;
 
         SORT* vertex_index = nullptr;
@@ -64,6 +63,8 @@ class RadixGraph {
             timestamp: if reading a snapshot, read the latest snapshot at the timestamp.
         */
         bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=true, int timestamp=2147483647);
+
+        int GetGlobalTimestamp();
 
         /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
             src: the source vertex ID;

@@ -120,6 +120,8 @@ typedef struct _dummy_node {
 
 class SORT {
     public:
+        static std::atomic<int> global_timestamp;
+        
         typedef struct _sort_node {
             uint64_t* children = nullptr;
             AtomicBitmap* mtx = nullptr;

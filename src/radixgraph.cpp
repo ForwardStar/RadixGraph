@@ -16,7 +16,6 @@
 #include "radixgraph.h"
 
 thread_local int RadixGraph::thread_id_local = -1;
-int global_timestamp = 0;
 
 bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
     auto next = src->next.load();
@@ -56,7 +55,7 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
 }
 
 bool RadixGraph::InsertEdge(NodeID src, NodeID des, float weight) {
-    global_timestamp++;
+    GetGlobalTimestamp();
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
     Insert(src_ptr, des_ptr->idx, weight, 1);
@@ -64,7 +63,7 @@ bool RadixGraph::InsertEdge(NodeID src, NodeID des, float weight) {
 }
 
 bool RadixGraph::UpdateEdge(NodeID src, NodeID des, float weight) {
-    global_timestamp++;
+    GetGlobalTimestamp();
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr || src_ptr->del_time != -1) {
         // Vertex not exist or deleted
@@ -80,7 +79,7 @@ bool RadixGraph::UpdateEdge(NodeID src, NodeID des, float weight) {
 }
 
 bool RadixGraph::DeleteEdge(NodeID src, NodeID des) {
-    global_timestamp++;
+    GetGlobalTimestamp();
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr || src_ptr->del_time != -1) {
         // Vertex not exist or deleted
@@ -195,12 +194,16 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
     new_arr->snapshot_deg.store(num);
     new_arr->deg.store(num);
     new_arr->physical_size.store(num);
-    new_arr->snapshot_timestamp = global_timestamp.load();
+    new_arr->snapshot_timestamp = GetGlobalTimestamp();
     for (int i = old_arr->snapshot_deg; i < old_arr->cap; i++) {
         bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
     }
 
     return new_arr;
+}
+
+int RadixGraph::GetGlobalTimestamp() {
+    return SORT::global_timestamp++;
 }
 
 std::vector<uint64_t> RadixGraph::BFS(NodeID src) {
