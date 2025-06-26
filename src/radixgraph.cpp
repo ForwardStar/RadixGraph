@@ -16,6 +16,7 @@
 #include "radixgraph.h"
 
 thread_local int RadixGraph::thread_id_local = -1;
+int global_timestamp = 0;
 
 bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
     auto next = src->next.load();
@@ -55,7 +56,7 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
 }
 
 bool RadixGraph::InsertEdge(NodeID src, NodeID des, float weight) {
-    SORT::global_timestamp++;
+    global_timestamp++;
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
     Insert(src_ptr, des_ptr->idx, weight, 1);
@@ -63,7 +64,7 @@ bool RadixGraph::InsertEdge(NodeID src, NodeID des, float weight) {
 }
 
 bool RadixGraph::UpdateEdge(NodeID src, NodeID des, float weight) {
-    SORT::global_timestamp++;
+    global_timestamp++;
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr || src_ptr->del_time != -1) {
         // Vertex not exist or deleted
@@ -79,7 +80,7 @@ bool RadixGraph::UpdateEdge(NodeID src, NodeID des, float weight) {
 }
 
 bool RadixGraph::DeleteEdge(NodeID src, NodeID des) {
-    SORT::global_timestamp++;
+    global_timestamp++;
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr || src_ptr->del_time != -1) {
         // Vertex not exist or deleted
@@ -95,7 +96,6 @@ bool RadixGraph::DeleteEdge(NodeID src, NodeID des) {
 }
 
 bool RadixGraph::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
-    SORT::global_timestamp++;
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr || (src_ptr->del_time != -1 && timestamp >= src_ptr->del_time)) {
         // Vertex not exist or deleted
@@ -105,7 +105,6 @@ bool RadixGraph::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours
 }
 
 bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
-    SORT::global_timestamp++;
     if (src >= vertex_index->cnt) {
         // Vertex not exist
         return false;
@@ -119,7 +118,6 @@ bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neigh
 }
 
 bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
-    SORT::global_timestamp++;
     auto next = src->next.load();
     if (is_snapshot) {
         // Get corresponding snapshot for read
@@ -197,7 +195,7 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
     new_arr->snapshot_deg.store(num);
     new_arr->deg.store(num);
     new_arr->physical_size.store(num);
-    new_arr->snapshot_timestamp = SORT::global_timestamp.load();
+    new_arr->snapshot_timestamp = global_timestamp.load();
     for (int i = old_arr->snapshot_deg; i < old_arr->cap; i++) {
         bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
     }

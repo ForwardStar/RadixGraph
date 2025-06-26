@@ -23,6 +23,7 @@ class RadixGraph {
         bool Insert(DummyNode* src, int des, float weight, int delta_deg);
         WeightedEdgeArray* LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr);
     public:
+        static std::atomic<int> global_timestamp;
         static thread_local int thread_id_local;
 
         SORT* vertex_index = nullptr;
