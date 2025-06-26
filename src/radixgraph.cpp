@@ -139,7 +139,7 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
         for (int i = cnt - 1; i >= 0; i--) {
             auto& e = next->edge[i];
             // Avoid read-write conflicts: check e.idx first
-            if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
+            if (!bitmap[thread_id]->get_bit(e.idx)) {
                 if (e.weight != 0) { // Insert or Update
                     // Have not found a previous log for this edge, thus this edge is the latest
                     neighbours.emplace_back(e);
@@ -148,7 +148,7 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
             }
         }
         for (int i = next->snapshot_deg; i < cnt; i++) {
-            if (next->edge[i].idx != -1) bitmap[thread_id]->clear_bit(next->edge[i].idx);
+            bitmap[thread_id]->clear_bit(next->edge[i].idx);
         }
     }
     else {
