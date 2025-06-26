@@ -74,7 +74,6 @@ signed main(signed argc, char* argv[]) {
     rep(i, 0, logu + 1) {
         g[0][i] = (1ll << i);
     }
-    g[0][0] = 0;
     rep(i, 1, l) {
         rep(j, 1, logu + 1) {
             rep(k, 0, j + 1) {
