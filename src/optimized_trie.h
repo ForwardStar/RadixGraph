@@ -77,10 +77,10 @@ typedef struct _weighted_edge {
 
 class WeightedEdgeArray {
     public:
-      std::atomic<int> size = 0, cap = 0; // Size and capacity of the array
+      std::atomic<int> size = 0, cap = 0, physical_size = 0; // Size and capacity of the array; physical size (<= size) is the number of written edges
       WeightedEdge* edge = nullptr;
-      std::atomic<WeightedEdgeArray*> prev_arr = nullptr;
-      std::atomic<WeightedEdgeArray*> next_arr = nullptr; // Snapshots are chained together
+      WeightedEdgeArray* prev_arr = nullptr;
+      WeightedEdgeArray* next_arr = nullptr; // Snapshots are chained together
       int snapshot_timestamp = 0;
       std::atomic<int> snapshot_deg = 0, deg = 0; // The snapshot degree and latest degree
       std::atomic<int> threads_get_neighbor = 0, threads_analytical = 0; // How many threads reading this snapshot
@@ -89,14 +89,13 @@ class WeightedEdgeArray {
         cap = m;
       }
       ~WeightedEdgeArray() {
-        delete [] edge;
-        WeightedEdgeArray* tmp = next_arr.load();
-        if (tmp) {
-          tmp->prev_arr.store(prev_arr.load());
+        if (edge) delete [] edge;
+        if (next_arr) {
+          next_arr->prev_arr = prev_arr;
         }
-        tmp = prev_arr.load();
-        if (tmp) {
-          tmp->next_arr.store(next_arr.load());
+        if (prev_arr) {
+          prev_arr->next_arr = next_arr;
+          delete prev_arr;
         }
       }
 };

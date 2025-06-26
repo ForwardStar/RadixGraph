@@ -20,7 +20,7 @@
 
 class RadixGraph {
     private:
-        bool Insert(DummyNode* src, DummyNode* des, double weight, int delta_deg);
+        bool Insert(DummyNode* src, int des, float weight, int delta_deg);
         WeightedEdgeArray* LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr);
     public:
         static thread_local int thread_id_local;
@@ -38,12 +38,12 @@ class RadixGraph {
             src: the source vertex of the edge;
             des: the destination vertex of the edge;
             weight: the weight of the edge. */
-        bool InsertEdge(NodeID src, NodeID des, double weight);
+        bool InsertEdge(NodeID src, NodeID des, float weight);
         /*  UpdateEdge(): update an edge to RadixGraph;
             src: the source vertex of the edge;
             des: the destination vertex of the edge;
             weight: the updated weight of the edge. */
-        bool UpdateEdge(NodeID src, NodeID des, double weight);
+        bool UpdateEdge(NodeID src, NodeID des, float weight);
         /*  DeleteEdge(): delete an edge from RadixGraph;
             src: the source vertex of the edge;
             des: the destination vertex of the edge. */
