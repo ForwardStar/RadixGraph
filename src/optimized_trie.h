@@ -135,8 +135,9 @@ class SORT {
         SORTNode* root = nullptr;
         tbb::concurrent_vector<DummyNode> vertex_table;
         std::vector<int> num_bits, sum_bits;
-        int depth = 0, space = 0, cap = CAP_DUMMY_NODES;
+        int depth = 0, space = 0;
         std::atomic<int> cnt;
+        std::atomic_flag mtx;
 
         /*  InsertVertex(): insert a vertex into SORT;
             current: using a recursive algorithm, current represents currently traversed tree node (initially be root);

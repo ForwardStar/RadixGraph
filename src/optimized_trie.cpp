@@ -39,7 +39,7 @@
          }
          else {
              auto tmp = (DummyNode*)current->children[idx];
-             if (!tmp || tmp->idx == -1) {
+             if (!tmp) {
                  current->mtx->set_bit_atomic(idx);
                  tmp = (DummyNode*)current->children[idx];
                  if (!tmp) {
@@ -60,6 +60,16 @@
  }
  
  DummyNode* SORT::RetrieveVertex(NodeID id, bool insert_mode) {
+     if (!root) {
+        while (mtx.test_and_set()) {}
+        auto tmp = new SORTNode();
+        int sz = (1 << num_bits[0]);
+        tmp->children = new uint64_t[sz];
+        std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
+        tmp->mtx = new AtomicBitmap(sz);
+        root = tmp;
+        mtx.clear();
+     }
      SORTNode* current = root;
      for (int i = 0; i < depth; i++) {
          int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
@@ -76,10 +86,10 @@
          }
          else {
              auto tmp = (DummyNode*)current->children[idx];
-             if (insert_mode && (!tmp || tmp->node == -1)) {
+             if (insert_mode && !tmp) {
                  return InsertVertex(current, id, i);
              }
-             if (!tmp || tmp->node == -1) {
+             if (!tmp) {
                  return nullptr;
              }
              return tmp;
@@ -129,11 +139,6 @@
          num_bits[i] = _num_bits[i];
          sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
      }
-     root = new SORTNode();
-     int sz = (1 << num_bits[0]);
-     root->children = new uint64_t[sz];
-     std::memset(root->children, 0, sizeof(root->children));
-     root->mtx = new AtomicBitmap(sz);
  }
  
  SORT::SORT(int d, std::vector<int> _num_bits) {
@@ -143,11 +148,6 @@
          num_bits[i] = _num_bits[i];
          sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
      }
-     root = new SORTNode();
-     int sz = (1 << num_bits[0]);
-     root->children = new uint64_t[sz];
-     std::memset(root->children, 0, sizeof(root->children) * sz);
-     root->mtx = new AtomicBitmap(sz);
  }
  
  SORT::~SORT() {
