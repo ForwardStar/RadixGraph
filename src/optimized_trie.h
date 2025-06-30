@@ -79,6 +79,7 @@ class WeightedEdgeArray {
     public:
       std::atomic<int> size = 0, cap = 0, physical_size = 0; // Size and capacity of the array; physical size (<= size) is the number of written edges
       WeightedEdge* edge = nullptr;
+      int* timestamp = nullptr; // Store edges and timestamp separately (but a better practice is to store them in a compact array)
       WeightedEdgeArray* prev_arr = nullptr;
       WeightedEdgeArray* next_arr = nullptr; // Snapshots are chained together
       int snapshot_timestamp = 0;
@@ -86,10 +87,12 @@ class WeightedEdgeArray {
       std::atomic<int> threads_get_neighbor = 0, threads_analytical = 0; // How many threads reading this snapshot
       WeightedEdgeArray(int m) {
         edge = new WeightedEdge[m];
+        timestamp = new int[(m + 1) / 2];
         cap = m;
       }
       ~WeightedEdgeArray() {
         if (edge) delete [] edge;
+        if (timestamp) delete [] timestamp;
         if (next_arr) {
           next_arr->prev_arr = prev_arr;
         }

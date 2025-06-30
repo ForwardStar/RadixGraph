@@ -18,6 +18,7 @@
 thread_local int RadixGraph::thread_id_local = -1;
 
 bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
+    int t = GetGlobalTimestamp();
     auto next = src->next.load();
     int i = next->size.fetch_add(1);
     while (i >= next->cap) {
@@ -50,12 +51,12 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
     }
     next->deg.fetch_add(delta_deg);
     next->edge[i] = {weight, des};
+    // next->timestamp[i - next->snapshot_deg] = t;
     next->physical_size.fetch_add(1);
     return true;
 }
 
 bool RadixGraph::InsertEdge(NodeID src, NodeID des, float weight) {
-    GetGlobalTimestamp();
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src, true);
     DummyNode* des_ptr = vertex_index->RetrieveVertex(des, true);
     Insert(src_ptr, des_ptr->idx, weight, 1);
@@ -63,7 +64,6 @@ bool RadixGraph::InsertEdge(NodeID src, NodeID des, float weight) {
 }
 
 bool RadixGraph::UpdateEdge(NodeID src, NodeID des, float weight) {
-    GetGlobalTimestamp();
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr || src_ptr->del_time != -1) {
         // Vertex not exist or deleted
@@ -79,7 +79,6 @@ bool RadixGraph::UpdateEdge(NodeID src, NodeID des, float weight) {
 }
 
 bool RadixGraph::DeleteEdge(NodeID src, NodeID des) {
-    GetGlobalTimestamp();
     DummyNode* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr || src_ptr->del_time != -1) {
         // Vertex not exist or deleted
@@ -133,6 +132,12 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
     if (!is_snapshot) {
         // Full neighbor list
         int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
+        for (int i = cnt - 1; i >= 0; i--) {
+            if (next->timestamp[i - next->snapshot_deg] <= timestamp) {
+                cnt = i + 1;
+                break;
+            }
+        }
         for (int i = cnt - 1; i >= 0; i--) {
             auto& e = next->edge[i];
             // Avoid read-write conflicts: check e.idx first
