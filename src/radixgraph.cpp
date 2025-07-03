@@ -37,6 +37,7 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
             src->next.store(new_array);
             if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
                 if (next->edge) delete [] next->edge, next->edge = nullptr; // Do not delete next pointer to avoid concurrency issue
+                if (next->timestamp) delete [] next->timestamp, next->timestamp = nullptr;
                 if (next->prev_arr) {
                     auto tmp = next->prev_arr;
                     if (tmp->threads_analytical.load() == 0 && tmp->threads_get_neighbor.load() == 0) {
@@ -51,7 +52,7 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
     }
     next->deg.fetch_add(delta_deg);
     next->edge[i] = {weight, des};
-    // next->timestamp[i - next->snapshot_deg] = t;
+    next->timestamp[i - next->snapshot_deg] = t;
     next->physical_size.fetch_add(1);
     return true;
 }
@@ -117,15 +118,13 @@ bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neigh
 
 bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
     auto next = src->next.load();
-    if (is_snapshot) {
-        // Get corresponding snapshot for read
-        while (next && (next->snapshot_timestamp > timestamp || next->edge == nullptr)) {
-            next = next->prev_arr;
-        }
-        if (!next) {
-            // Not a valid timestamp
-            return true;
-        }
+    // Get corresponding snapshot for read
+    while (next && (next->snapshot_timestamp > timestamp || next->edge == nullptr)) {
+        next = next->prev_arr;
+    }
+    if (!next) {
+        // Not a valid timestamp
+        return true;
     }
     next->threads_get_neighbor.fetch_add(1);
     int cnt = is_snapshot ? next->snapshot_deg.load() : next->physical_size.load();
@@ -199,6 +198,7 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
     new_arr->snapshot_deg.store(num);
     new_arr->deg.store(num);
     new_arr->physical_size.store(num);
+    new_arr->timestamp = new int[new_arr->cap - num];
     new_arr->snapshot_timestamp = GetGlobalTimestamp();
     for (int i = old_arr->snapshot_deg; i < old_arr->cap; i++) {
         bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);

@@ -54,15 +54,15 @@ class RadixGraph {
             is_snapshot: whether to read a graph snapshot or full edge logs;
             timestamp: if reading a snapshot, read the latest snapshot at the timestamp.
         */
-        bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=true, int timestamp=2147483647);
-        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=true, int timestamp=2147483647);
+        bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);
+        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);
         /*  GetNeighboursByOffset(): get neighbours given a vertex dummy node;
             src: the offset of the source vertex, i.e., the logical ID of the vertex;
             neighbours: neighbour edges of src are stored in this array;
             is_snapshot: whether to read a graph snapshot or full edge logs;
             timestamp: if reading a snapshot, read the latest snapshot at the timestamp.
         */
-        bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=true, int timestamp=2147483647);
+        bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);
 
         int GetGlobalTimestamp();
 

@@ -87,7 +87,6 @@ class WeightedEdgeArray {
       std::atomic<int> threads_get_neighbor = 0, threads_analytical = 0; // How many threads reading this snapshot
       WeightedEdgeArray(int m) {
         edge = new WeightedEdge[m];
-        timestamp = new int[(m + 1) / 2];
         cap = m;
       }
       ~WeightedEdgeArray() {
