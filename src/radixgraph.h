@@ -28,6 +28,7 @@ class RadixGraph {
         SORT* vertex_index = nullptr;
         AtomicBitmap** bitmap = nullptr;
         bool is_mixed_workloads = false; // set to true when executing reads and writes concurrently
+        int num_threads = 64; // 64 by default
  
         /* Sample edge and vertex;
            See detail structures in ``optimized_trie.h``.
@@ -69,6 +70,8 @@ class RadixGraph {
         void CreateSnapshots();
         // Get the global timestamp and increment it.
         int GetGlobalTimestamp();
+        // Set the number of threads and vertices allowed in the system.
+        void Init(int nth=64, int n=CAP_DUMMY_NODES);
 
         /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
             src: the source vertex ID;
@@ -84,8 +87,10 @@ class RadixGraph {
         /*  RadixGraph(): initialization of a RadixGraph instance;
             d: depth of the SORT (vertex index);
             _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
-            enable_query: whether to enable querying components (bitmaps). */ 
-        RadixGraph(int d, std::vector<int> _num_children);
+            _num_threads: the number of threads allowed in the system;
+            _num_vertices: the number of vertices allowed in the system.
+        */ 
+        RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=CAP_DUMMY_NODES);
         ~RadixGraph();
 };
 

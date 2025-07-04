@@ -248,6 +248,18 @@ int RadixGraph::GetGlobalTimestamp() {
     return SORT::global_timestamp++;
 }
 
+void RadixGraph::Init(int nth, int n) {
+    if (num_threads != nth) {
+        num_threads = nth;
+        if (bitmap) {
+            for (int i = 0; i < num_threads; i++) delete bitmap[i];
+            delete [] bitmap;
+        }
+        bitmap = new AtomicBitmap*[num_threads];
+        for (int i = 0; i < num_threads; i++) bitmap[i] = new AtomicBitmap(n), bitmap[i]->reset();
+    }
+}
+
 std::vector<uint64_t> RadixGraph::BFS(NodeID src) {
     std::queue<int> Q;
     AtomicBitmap vis(vertex_index->cnt);
@@ -295,15 +307,16 @@ std::vector<double> RadixGraph::SSSP(NodeID src) {
     return dist;
 }
 
-RadixGraph::RadixGraph(int d, std::vector<int> _num_children) {
-    bitmap = new AtomicBitmap*[max_number_of_threads];
-    for (int i = 0; i < max_number_of_threads; i++) bitmap[i] = new AtomicBitmap(CAP_DUMMY_NODES), bitmap[i]->reset();
+RadixGraph::RadixGraph(int d, std::vector<int> _num_children, int _num_threads, int _num_vertices) {
+    num_threads = _num_threads;
+    bitmap = new AtomicBitmap*[num_threads];
+    for (int i = 0; i < num_threads; i++) bitmap[i] = new AtomicBitmap(_num_vertices), bitmap[i]->reset();
     vertex_index = new SORT(d, _num_children);
 }
 
 RadixGraph::~RadixGraph() {
     if (bitmap) {
-        for (int i = 0; i < max_number_of_threads; i++) delete bitmap[i];
+        for (int i = 0; i < num_threads; i++) delete bitmap[i];
         delete [] bitmap;
     }
     delete vertex_index;
