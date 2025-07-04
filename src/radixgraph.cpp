@@ -18,7 +18,6 @@
 thread_local int RadixGraph::thread_id_local = -1;
 
 bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
-    int t = GetGlobalTimestamp();
     auto next = src->next.load();
     int i = next->size.fetch_add(1);
     while (i >= next->cap) {
@@ -50,9 +49,10 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
         i = next->size.fetch_add(1);
         src->mtx.clear();
     }
+    int t = GetGlobalTimestamp();
     next->deg.fetch_add(delta_deg);
     next->edge[i] = {weight, des};
-    next->timestamp[i - next->snapshot_deg] = t;
+    if (next->timestamp) next->timestamp[i - next->snapshot_deg] = t;
     next->physical_size.fetch_add(1);
     return true;
 }
@@ -128,13 +128,15 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
     }
     next->threads_get_neighbor.fetch_add(1);
     int cnt = is_snapshot ? next->snapshot_deg.load() : next->physical_size.load();
-    if (!is_snapshot) {
+    if (!is_snapshot && cnt > next->snapshot_deg.load()) {
         // Full neighbor list
         int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
-        for (int i = cnt - 1; i >= 0; i--) {
-            if (next->timestamp[i - next->snapshot_deg] <= timestamp) {
-                cnt = i + 1;
-                break;
+        if (next->timestamp) {
+            for (int i = cnt - 1; i >= 0; i--) {
+                if (next->timestamp[i - next->snapshot_deg] <= timestamp) {
+                    cnt = i + 1;
+                    break;
+                }
             }
         }
         for (int i = cnt - 1; i >= 0; i--) {
@@ -172,39 +174,74 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
 WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr) {
     int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
     int num = 0;
-    // Full log compaction, used in graph updates
-    for (int i = old_arr->cap - 1; i >= 0; i--) {
-        auto& e = old_arr->edge[i];
-        // Optional: check whether the destination vertex is deleted;
-        // Here we defer the check process to get_neighbors (will return false if the vertex is deleted)
-        if (!bitmap[thread_id]->get_bit(e.idx)) {
-            if (e.weight != 0) { // Insert or Update
-                // Have not found a previous log for this edge, thus this edge is the latest
-                if (num >= new_arr->cap) {
-                    // Normally should not happen. In case for invalid operations like duplicate edges, deleting or updating non-existing edges.
-                    auto tmp = new_arr;
-                    new_arr = new WeightedEdgeArray(num * 2);
-                    for (int j = 0; j < num; j++) {
-                        new_arr->edge[j] = tmp->edge[j];
+    if (old_arr->physical_size == old_arr->deg) {
+        // All logs are insertions. Can merge without duplicate checker
+        num = old_arr->physical_size;
+        for (int i = 0; i < old_arr->physical_size; i++) {
+            new_arr->edge[i] = old_arr->edge[i];
+        }
+    }
+    else {
+        for (int i = old_arr->physical_size - 1; i >= 0; i--) {
+            auto& e = old_arr->edge[i];
+            // Optional: check whether the destination vertex is deleted;
+            // Here we defer the check process to get_neighbors (will return false if the vertex is deleted)
+            if (!bitmap[thread_id]->get_bit(e.idx)) {
+                if (e.weight != 0) { // Insert or Update
+                    // Have not found a previous log for this edge, thus this edge is the latest
+                    if (num >= new_arr->cap) {
+                        // Normally should not happen. In case for invalid operations like duplicate edges, deleting or updating non-existing edges.
+                        auto tmp = new_arr;
+                        new_arr = new WeightedEdgeArray(num * 2);
+                        for (int j = 0; j < num; j++) {
+                            new_arr->edge[j] = tmp->edge[j];
+                        }
+                        delete tmp;
                     }
-                    delete tmp;
+                    new_arr->edge[num++] = {e.weight, e.idx};
                 }
-                new_arr->edge[num++] = {e.weight, e.idx};
+                if (i >= old_arr->snapshot_deg) bitmap[thread_id]->set_bit(e.idx);
             }
-            if (i >= old_arr->snapshot_deg) bitmap[thread_id]->set_bit(e.idx);
         }
     }
     new_arr->size.store(num);
     new_arr->snapshot_deg.store(num);
     new_arr->deg.store(num);
     new_arr->physical_size.store(num);
-    new_arr->timestamp = new int[new_arr->cap - num];
+    if (is_mixed_workloads) new_arr->timestamp = new int[new_arr->cap - num];
     new_arr->snapshot_timestamp = GetGlobalTimestamp();
-    for (int i = old_arr->snapshot_deg; i < old_arr->cap; i++) {
+    for (int i = old_arr->snapshot_deg; i < old_arr->physical_size; i++) {
         bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
     }
 
     return new_arr;
+}
+
+void RadixGraph::CreateSnapshots() {
+    // Should be executed when no updates are performed
+    int n = vertex_index->cnt.load();
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        auto src = &vertex_index->vertex_table[i];
+        auto next = src->next.load();
+        auto deg = next->deg.load();
+        deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
+        auto new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
+        new_array = LogCompaction(next, new_array);
+        new_array->prev_arr = next;
+        next->next_arr = new_array;
+        src->next.store(new_array);
+        if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
+            if (next->edge) delete [] next->edge, next->edge = nullptr; // Do not delete next pointer to avoid concurrency issue
+            if (next->timestamp) delete [] next->timestamp, next->timestamp = nullptr;
+            if (next->prev_arr) {
+                auto tmp = next->prev_arr;
+                if (tmp->threads_analytical.load() == 0 && tmp->threads_get_neighbor.load() == 0) {
+                    delete tmp; // But you can delete the previous version (snapshot) safely
+                }
+            }
+        }   
+    }
 }
 
 int RadixGraph::GetGlobalTimestamp() {

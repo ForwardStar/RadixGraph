@@ -123,6 +123,7 @@ typedef struct _dummy_node {
 class SORT {
     public:
         static std::atomic<int> global_timestamp;
+        bool is_mixed_workloads = false;
         
         typedef struct _sort_node {
             uint64_t* children = nullptr;

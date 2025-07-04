@@ -27,6 +27,7 @@ class RadixGraph {
 
         SORT* vertex_index = nullptr;
         AtomicBitmap** bitmap = nullptr;
+        bool is_mixed_workloads = false; // set to true when executing reads and writes concurrently
  
         /* Sample edge and vertex;
            See detail structures in ``optimized_trie.h``.
@@ -64,6 +65,9 @@ class RadixGraph {
         */
         bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);
 
+        // Create a static snapshot of the graph.
+        void CreateSnapshots();
+        // Get the global timestamp and increment it.
         int GetGlobalTimestamp();
 
         /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
