@@ -250,11 +250,11 @@ int RadixGraph::GetGlobalTimestamp() {
 
 void RadixGraph::Init(int nth, int n) {
     if (num_threads != nth) {
-        num_threads = nth;
         if (bitmap) {
             for (int i = 0; i < num_threads; i++) delete bitmap[i];
             delete [] bitmap;
         }
+        num_threads = nth;
         bitmap = new AtomicBitmap*[num_threads];
         for (int i = 0; i < num_threads; i++) bitmap[i] = new AtomicBitmap(n), bitmap[i]->reset();
     }
