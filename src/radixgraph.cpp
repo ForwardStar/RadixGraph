@@ -117,6 +117,10 @@ bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neigh
 }
 
 bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
+    if (is_mixed_workloads) {
+        // Before reference counter is updated, no log compactions should be performed
+        while (src->mtx.test_and_set()) {}
+    }
     auto next = src->next.load();
     // Get corresponding snapshot for read
     while (next && (next->snapshot_timestamp > timestamp || next->edge == nullptr)) {
@@ -124,18 +128,30 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
     }
     if (!next) {
         // Not a valid timestamp
+        if (is_mixed_workloads) src->mtx.clear();
         return true;
     }
     next->threads_get_neighbor.fetch_add(1);
+    if (is_mixed_workloads) src->mtx.clear();
     int cnt = is_snapshot ? next->snapshot_deg.load() : next->physical_size.load();
     if (!is_snapshot && cnt > next->snapshot_deg.load()) {
         // Full neighbor list
         int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
         if (next->timestamp) {
-            for (int i = cnt - 1; i >= 0; i--) {
+            for (int i = cnt - 1; i >= next->snapshot_deg; i--) {
                 if (next->timestamp[i - next->snapshot_deg] <= timestamp) {
                     cnt = i + 1;
                     break;
+                }
+                if (i == next->snapshot_deg) {
+                    // Only the snapshot is visible
+                    cnt = next->snapshot_deg.load();
+                    neighbours.resize(cnt);
+                    for (int i = 0; i < cnt; i++) {
+                        auto& e = next->edge[i];
+                        neighbours[i] = e;
+                    }
+                    cnt = 0;
                 }
             }
         }
@@ -162,11 +178,16 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
             neighbours[i] = e;
         }
     }
+    if (is_mixed_workloads) {
+        // Before reference counter is updated, no log compactions should be performed
+        while (src->mtx.test_and_set()) {}
+    }
     next->threads_get_neighbor.fetch_sub(1);
     if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0 && next != src->next.load()) {
         // If array pointer changes, this array has been obseleted, and if no other querying process, then delete this array safely;
         delete next;
     }
+    if (is_mixed_workloads) src->mtx.clear();
 
     return true;
 }

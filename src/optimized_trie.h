@@ -97,7 +97,6 @@ class WeightedEdgeArray {
         }
         if (prev_arr) {
           prev_arr->next_arr = next_arr;
-          delete prev_arr;
         }
       }
 };
