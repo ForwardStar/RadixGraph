@@ -212,9 +212,16 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
         int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
         for (int i = old_arr->physical_size - 1; i >= 0; i--) {
             auto& e = old_arr->edge[i];
+            int retry_count = 0;
+            while (e.idx == -1 && retry_count < 10000) {
+                // Wait for edge to be written
+                // Theoretically this is not necessary, but practically some parallelism like omp may have issues
+                // Use retry_count to avoid deadlocks
+                retry_count++;
+            }
             // Optional: check whether the destination vertex is deleted;
             // Here we defer the check process to get_neighbors (will return false if the vertex is deleted)
-            if (!bitmap[thread_id]->get_bit(e.idx)) {
+            if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
                 if (e.weight != 0) { // Insert or Update
                     // Have not found a previous log for this edge, thus this edge is the latest
                     if (num >= new_arr->cap) {
@@ -232,7 +239,8 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
             }
         }
         for (int i = old_arr->snapshot_deg; i < old_arr->physical_size; i++) {
-            bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
+            auto& e = old_arr->edge[i];
+            if (e.idx != -1) bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
         }
     }
     new_arr->size.store(num);
