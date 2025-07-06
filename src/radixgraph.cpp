@@ -129,7 +129,7 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
     if (!next) {
         // Not a valid timestamp
         if (is_mixed_workloads) src->mtx.clear();
-        return true;
+        return false;
     }
     next->threads_get_neighbor.fetch_add(1);
     if (is_mixed_workloads) src->mtx.clear();
@@ -157,7 +157,10 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
         }
         for (int i = cnt - 1; i >= 0; i--) {
             auto& e = next->edge[i];
-            // Avoid read-write conflicts: check e.idx first
+            while (e.idx == -1) {
+                // Wait for edge to be written
+                // Theoretically this is not necessary, but practically some parallelism like omp may have issues
+            }
             if (!bitmap[thread_id]->get_bit(e.idx)) {
                 if (e.weight != 0) { // Insert or Update
                     // Have not found a previous log for this edge, thus this edge is the latest
@@ -193,7 +196,6 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
 }
 
 WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr) {
-    int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
     int num = 0;
     if (old_arr->physical_size == old_arr->deg) {
         // All logs are insertions. Can merge without duplicate checker
@@ -203,6 +205,7 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
         }
     }
     else {
+        int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
         for (int i = old_arr->physical_size - 1; i >= 0; i--) {
             auto& e = old_arr->edge[i];
             // Optional: check whether the destination vertex is deleted;
@@ -224,6 +227,9 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
                 if (i >= old_arr->snapshot_deg) bitmap[thread_id]->set_bit(e.idx);
             }
         }
+        for (int i = old_arr->snapshot_deg; i < old_arr->physical_size; i++) {
+            bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
+        }
     }
     new_arr->size.store(num);
     new_arr->snapshot_deg.store(num);
@@ -231,9 +237,6 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
     new_arr->physical_size.store(num);
     if (is_mixed_workloads) new_arr->timestamp = new int[new_arr->cap - num];
     new_arr->snapshot_timestamp = GetGlobalTimestamp();
-    for (int i = old_arr->snapshot_deg; i < old_arr->physical_size; i++) {
-        bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
-    }
 
     return new_arr;
 }

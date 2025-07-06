@@ -258,6 +258,7 @@ int main(int argc, char* argv[]) {
 
             // Get neighbours
             {
+                G_fstar.CreateSnapshots();
                 auto start = std::chrono::high_resolution_clock::now();
                 #pragma omp parallel for num_threads(num_threads)
                 for (int j = 0; j < n; j++) {
