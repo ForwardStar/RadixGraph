@@ -157,11 +157,14 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
         }
         for (int i = cnt - 1; i >= 0; i--) {
             auto& e = next->edge[i];
-            while (e.idx == -1) {
+            int retry_count = 0;
+            while (e.idx == -1 && retry_count < 10000) {
                 // Wait for edge to be written
                 // Theoretically this is not necessary, but practically some parallelism like omp may have issues
+                // Use retry_count to avoid deadlocks
+                retry_count++;
             }
-            if (!bitmap[thread_id]->get_bit(e.idx)) {
+            if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
                 if (e.weight != 0) { // Insert or Update
                     // Have not found a previous log for this edge, thus this edge is the latest
                     neighbours.emplace_back(e);
@@ -170,7 +173,8 @@ bool RadixGraph::GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighb
             }
         }
         for (int i = next->snapshot_deg; i < cnt; i++) {
-            bitmap[thread_id]->clear_bit(next->edge[i].idx);
+            auto& e = next->edge[i];
+            if (e.idx != -1) bitmap[thread_id]->clear_bit(e.idx);
         }
     }
     else {
