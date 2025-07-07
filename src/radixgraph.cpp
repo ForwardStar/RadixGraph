@@ -255,6 +255,7 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
 
 void RadixGraph::CreateSnapshots() {
     // Should be executed when no updates are performed
+    if (is_mixed_workloads) return;
     int n = vertex_index->cnt.load();
     #pragma omp parallel for
     for (int i = 0; i < n; i++) {
