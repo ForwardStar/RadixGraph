@@ -57,6 +57,13 @@ add_executable(test_trie
     src/optimized_trie.h
 )
 
+add_executable(test_transform
+    src/test_transform.cpp
+    src/optimized_trie.cpp
+    src/headers.h
+    src/optimized_trie.h
+)
+
 add_executable(test_gapbs
     src/test_gapbs.cpp
     src/radixgraph.cpp
@@ -81,4 +88,5 @@ add_executable(test_gapbs
 # Link libraries (Spruce depends on junction and turf)
 target_link_libraries(radixgraph PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX TBB::tbb)
 target_link_libraries(test_trie PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(test_transform PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
 target_link_libraries(test_gapbs PRIVATE OpenMP::OpenMP_CXX TBB::tbb)

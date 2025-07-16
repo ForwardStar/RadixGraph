@@ -16,3 +16,4 @@ libRG.a
 *.properties
 settings
 optimizer
+test_transform

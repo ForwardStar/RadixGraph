@@ -110,6 +110,88 @@
      tmp->del_time = global_timestamp;
      return true;
  }
+
+ void SORT::Transform(int d, std::vector<int> _num_bits, std::vector<uint64_t>& vertex_set) {
+     if (d != depth) {
+        // Currently not support adjusting #layers
+        return;
+     }
+     for (int i = d - 1; i >= 0; i--) {
+        if (num_bits[i] != _num_bits[i]) {
+            d = i + 1;
+            break;
+        }
+     }
+     std::vector<std::pair<uint64_t, uint64_t>> frontiers;
+     frontiers.emplace_back((uint64_t)root, (uint64_t)0);
+     if (vertex_set.size() == 0) {
+        // Vertex set not known. BFS to search all tree nodes required to adjust.
+        for (int i = 0; i < d; i++) {
+            std::vector<std::pair<uint64_t, uint64_t>> next;
+            for (auto u : frontiers) {
+                SORTNode* tmp = (SORTNode*)u.first;
+                for (int j = 0; j < (1 << num_bits[i]); j++) {
+                    if (tmp->children[j]) {
+                        next.emplace_back(tmp->children[j], u.second * (1 << num_bits[i]) + j);
+                    }
+                }
+                delete tmp;
+            }
+            num_bits[i] = _num_bits[i];
+            sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
+            frontiers = next;
+        }
+     }
+     else {
+        for (auto u : vertex_set) {
+            u >>= (sum_bits[depth - 1] - sum_bits[d - 1]);
+            auto now = root;
+            for (int i = 0; i < d; i++) {
+                int num_now = sum_bits[d - 1] - (i > 0 ? sum_bits[i - 1] : 0);
+                uint64_t idx = ((u & ((1ull << num_now) - 1)) >> (sum_bits[d - 1] - sum_bits[i]));
+                if (i < d - 1) {
+                    now = (SORTNode*)now->children[idx];
+                }
+                else {
+                    frontiers.emplace_back(now->children[idx], u);
+                }
+            }
+        }
+        for (int i = 0; i < d; i++) {
+            num_bits[i] = _num_bits[i];
+            sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
+        }
+     }
+     // Now reconstruct partial of the radix tree that changes
+     root = new SORTNode();
+     int sz = (1 << num_bits[0]);
+     root->mtx = new AtomicBitmap(sz);
+     root->mtx->reset();
+     root->children = new uint64_t[sz];
+     std::memset(root->children, 0, sizeof(root->children) * sz);
+     for (auto u : frontiers) {
+        auto now = root;
+        for (int i = 0; i < d; i++) {
+            int num_now = sum_bits[d - 1] - (i > 0 ? sum_bits[i - 1] : 0);
+            uint64_t idx = ((u.second & ((1ull << num_now) - 1)) >> (sum_bits[d - 1] - sum_bits[i]));
+            if (!now->children[idx]) {
+                if (i < d - 1) {
+                    auto tmp = new SORTNode();
+                    int sz = (1 << num_bits[i + 1]);
+                    tmp->mtx = new AtomicBitmap(sz);
+                    tmp->mtx->reset();
+                    tmp->children = new uint64_t[sz];
+                    std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
+                    now->children[idx] = (uint64_t)tmp;
+                }
+                else {
+                    now->children[idx] = u.first;
+                }
+            }
+            if (i < d - 1) now = (SORTNode*)now->children[idx];
+        }
+    }
+ }
  
  long long SORT::size() {
      long long sz = 0;

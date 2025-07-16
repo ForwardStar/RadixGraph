@@ -153,6 +153,11 @@ class SORT {
         /*  DeleteVertex(): delete a vertex from SORT;
             id: the vertex ID to be deleted. */
         bool DeleteVertex(NodeID id);
+        /*  Transform(): transform the SORT to another configuration;
+            d: number of layers;
+            _num_bits: values of ai;
+            vertex_set: set of current inserted vertices. */
+        void Transform(int d, std::vector<int> _num_bits, std::vector<uint64_t>& vertex_set);
 
         long long size();
 
