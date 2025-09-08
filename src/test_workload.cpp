@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < total; ++i) {
         sort.RetrieveVertex(IDs[i], true);
         if ((i + 1) % (total / 10) == 0)
-            std::cout << "Memory after " << (i + 1) << " insertions: " << sort.size() << " bytes" << std::endl;
+            std::cout << "Memory after " << (i + 1) << " insertions: " << sort.size() * 8 << " bytes" << std::endl;
     }
     // Insert IDs to SORT in increasing order
     SORT sort2(d, num_bits);
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     for (size_t i = 0; i < total; ++i) {
         sort2.RetrieveVertex(IDs[i], true);
         if ((i + 1) % (total / 10) == 0)
-            std::cout << "Memory after " << (i + 1) << " insertions: " << sort2.size() << " bytes" << std::endl;
+            std::cout << "Memory after " << (i + 1) << " insertions: " << sort2.size() * 8 << " bytes" << std::endl;
     }
     return 0;
 }

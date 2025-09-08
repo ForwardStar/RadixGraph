@@ -87,7 +87,7 @@ python3 workload_generator.py [n] [u]
 
 This will randomly generate n IDs within [0, u] into ``workload.txt``.
 ```
-./test_workload workload.txt <sort_setting_file> > results_<random/skewed>_<vEB/SORT>.txt
+./test_workload workload.txt <sort_setting_file> > results_<uniform/skewed>_<vEB/SORT>.txt
 ```
 
 To plot memory footprints of different methods over different workloads:
