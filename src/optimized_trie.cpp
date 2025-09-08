@@ -68,6 +68,7 @@
         tmp->children = new uint64_t[sz];
         std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
         tmp->mtx = new AtomicBitmap(sz);
+        tmp->mtx->reset();
         root = tmp;
         mtx.clear();
      }
@@ -115,12 +116,6 @@
      if (d != depth) {
         // Currently not support adjusting #layers
         return;
-     }
-     for (int i = d - 1; i >= 0; i--) {
-        if (num_bits[i] != _num_bits[i]) {
-            d = i + 1;
-            break;
-        }
      }
      std::vector<std::pair<uint64_t, uint64_t>> frontiers;
      frontiers.emplace_back((uint64_t)root, (uint64_t)0);

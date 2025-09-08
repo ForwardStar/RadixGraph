@@ -80,5 +80,20 @@ Average BFS time for RadixGraph: 0.301307s
 Average BFS time for Spruce: 1.4709s
 ```
 
+# Test Tries under different workloads
+```sh
+python3 workload_generator.py [n] [u]
+```
+
+This will randomly generate n IDs within [0, u] into ``workload.txt``.
+```
+./test_workload workload.txt <sort_setting_file> > results_<random/skewed>_<vEB/SORT>.txt
+```
+
+To plot memory footprints of different methods over different workloads:
+```
+python3 memory_footprint.py
+```
+
 # License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.

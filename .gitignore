@@ -17,3 +17,6 @@ libRG.a
 settings
 optimizer
 test_transform
+test_workload
+workload.txt
+results*

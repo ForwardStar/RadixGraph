@@ -24,6 +24,7 @@
 #include <random>
 #include <chrono>
 #include <fstream>
+#include <sstream>
 #include <stdint.h>
 #include <map>
 #include <set>
