@@ -1,10 +1,44 @@
 # RadixGraph
-A fast and space-efficient graph data structure. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
+A fast and space-efficient graph data structure. To store a graph in an in-memory system, two key components are designed: (1) a vertex index that allows fast retrieval of vertices; (2) an edge index that allows efficient updates and retrival of neighbor edges after retrieving the vertex. This is also referred as an adjacency-list-based structure.
 
-See APIs with comments from ``src/radixgraph.h``.
+The RadixGraph consists of:
+- **SORT as its vertex index:** SORT is a **S**pace-**O**ptimized **R**adix **T**ree that guarantees expected-space optimality among all radix-tree structures that use a pointer array at each tree node for indexing children nodes.
+
+- **Snapshot-log edge structure:** it uses a compact array for each vertex to store its neighbor edges to ensure sequential access; the array is split into two same-length segments: snapshot segment and log segment. Updates are firstly appended to the log segment and then materialized into the snapshot segment. By careful designs, the insert/update/delete complexity is amortized O(1) and the get-neighbor complexity is O(d) where d is degree of the vertex.
+
+**Which graphs to support:** this version of RadixGraph supports weighted, directed, simple graphs, but the ``weight`` field can be generalized to any properties as long as a NULL value is reserved (for weights, this NULL value is 0). This means RadixGraph can also support labeled graph. RadixGraph can also be extended to support multi-graphs, but adaptation is needed. Refer to our paper for details.
+
+# APIs
+**Initialize SORT:** ``SORT* s = new SORT(d, a)``, where ``d`` is an int representing the number of layers, ``a`` is an array or a vector with length ``l`` representing the node in i-th layer has a fan-out of 2^a[i]. The expected-space-optimized setting can be computed via the optimizer and is included in the latter section of this README.
+
+**Initialize RadixGraph:** ``RadixGraph* r = new RadixGraph(d, a)``, where ``d``, ``a`` follow the Trie settings. Upon initializing the RadixGraph, a corresponding SORT is initialized with its corresponding setting.
+
+See APIs with comments from ``src/radixgraph.h`` and ``src/optimized_trie.h``.
+
+SORT API list:
+- ``DummyNode* InsertVertex(SORTNode* current, NodeID id, int d);``
+- ``DummyNode* RetrieveVertex(NodeID id, bool insert_mode=false);``
+- ``bool DeleteVertex(NodeID id);``
+- ``void Transform(int d, std::vector<int> _num_bits, std::vector<uint64_t>& vertex_set);``
+
+RadixGraph API list:
+- ``bool InsertEdge(NodeID src, NodeID des, float weight);``
+- ``bool UpdateEdge(NodeID src, NodeID des, float weight);``
+- ``bool DeleteEdge(NodeID src, NodeID des);``
+- ``bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
+- ``bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
+- ``bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
+- ``void CreateSnapshots();``
+- ``int GetGlobalTimestamp();``
+- ``void Init(int nth=64, int n=CAP_DUMMY_NODES);``
+
+To fully exploit the performance of RadixGraph, do take care of following things that may affect the efficiency and space:
+- **Concurrent workloads:** by default it is disabled. To execute concurrent workloads of RadixGraph, set ``is_mixed_workloads`` of RadixGraph as true (e.g., ``r->is_mixed_workloads = true``) before executing workloads. This will enable MVCC components, like creating timestamps and multi-versioned arrays. The cost is that the memory consumption will be slightly higher and the read operations are slightly slower to ensure consistency;
+- **Read-heavy workloads:** if the next workloads are read-heavy, it is suggested to run ``CreateSnapshot()`` of RadixGraph before executing the workload. This will merge all log segments into their snapshot segments and improve read efficiency. This process is exclusive, i.e., reads and writes should be paused during the process;
+- **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64 and accomodated vertices is 5000000; to change this, initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=CAP_DUMMY_NODES);``
 
 # Compile and run
-You need to run RadixGraph on Linux platform with openMP. We recommend using compiler ``GCC 10+``.
+You need to run RadixGraph on Linux platform with openMP and Intel Thread Building Block (TBB). We recommend using compiler ``GCC 10+``.
 ```sh
 git clone https://github.com/ForwardStar/RadixGraph.git --recurse-submodules
 cmake .
@@ -12,8 +46,10 @@ make
 ./radixgraph
 ```
 
-# Trie and test data setting
-This demo randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1].
+Note that the executable ``radixgraph`` is a demo experiment. To integrate RadixGraph into your project, use the compiled library ``libRG.a``.
+
+# Demo experiment
+This demo (i.e., ``radixgraph`` executable file) randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will compare its performance with Spruce, another state-of-the-art graph system. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
 Test settings:
 ```
@@ -31,54 +67,24 @@ std::vector<std::vector<int>> a = {
 };
 ```
 
-# Experimental results (16-threaded)
+# Compute SORT configuration
+The optimizer is compiled separately with the main RadixGraph components:
+```sh
+g++ optimizer.cpp -o optimizer -O3
 ```
-n = 10000, m = 10000000
-Average insertion time for RadixGraph: 0.634027s
-Average insertion time for Spruce: 1.07461s
 
-Average deletion time for RadixGraph: 0.00200624s
-Average deletion time for Spruce: 0.00313379s
-
-Average update time for RadixGraph: 0.00238965s
-Average update time for Spruce: 0.0118663s
-
-Average get neighbours time for RadixGraph: 0.00259046s
-Average get neighbours time for Spruce: 0.00441188s
-
-Average BFS time for RadixGraph: 0.0183108s
-Average BFS time for Spruce: 0.787641s
-n = 100000, m = 10000000
-Average insertion time for RadixGraph: 0.7155s
-Average insertion time for Spruce: 1.23096s
-
-Average deletion time for RadixGraph: 0.00136374s
-Average deletion time for Spruce: 0.0124691s
-
-Average update time for RadixGraph: 0.0014669s
-Average update time for Spruce: 0.0202966s
-
-Average get neighbours time for RadixGraph: 0.0142622s
-Average get neighbours time for Spruce: 0.0122289s
-
-Average BFS time for RadixGraph: 0.0630945s
-Average BFS time for Spruce: 0.997874s
-n = 1000000, m = 10000000
-Average insertion time for RadixGraph: 0.979794s
-Average insertion time for Spruce: 1.66883s
-
-Average deletion time for RadixGraph: 0.00144994s
-Average deletion time for Spruce: 0.0157172s
-
-Average update time for RadixGraph: 0.00152506s
-Average update time for Spruce: 0.000704472s
-
-Average get neighbours time for RadixGraph: 0.106581s
-Average get neighbours time for Spruce: 0.0436538s
-
-Average BFS time for RadixGraph: 0.301307s
-Average BFS time for Spruce: 1.4709s
+Then run:
+```sh
+./optimizer
 ```
+
+It requires you to input ``n`` (the number of vertices), ``log(u)`` (the range of IDs in [0, u-1]) and ``l`` (the number of layers of SORT). Then it will generate SORT configuration in a following format:
+```
+l'
+a(0) a(1) ... a(l-1)
+```
+
+Note that ``l'`` may be less than ``l``, since ``ai=0`` layers are pruned. All experiments will absorb SORT configuration file as in the above format.
 
 # Test Tries under different workloads
 ```sh
