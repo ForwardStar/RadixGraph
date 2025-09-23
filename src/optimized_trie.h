@@ -119,6 +119,10 @@ typedef struct _dummy_node {
     }
 } DummyNode;
 
+typedef struct _simple_dummy_node {
+
+} SimpleDummyNode;
+
 class SORT {
     public:
         static std::atomic<int> global_timestamp;
@@ -141,6 +145,12 @@ class SORT {
         std::atomic<int> cnt;
         std::atomic_flag mtx;
 
+        /*  InsertSimpleVertex(): insert a simple vertex into SORT (only useful for benchmarking and testing);
+            id: the vertex ID to be inserted. */
+        void InsertSimpleVertex(NodeID id);
+        /*  CheckExistence(): check whether a vertex exists in SORT;
+            id: the vertex ID to be retrieved; */
+        bool CheckExistence(NodeID id);
         /*  InsertVertex(): insert a vertex into SORT;
             current: using a recursive algorithm, current represents currently traversed tree node (initially be root);
             id: the vertex ID to be inserted;

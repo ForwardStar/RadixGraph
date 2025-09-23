@@ -90,5 +90,19 @@ int main() {
     std::cout << "Total insertion time of your Trie: " << duration_trie_opt_insert << std::endl;
     std::cout << "Total query time of a baseline Trie: " << duration_trie_base_query << std::endl;
     std::cout << "Total query time of your Trie: " << duration_trie_opt_query << std::endl;
+
+    // Test insert simple dummy nodes in parallel
+    std::cout << "Testing parallel insertion of simple dummy nodes..." << std::endl;
+    SORT trie_simple(d, a);
+    #pragma omp parallel for num_threads(10)
+    for (int i = 0; i < n; i++) {
+        uint64_t id = vids[i];
+        trie_simple.InsertSimpleVertex(id);
+        if (!trie_simple.CheckExistence(id)) {
+            std::cout << "Error: vertex " << id << " not found after insertion!" << std::endl;
+        }
+    }
+    std::cout << "Done!" << std::endl;
+
     return 0;
 }

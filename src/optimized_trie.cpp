@@ -17,6 +17,73 @@
 
  std::atomic<int> SORT::global_timestamp = 0;
 
+ void SORT::InsertSimpleVertex(NodeID id) {
+     global_timestamp++;
+     if (!root) {
+        while (mtx.test_and_set()) {}
+        if (!root) {
+            auto tmp = new SORTNode();
+            int sz = (1 << num_bits[0]);
+            tmp->children = new uint64_t[sz];
+            std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
+            tmp->mtx = new AtomicBitmap(sz);
+            tmp->mtx->reset();
+            root = tmp;
+        }
+        mtx.clear();
+     }
+     SORTNode* current = root;
+     for (int i = 0; i < depth; i++) {
+         int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
+         uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
+         if (i < depth - 1) {
+             if (!current->children[idx]) {
+                 current->mtx->set_bit_atomic(idx);
+                 if (!current->children[idx]) {
+                     auto tmp = new SORTNode();
+                     int sz = (1 << num_bits[i + 1]);
+                     tmp->mtx = new AtomicBitmap(sz);
+                     tmp->mtx->reset();
+                     tmp->children = new uint64_t[sz];
+                     std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
+                     current->children[idx] = (uint64_t)tmp;
+                 }
+                 current->mtx->clear_bit(idx);
+             }
+         }
+         else {
+             auto tmp = (SimpleDummyNode*)current->children[idx];
+             if (!tmp) {
+                 current->children[idx] = (uint64_t)(new SimpleDummyNode());
+             }
+             return;
+         }
+         current = (SORTNode*)current->children[idx];
+     }
+ }
+
+ bool SORT::CheckExistence(NodeID id) {
+     if (!root) return false;
+     SORTNode* current = root;
+     for (int i = 0; i < depth; i++) {
+         int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
+         uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
+         if (i < depth - 1) {
+             if (!current->children[idx]) {
+                return false;
+             }
+         }
+         else {
+             auto tmp = (SimpleDummyNode*)current->children[idx];
+             if (!tmp) {
+                return false;
+             }
+             return true;
+         }
+         current = (SORTNode*)current->children[idx];
+     }
+ }
+
  DummyNode* SORT::InsertVertex(SORTNode* current, NodeID id, int d) {
      global_timestamp++;
      for (int i = d; i < depth; i++) {
@@ -63,13 +130,15 @@
  DummyNode* SORT::RetrieveVertex(NodeID id, bool insert_mode) {
      if (!root) {
         while (mtx.test_and_set()) {}
-        auto tmp = new SORTNode();
-        int sz = (1 << num_bits[0]);
-        tmp->children = new uint64_t[sz];
-        std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
-        tmp->mtx = new AtomicBitmap(sz);
-        tmp->mtx->reset();
-        root = tmp;
+        if (!root) {
+            auto tmp = new SORTNode();
+            int sz = (1 << num_bits[0]);
+            tmp->children = new uint64_t[sz];
+            std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
+            tmp->mtx = new AtomicBitmap(sz);
+            tmp->mtx->reset();
+            root = tmp;
+        }
         mtx.clear();
      }
      SORTNode* current = root;

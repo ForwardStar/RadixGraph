@@ -16,6 +16,7 @@ The RadixGraph consists of:
 See APIs with comments from ``src/radixgraph.h`` and ``src/optimized_trie.h``.
 
 SORT API list:
+- ``bool CheckExistence(NodeID id);``
 - ``DummyNode* InsertVertex(SORTNode* current, NodeID id, int d);``
 - ``DummyNode* RetrieveVertex(NodeID id, bool insert_mode=false);``
 - ``bool DeleteVertex(NodeID id);``
