@@ -120,7 +120,8 @@ typedef struct _dummy_node {
 } DummyNode;
 
 typedef struct _simple_dummy_node {
-
+    NodeID node = -1;
+    std::atomic<WeightedEdgeArray*> next;
 } SimpleDummyNode;
 
 class SORT {
