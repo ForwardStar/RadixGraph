@@ -40,7 +40,7 @@ To fully exploit the performance of RadixGraph and ensure correctness, do take c
 - **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64 and accomodated vertices is 5000000; to change this, run ``Init(int nth=64, int n=CAP_DUMMY_NODES)`` function or initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=CAP_DUMMY_NODES)``. The ``Init()`` function is also exclusive.
 
 # Compile and run
-We recommend using compiler ``GCC 10+``. You need to run RadixGraph on Linux platform with openMP and Intel Thread Building Block (TBB). For root users:
+We recommend using compiler ``GCC 11.4.0+``. You need to run RadixGraph on Linux platform with openMP and Intel Thread Building Block (TBB). For root users:
 ```sh
 sudo apt-get install libtbb-dev
 ```
