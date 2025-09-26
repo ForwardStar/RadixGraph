@@ -5,9 +5,7 @@ CMakeCache.txt
 Makefile
 build
 CMakeTmp
-junction
-spruce
-radixgraph
+test_radixgraph
 test_trie
 test_gapbs
 libRG.a

@@ -8,6 +8,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Find pthreads
+find_package(Threads REQUIRED)
+
 find_package(TBB REQUIRED)  # Find TBB
 
 # Enable OpenMP
@@ -17,15 +20,6 @@ if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
-
-# Add Spruce, Junction, and Turf directories
-add_subdirectory(${CMAKE_SOURCE_DIR}/Spruce/Spruce spruce)
-include_directories(${CMAKE_SOURCE_DIR}/Spruce/Spruce/junction/include)
-include_directories(${CMAKE_SOURCE_DIR}/Spruce/Spruce/junction/turf/include)
-include_directories(${CMAKE_SOURCE_DIR}/Spruce/turf)
-include_directories(${CMAKE_SOURCE_DIR}/Spruce/turf/include)
-include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction)
-include_directories(${CMAKE_SOURCE_DIR}/Spruce/junction/include)
 
 add_library(RG STATIC src/GAPBS/bfs.cc 
             src/GAPBS/bitmap.h 
@@ -41,7 +35,7 @@ add_library(RG STATIC src/GAPBS/bfs.cc
             src/optimized_trie.cpp)
 
 # Add executable for your main program
-add_executable(radixgraph
+add_executable(test_radixgraph
     src/main.cpp
     src/radixgraph.cpp
     src/optimized_trie.cpp
@@ -94,9 +88,9 @@ add_executable(test_workload
     src/optimized_trie.h
 )
 
-# Link libraries (Spruce depends on junction and turf)
-target_link_libraries(radixgraph PRIVATE spruce junction turf pthread OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_trie PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_transform PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_gapbs PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_workload PRIVATE OpenMP::OpenMP_CXX TBB::tbb)
+# Link libraries
+target_link_libraries(test_radixgraph PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(test_trie PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(test_transform PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(test_gapbs PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
+target_link_libraries(test_workload PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)

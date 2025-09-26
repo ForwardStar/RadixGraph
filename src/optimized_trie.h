@@ -75,6 +75,20 @@ typedef struct _weighted_edge {
     int idx = -1; 
 } WeightedEdge;
 
+/* WeightedEdgeArray: multi-versioned edge array
+    - size: the number of edges in this array;
+    - cap: the capacity of this array;
+    - physical_size: the number of written edges in this array (<= size);
+    - edge: the edge array;
+    - timestamp: the timestamp array, storing the timestamps of each edge;
+    - prev_arr: the previous version of this edge array;
+    - next_arr: the next version of this edge array (if any);
+    - snapshot_timestamp: if this array is a snapshot, it stores the timestamp when the snapshot is created; otherwise it is 0;
+    - snapshot_deg: if this array is a snapshot, it stores the degree when the snapshot is created; otherwise it is 0;
+    - deg: the latest degree of this vertex;
+    - threads_get_neighbor: how many threads are currently reading this edge array;
+    - threads_analytical: how many analytical threads are currently reading this edge array (for analytical queries).
+*/
 class WeightedEdgeArray {
     public:
       std::atomic<int> size = 0, cap = 0, physical_size = 0; // Size and capacity of the array; physical size (<= size) is the number of written edges
@@ -107,6 +121,7 @@ class WeightedEdgeArray {
    - N.idx: the offset (logical ID) of this vertex;
    - N.del_time: the deletion time of this vertex;
    - N.next: the edge array pointer;
+   - t_total, t_compact: timers for measuring the time of total operations and log compaction operations (only used for benchmarking and debugging);
    Note that we do not store ``Size`` since it can be retrieved by next->size; N.idx is stored for practical implementation but can be removed.
 */
 typedef struct _dummy_node {
@@ -114,6 +129,7 @@ typedef struct _dummy_node {
     int idx = -1, del_time = -1;
     std::atomic_flag mtx;
     std::atomic<WeightedEdgeArray*> next;
+    double t_total, t_compact;
     ~_dummy_node() {
       delete next.load();
     }

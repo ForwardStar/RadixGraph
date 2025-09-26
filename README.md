@@ -40,18 +40,28 @@ To fully exploit the performance of RadixGraph and ensure correctness, do take c
 - **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64 and accomodated vertices is 5000000; to change this, run ``Init(int nth=64, int n=CAP_DUMMY_NODES)`` function or initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=CAP_DUMMY_NODES)``. The ``Init()`` function is also exclusive.
 
 # Compile and run
-You need to run RadixGraph on Linux platform with openMP and Intel Thread Building Block (TBB). We recommend using compiler ``GCC 10+``.
+We recommend using compiler ``GCC 10+``. You need to run RadixGraph on Linux platform with openMP and Intel Thread Building Block (TBB). For root users:
 ```sh
-git clone https://github.com/ForwardStar/RadixGraph.git --recurse-submodules
+sudo apt-get install libtbb-dev
+```
+
+If prerequisites are completed, compile radixgraph by:
+```sh
+git clone https://github.com/ForwardStar/RadixGraph.git
 cmake .
 make
 ./radixgraph
 ```
 
+For non-root users that can only install TBB locally, replace the cmake step with:
+```sh
+cmake . -DCMAKE_CXX_FLAGS="-I/path/to/tbb/include" -DCMAKE_EXE_LINKER_FLAGS="-L/path/to/tbb/lib"
+```
+
 Note that the executable ``radixgraph`` is a demo experiment. To integrate RadixGraph into your project, use the compiled library ``libRG.a``.
 
 # Demo experiment
-This demo (i.e., ``radixgraph`` executable file) randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will compare its performance with Spruce, another state-of-the-art graph system. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
+This demo (i.e., ``radixgraph`` executable file) randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will output the efficiency of RadixGraph on this randomly generated graph. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
 Test settings:
 ```

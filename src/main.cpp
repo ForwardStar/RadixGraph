@@ -14,97 +14,11 @@
  * limitations under the License.
  */
 #include "radixgraph.h"
-#include "../Spruce/Spruce/src/spruce_transaction.h"
-
-uint64_t max_uid = 0;
-
-std::vector<uint64_t> spruce_bfs(SpruceTransVer& spruce, uint64_t src) {
-    AtomicBitmap vis(max_uid + 1);
-    vis.reset();
-    std::queue<uint64_t> Q;
-    vis.set_bit(src);
-    Q.push(src);
-    std::vector<uint64_t> res;
-    while (!Q.empty()) {
-        auto u = Q.front();
-        Q.pop();
-        res.push_back(u);
-        std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours;
-        SpruceTransVer::get_neighbours(spruce, u, neighbours);
-        for (auto e : neighbours) {
-            if (!vis.get_bit(e.des)) {
-                vis.set_bit(e.des);
-                Q.push(e.des);
-            }
-        }
-    }
-    return res;
-}
-
-unsigned int get_proc_mem() {
-    int pid = getpid();
-    char file_name[64] = { 0 };
-    FILE* fd;
-    char line_buff[512] = { 0 };
-    sprintf(file_name, "/proc/%d/status", pid);
-    fd = fopen(file_name, "r");
-    if (fd == NULL) return 0;
-    char name[64];
-    int vmrss = 0;
-    int i;
-    for (i = 0; i < VMRSS_LINE - 1; i++) {
-        fgets(line_buff, sizeof(line_buff), fd);
-    }
-    fgets(line_buff, sizeof(line_buff), fd);
-    sscanf(line_buff, "%s %d", name, &vmrss);
-    fclose(fd);
-    return vmrss;
-}
 
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
-    int num_threads = 16;
-    if (argc > 1) {
-        std::ifstream f("settings");
-        int d;
-        f >> d;
-        std::vector<int> a(d);
-        for (auto& i : a) f >> i;
 
-        std::ifstream fin(argv[argc - 1]);
-        uint64_t u, v;
-        std::vector<std::pair<uint64_t, uint64_t>> edges;
-        while (fin >> u >> v) {
-            edges.emplace_back(u, v);
-            max_uid = std::max(max_uid, u);
-            max_uid = std::max(max_uid, v);
-        }
-        std::random_shuffle(edges.begin(), edges.end());
-
-        int start_mem = get_proc_mem();
-        RadixGraph G_fstar(d, a);
-        auto start = std::chrono::high_resolution_clock::now();
-        #pragma omp parallel for num_threads(num_threads)
-        for (auto e : edges) G_fstar.InsertEdge(e.first, e.second, 0.5);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duration = end - start;
-        std::cout << "Forward*: " << duration.count() << "s" << std::endl;
-        std::cout << "Size: " << G_fstar.vertex_index->size() << std::endl;
-        std::cout << "Memory: " << get_proc_mem() - start_mem << std::endl;
-
-        start_mem = get_proc_mem();
-        SpruceTransVer spruce;
-        start = std::chrono::high_resolution_clock::now();
-        #pragma omp parallel for num_threads(num_threads)
-        for (auto e : edges) SpruceTransVer::InsertEdge(spruce, {e.first, e.second, 0.5});
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        std::cout << "Spruce: " << duration.count() << "s" << std::endl;
-        std::cout << "Memory: " << get_proc_mem() - start_mem << std::endl;
-
-        return 0;
-    }
     std::vector<int> d = {3, 3, 3};
     std::vector<std::vector<int>> a = {
         {19, 6, 5},
@@ -113,6 +27,7 @@ int main(int argc, char* argv[]) {
     };
     int m = 10000000;
     int num_trials = 3;
+    int num_threads = 64;
     
     std::default_random_engine generator;
     unsigned long long maximum = (1ull << 30) - 1;
@@ -120,20 +35,14 @@ int main(int argc, char* argv[]) {
     int now = 0;
     for (int n = 10000; n <= 1000000; n *= 10) {
         double duration_insert_edge_fstar = 0;
-        double duration_insert_edge_spruce = 0;
         double duration_delete_edge_fstar = 0;
-        double duration_delete_edge_spruce = 0;
         double duration_update_edge_fstar = 0;
-        double duration_update_edge_spruce = 0;
         double duration_get_neighbours_fstar = 0;
-        double duration_get_neighbours_spruce = 0;
         double duration_bfs_fstar = 0;
-        double duration_bfs_spruce = 0;
         
         std::cout << "n = " << n << ", m = " << m << std::endl;
         std::vector<uint64_t> vertex_ids;
         std::unordered_set<uint64_t> vertex_set;
-        max_uid = 0;
         for (int i = 0; i < n; i++) {
             uint64_t id = distribution(generator);
             while (vertex_set.find(id) != vertex_set.end()) {
@@ -141,12 +50,10 @@ int main(int argc, char* argv[]) {
             }
             vertex_ids.push_back(id);
             vertex_set.insert(id);
-            max_uid = std::max(max_uid, id);
         }
         for (int i = 0; i < num_trials; i++) {
             // std::cout << "Trial " << i + 1 << ":" << std::endl;
             RadixGraph G_fstar(d[now], a[now]);
-            SpruceTransVer spruce;
             std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
 
             // Insert edges
@@ -179,15 +86,6 @@ int main(int argc, char* argv[]) {
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_insert_edge_fstar += duration.count();
-                
-                start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for num_threads(num_threads)
-                for (auto e : edges) {
-                    SpruceTransVer::InsertEdge(spruce, {e.first.first, e.first.second, e.second});
-                }
-                end = std::chrono::high_resolution_clock::now();
-                duration = end - start;
-                duration_insert_edge_spruce += duration.count();
             }
 
             // std::cout << "Insert done" << std::endl;
@@ -208,15 +106,6 @@ int main(int argc, char* argv[]) {
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_update_edge_fstar += duration.count();
-                
-                start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for num_threads(num_threads)
-                for (auto e : edges_update) {
-                    SpruceTransVer::UpdateEdge(spruce, {e.first.first, e.first.second, e.second});
-                }
-                end = std::chrono::high_resolution_clock::now();
-                duration = end - start;
-                duration_update_edge_spruce += duration.count();
             }
 
             // std::cout << "Update done" << std::endl;
@@ -243,15 +132,6 @@ int main(int argc, char* argv[]) {
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_delete_edge_fstar += duration.count();
-                
-                start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for num_threads(num_threads)
-                for (auto e : edges_delete) {
-                    SpruceTransVer::DeleteEdge(spruce, e.first.first, e.first.second);
-                }
-                end = std::chrono::high_resolution_clock::now();
-                duration = end - start;
-                duration_delete_edge_spruce += duration.count();
             }
 
             // std::cout << "Delete done" << std::endl;
@@ -268,16 +148,6 @@ int main(int argc, char* argv[]) {
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_get_neighbours_fstar += duration.count();
-
-                start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for num_threads(num_threads)
-                for (int j = 0; j < n; j++) {
-                    std::vector<SpruceTransVer::WeightedOutEdgeSimple> neighbours;
-                    SpruceTransVer::get_neighbours(spruce, vertex_ids[j], neighbours);
-                }
-                end = std::chrono::high_resolution_clock::now();
-                duration = end - start;
-                duration_get_neighbours_spruce += duration.count();
             }
 
             // std::cout << "Get neighbors done" << std::endl;
@@ -289,12 +159,6 @@ int main(int argc, char* argv[]) {
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_bfs_fstar += duration.count();
-
-                start = std::chrono::high_resolution_clock::now();
-                auto res_spruce = spruce_bfs(spruce, vertex_ids[0]);
-                end = std::chrono::high_resolution_clock::now();
-                duration = end - start;
-                duration_bfs_spruce += duration.count();
             }
 
             // std::cout << "BFS done" << std::endl;
@@ -302,18 +166,9 @@ int main(int argc, char* argv[]) {
         ++now;
 
         std::cout << "Average insertion time for RadixGraph: " << duration_insert_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average insertion time for Spruce: " << duration_insert_edge_spruce / num_trials << "s" << std::endl;
-        std::cout << std::endl;
         std::cout << "Average deletion time for RadixGraph: " << duration_delete_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average deletion time for Spruce: " << duration_delete_edge_spruce / num_trials << "s" << std::endl;
-        std::cout << std::endl;
         std::cout << "Average update time for RadixGraph: " << duration_update_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average update time for Spruce: " << duration_update_edge_spruce / num_trials << "s" << std::endl;
-        std::cout << std::endl;
         std::cout << "Average get neighbours time for RadixGraph: " << duration_get_neighbours_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average get neighbours time for Spruce: " << duration_get_neighbours_spruce / num_trials << "s" << std::endl;
-        std::cout << std::endl;
         std::cout << "Average BFS time for RadixGraph: " << duration_bfs_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average BFS time for Spruce: " << duration_bfs_spruce / num_trials << "s" << std::endl;
     }
 }

@@ -29,12 +29,6 @@ class RadixGraph {
         AtomicBitmap** bitmap = nullptr;
         bool is_mixed_workloads = false; // set to true when executing reads and writes concurrently
         int num_threads = 64; // 64 by default
- 
-        /* Sample edge and vertex;
-           See detail structures in ``optimized_trie.h``.
-        */
-        WeightedEdge sample_edge = {/* weight */0.5, /* offset */2};
-        DummyNode sample_vertex = {/* ID */10, /* Offset */0, /* Del_time */0, /* mtx */0, /* EdgeArr */nullptr};
 
         /*  InsertEdge(): insert an edge to RadixGraph;
             src: the source vertex of the edge;
