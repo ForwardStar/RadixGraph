@@ -37,7 +37,9 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
             #if DEBUG_MODE
                 std::chrono::high_resolution_clock::time_point t3, t4;
                 t3 = std::chrono::high_resolution_clock::now();
-                new_array = LogCompaction(next, new_array);
+            #endif
+            new_array = LogCompaction(next, new_array);
+            #if DEBUG_MODE
                 t4 = std::chrono::high_resolution_clock::now();
                 src->t_compact += std::chrono::duration<double>(t4 - t3).count();
             #endif
