@@ -82,6 +82,7 @@
          }
          current = (SORTNode*)current->children[idx];
      }
+     return false;
  }
 
  DummyNode* SORT::InsertVertex(SORTNode* current, NodeID id, int d) {

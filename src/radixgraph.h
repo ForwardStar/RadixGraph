@@ -66,6 +66,22 @@ class RadixGraph {
         int GetGlobalTimestamp();
         // Set the number of threads and vertices allowed in the system.
         void Init(int nth=64, int n=CAP_DUMMY_NODES);
+        // Get debug information of all vertices (only when DEBUG_MODE is true).
+        typedef struct _debug_info {
+            NodeID node = -1;
+            int deg = 0;
+            double t_total = 0, t_compact = 0;
+        } DebugInfo;
+        std::vector<DebugInfo> GetDebugInfo() {
+            if (!DEBUG_MODE) return {};
+            int n = vertex_index->cnt.load();
+            std::vector<DebugInfo> res(n);
+            for (int i = 0; i < n; i++) {
+                auto& node = vertex_index->vertex_table[i];
+                res[i] = {node.node, node.next.load()->deg, node.t_total, node.t_compact};
+            }
+            return res;
+        }
 
         /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
             src: the source vertex ID;

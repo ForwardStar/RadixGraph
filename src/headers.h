@@ -36,6 +36,8 @@
 #include <omp.h>
 #include <tbb/concurrent_vector.h>
 
+#define DEBUG_MODE false
+
 typedef uint32_t NodeID;
 
 #endif
