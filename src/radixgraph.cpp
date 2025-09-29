@@ -18,10 +18,10 @@
 thread_local int RadixGraph::thread_id_local = -1;
 
 bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
-    std::chrono::high_resolution_clock::time_point t1, t2;
-    if (DEBUG_MODE) {
+    #if DEBUG_MODE
+        std::chrono::high_resolution_clock::time_point t1, t2;
         t1 = std::chrono::high_resolution_clock::now();
-    }
+    #endif
     auto next = src->next.load();
     int i = next->size.fetch_add(1);
     while (i >= next->cap) {
@@ -34,15 +34,13 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
             auto deg = next->deg.load();
             deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
             auto new_array = new WeightedEdgeArray(deg * 2 + (next->size - next->cap + 1) + 8); // +(next->size -next->cap + 1) to avoid repititive expanding (especially the updates are intensive), +8 to avoid empty edge array
-            std::chrono::high_resolution_clock::time_point t3, t4;
-            if (DEBUG_MODE) {
+            #if DEBUG_MODE
+                std::chrono::high_resolution_clock::time_point t3, t4;
                 t3 = std::chrono::high_resolution_clock::now();
-            }
-            new_array = LogCompaction(next, new_array);
-            if (DEBUG_MODE) {
+                new_array = LogCompaction(next, new_array);
                 t4 = std::chrono::high_resolution_clock::now();
-                src->t_compact += std::chrono::duration<double>(t4 - t3).count();
-            }
+                src->t_compact += std::chrono::duration<double>(t4 - t3).count() * 1000;
+            #endif
             new_array->prev_arr = next;
             next->next_arr = new_array;
             src->next.store(new_array);
@@ -66,10 +64,10 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
     next->edge[i] = {weight, des};
     if (next->timestamp) next->timestamp[i - next->snapshot_deg] = t;
     next->physical_size.fetch_add(1);
-    if (DEBUG_MODE) {
+    #if DEBUG_MODE
         t2 = std::chrono::high_resolution_clock::now();
-        src->t_total += std::chrono::duration<double>(t2 - t1).count();
-    }
+        src->t_total += std::chrono::duration<double>(t2 - t1).count() * 1000;
+    #endif
     return true;
 }
 

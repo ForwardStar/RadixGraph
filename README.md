@@ -133,5 +133,7 @@ You can retrieve the information for all vertices by:
 std::vector<DebugInfo> GetDebugInfo();
 ```
 
+Note: debug mode seriously affects the efficiency. The time consumption may be much larger so please disable it unless you are benchmarking.
+
 # License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.

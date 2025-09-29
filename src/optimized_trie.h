@@ -121,7 +121,7 @@ class WeightedEdgeArray {
    - N.idx: the offset (logical ID) of this vertex;
    - N.del_time: the deletion time of this vertex;
    - N.next: the edge array pointer;
-   - t_total, t_compact: timers for measuring the time of total operations and log compaction operations (only used for benchmarking and debugging);
+   - t_total, t_compact: timers for measuring the time (unit: ms) of total operations and log compaction operations (only used for benchmarking and debugging);
    Note that we do not store ``Size`` since it can be retrieved by next->size; N.idx is stored for practical implementation but can be removed.
 */
 typedef struct _dummy_node {
@@ -129,7 +129,9 @@ typedef struct _dummy_node {
     int idx = -1, del_time = -1;
     std::atomic_flag mtx;
     std::atomic<WeightedEdgeArray*> next;
-    double t_total, t_compact;
+    #if DEBUG_MODE
+      std::atomic<int> t_total, t_compact;
+    #endif
     ~_dummy_node() {
       delete next.load();
     }
