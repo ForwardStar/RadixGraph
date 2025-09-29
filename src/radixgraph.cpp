@@ -39,7 +39,7 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
                 t3 = std::chrono::high_resolution_clock::now();
                 new_array = LogCompaction(next, new_array);
                 t4 = std::chrono::high_resolution_clock::now();
-                src->t_compact += std::chrono::duration<double>(t4 - t3).count() * 1000;
+                src->t_compact += std::chrono::duration<double>(t4 - t3).count();
             #endif
             new_array->prev_arr = next;
             next->next_arr = new_array;
@@ -66,7 +66,7 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
     next->physical_size.fetch_add(1);
     #if DEBUG_MODE
         t2 = std::chrono::high_resolution_clock::now();
-        src->t_total += std::chrono::duration<double>(t2 - t1).count() * 1000;
+        src->t_total += std::chrono::duration<double>(t2 - t1).count();
     #endif
     return true;
 }
