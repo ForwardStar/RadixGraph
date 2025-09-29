@@ -119,7 +119,7 @@ To enable debug mode, set:
 #define DEBUG_MODE true
 ```
 
-in ``source/headers.h`` and recompile. This mode is primary used for recording the overall operation time and log compaction time for each vertex. Each vertex will maintain a struct:
+in ``src/headers.h`` and recompile. This mode is primary used for recording the overall operation time and log compaction time for each vertex. Each vertex will maintain a struct:
 ```cpp
 typedef struct _debug_info {
     NodeID node = -1;
