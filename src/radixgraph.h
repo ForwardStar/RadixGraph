@@ -70,7 +70,7 @@ class RadixGraph {
         typedef struct _debug_info {
             NodeID node = -1;
             int deg = 0;
-            int t_total = 0, t_compact = 0;
+            double t_total = 0, t_compact = 0;
         } DebugInfo;
         std::vector<DebugInfo> GetDebugInfo() {
             #if DEBUG_MODE
