@@ -31,18 +31,14 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
             while (next->physical_size.load() != next->cap) {
                 // Wait for all edges to be written
             }
-            auto deg = next->deg.load();
-            deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
-            auto new_array = new WeightedEdgeArray(deg * 2 + (next->size - next->cap + 1) + 8); // +(next->size -next->cap + 1) to avoid repititive expanding (especially the updates are intensive), +8 to avoid empty edge array
             #if DEBUG_MODE
                 std::chrono::high_resolution_clock::time_point t3, t4;
                 t3 = std::chrono::high_resolution_clock::now();
             #endif
+            auto deg = next->deg.load();
+            deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
+            auto new_array = new WeightedEdgeArray(deg * 2 + (next->size - next->cap + 1) + 8); // +(next->size -next->cap + 1) to avoid repititive expanding (especially the updates are intensive), +8 to avoid empty edge array
             new_array = LogCompaction(next, new_array);
-            #if DEBUG_MODE
-                t4 = std::chrono::high_resolution_clock::now();
-                src->t_compact += std::chrono::duration<double>(t4 - t3).count();
-            #endif
             new_array->prev_arr = next;
             next->next_arr = new_array;
             src->next.store(new_array);
@@ -56,6 +52,10 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
                     }
                 }
             }
+            #if DEBUG_MODE
+                t4 = std::chrono::high_resolution_clock::now();
+                src->t_compact += std::chrono::duration<double>(t4 - t3).count();
+            #endif
         }
         next = src->next.load();
         i = next->size.fetch_add(1);
