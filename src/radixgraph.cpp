@@ -61,10 +61,11 @@ bool RadixGraph::Insert(DummyNode* src, int des, float weight, int delta_deg) {
         i = next->size.fetch_add(1);
         src->mtx.clear();
     }
-    int t = GetGlobalTimestamp();
+    if (next->timestamp) {
+        next->timestamp[i - next->snapshot_deg] = GetGlobalTimestamp();
+    }
     next->deg.fetch_add(delta_deg);
     next->edge[i] = {weight, des};
-    if (next->timestamp) next->timestamp[i - next->snapshot_deg] = t;
     next->physical_size.fetch_add(1);
     #if DEBUG_MODE
         t2 = std::chrono::high_resolution_clock::now();
