@@ -274,7 +274,7 @@ void RadixGraph::CreateSnapshots() {
     // Should be executed when no updates are performed
     if (is_mixed_workloads) return;
     int n = vertex_index->cnt.load();
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(num_threads)
     for (int i = 0; i < n; i++) {
         auto src = &vertex_index->vertex_table[i];
         auto next = src->next.load();
