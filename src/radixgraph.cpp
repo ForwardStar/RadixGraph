@@ -270,7 +270,7 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
     return new_arr;
 }
 
-void RadixGraph::CreateSnapshots() {
+void RadixGraph::CreateSnapshots(bool sort_neighbours) {
     // Should be executed when no updates are performed
     if (is_mixed_workloads) return;
     int n = vertex_index->cnt.load();
@@ -285,6 +285,11 @@ void RadixGraph::CreateSnapshots() {
         new_array->prev_arr = next;
         next->next_arr = new_array;
         src->next.store(new_array);
+        if (sort_neighbours && new_array->physical_size.load() > 1) {
+            std::sort(new_array->edge, new_array->edge + new_array->physical_size.load(), [](const WeightedEdge &a, const WeightedEdge &b) {
+                return a.idx < b.idx;
+            });
+        }
         if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
             if (next->edge) delete [] next->edge, next->edge = nullptr; // Do not delete next pointer to avoid concurrency issue
             if (next->timestamp) delete [] next->timestamp, next->timestamp = nullptr;
@@ -294,8 +299,9 @@ void RadixGraph::CreateSnapshots() {
                     delete tmp; // But you can delete the previous version (snapshot) safely
                 }
             }
-        }   
+        }
     }
+    is_sorted = sort_neighbours;
 }
 
 int RadixGraph::GetGlobalTimestamp() {

@@ -28,6 +28,7 @@ class RadixGraph {
         SORT* vertex_index = nullptr;
         AtomicBitmap** bitmap = nullptr;
         bool is_mixed_workloads = false; // set to true when executing reads and writes concurrently
+        bool is_sorted = false; // whether the neighbour list of each vertex is sorted
         int num_threads = 64; // 64 by default
 
         /*  InsertEdge(): insert an edge to RadixGraph;
@@ -61,7 +62,7 @@ class RadixGraph {
         bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);
 
         // Create a static snapshot of the graph.
-        void CreateSnapshots();
+        void CreateSnapshots(bool sort_neighbours=false);
         // Get the global timestamp and increment it.
         int GetGlobalTimestamp();
         // Set the number of threads and vertices allowed in the system.

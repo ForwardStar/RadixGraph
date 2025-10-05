@@ -32,64 +32,40 @@ degree. This is beneficial if the average degree is high enough and if the
 degree distribution is sufficiently non-uniform. To decide whether or not
 to relabel the graph, we use the heuristic in WorthRelabelling.
 */
-std::vector<double> OrderedCount(RadixGraph* g, uint32_t num_vertices) {
+size_t OrderedCount(RadixGraph* g, uint32_t num_vertices) {
   size_t total = 0;
-  auto triangles_per_vertex = (std::atomic<uint32_t>*)malloc(sizeof(std::atomic<uint32_t>) * num_vertices);
-  #pragma omp parallel
-  {
-    auto triangles_u = 0u;
-    auto triangles_v = 0u;
-
-    #pragma omp for schedule(dynamic, 256)
-    for (NodeID n = 0; n < num_vertices; n++) {
-        std::vector<WeightedEdge> u_neighbours;
-        g->GetNeighboursByOffset(n, u_neighbours);
-        std::sort(u_neighbours.begin(), u_neighbours.end(), [](WeightedEdge a, WeightedEdge b) {
+  bool is_sorted = g->is_sorted;
+  #pragma omp parallel for reduction(+ : total) schedule(dynamic, 64)
+  for (NodeID u=0; u < num_vertices; u++) {
+    std::vector<WeightedEdge> neighbours;
+    g->GetNeighboursByOffset(u, neighbours);
+    if (!is_sorted) {
+      std::sort(neighbours.begin(), neighbours.end(), [](const WeightedEdge &a, const WeightedEdge &b) {
+        return a.idx < b.idx;
+      });
+    }
+    for (auto& e : neighbours) {
+      NodeID v = e.idx;
+      if (v > u)
+        break;
+      std::vector<WeightedEdge> v_neighbours;
+      g->GetNeighboursByOffset(v, v_neighbours);
+      if (!is_sorted) {
+        std::sort(v_neighbours.begin(), v_neighbours.end(), [](const WeightedEdge &a, const WeightedEdge &b) {
           return a.idx < b.idx;
         });
-        for (auto e : u_neighbours) {
-            auto v = e.idx;
-            if (v > n) {
-                break;
-            }
-            auto it = u_neighbours.begin();
-            std::vector<WeightedEdge> v_neighbours;
-            g->GetNeighboursByOffset(v, v_neighbours);
-            std::sort(v_neighbours.begin(), v_neighbours.end(), [](WeightedEdge a, WeightedEdge b) {
-              return a.idx < b.idx;
-            });
-            for (auto e1 : v_neighbours) {
-                auto w = e1.idx;
-                if (w > v) {
-                    break;
-                }
-                while (it->idx < w) {
-                    it++;
-                }
-                if (w == it->idx) {
-                    triangles_u += 2;
-                    triangles_v += 2;
-                    triangles_per_vertex[e1.idx] += 2;
-                }
-            }
-            triangles_per_vertex[v] += triangles_v;
-            triangles_v = 0;
-        }
-        triangles_per_vertex[n] += triangles_u;
-        triangles_u = 0;
+      }
+      int i = 0;
+      for (auto& f : neighbours) {
+        NodeID w = f.idx;
+        if (w > v)
+          break;
+        while (v_neighbours[i].idx < w)
+          i++;
+        if (w == v_neighbours[i].idx)
+          total++;
+      }
     }
   }
-
-  std::vector<double> lcc_values(num_vertices);
-  #pragma omp parallel for
-  for (NodeID v = 0; v < num_vertices; v++) {
-      uint32_t degree = g->vertex_index->vertex_table[v].next.load()->snapshot_deg.load();
-      uint64_t max_num_edges = degree * (degree - 1);
-      if (max_num_edges != 0) {
-          lcc_values[v] = ((double) triangles_per_vertex[v]) / max_num_edges;
-      } else {
-          lcc_values[v] = 0.0;
-      }
-  }
-  return lcc_values;
+  return total;
 }

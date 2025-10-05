@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
         RadixGraph G(d, a);
         #pragma omp parallel for
         for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5), G.InsertEdge(e.second, e.first, 0.5);
+        G.CreateSnapshots();
         int n = G.vertex_index->cnt;
 
         std::cout << "Testing BFS..." << std::endl;
@@ -77,6 +78,14 @@ int main(int argc, char* argv[]) {
         std::cout << "Testing PageRank..." << std::endl;
         start = std::chrono::high_resolution_clock::now();
         PageRankPull(&G, 10, maxu);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
+
+        // Test LCC
+        std::cout << "Testing LCC..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        OrderedCount(&G, maxu);
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Time: " << duration.count() << "s" << std::endl;
@@ -129,6 +138,7 @@ int main(int argc, char* argv[]) {
     for (auto e : edges) {
         G.InsertEdge(e.first.first, e.first.second, e.second);
     }
+    G.CreateSnapshots();
 
     // Test BFS
     std::cout << "Testing BFS..." << std::endl;
