@@ -20,6 +20,7 @@
 #include "./GAPBS/tc.h"
 #include "./GAPBS/cc_sv.h"
 #include "./GAPBS/pr_spmv.h"
+#include "./GAPBS/bc.h"
 
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
@@ -48,7 +49,7 @@ int main(int argc, char* argv[]) {
         RadixGraph G(d, a);
         #pragma omp parallel for
         for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5), G.InsertEdge(e.second, e.first, 0.5);
-        G.CreateSnapshots();
+        G.CreateSnapshots(true);
         int n = G.vertex_index->cnt;
 
         std::cout << "Testing BFS..." << std::endl;
@@ -86,6 +87,14 @@ int main(int argc, char* argv[]) {
         std::cout << "Testing LCC..." << std::endl;
         start = std::chrono::high_resolution_clock::now();
         OrderedCount(&G, maxu);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time: " << duration.count() << "s" << std::endl;
+
+        // Test BC
+        std::cout << "Testing BC..." << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        Brandes(&G, 5, maxu);
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::cout << "Time: " << duration.count() << "s" << std::endl;
@@ -138,7 +147,7 @@ int main(int argc, char* argv[]) {
     for (auto e : edges) {
         G.InsertEdge(e.first.first, e.first.second, e.second);
     }
-    G.CreateSnapshots();
+    G.CreateSnapshots(true);
 
     // Test BFS
     std::cout << "Testing BFS..." << std::endl;
@@ -191,6 +200,10 @@ int main(int argc, char* argv[]) {
     // Test PageRank
     std::cout << "Testing PageRank..." << std::endl;
     PageRankPull(&G, 100, n);
+
+    // Test BC
+    std::cout << "Testing BC..." << std::endl;
+    Brandes(&G, 5, n);
 
     return 0;
 }

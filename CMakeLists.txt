@@ -31,6 +31,8 @@ add_library(RG STATIC src/GAPBS/bfs.cc
             src/GAPBS/sliding_queue.h
             src/GAPBS/sssp.cc
             src/GAPBS/tc.cc
+            src/GAPBS/bfs.cc
+            src/GAPBS/bc.cc
             src/radixgraph.cpp 
             src/optimized_trie.cpp)
 
@@ -68,6 +70,7 @@ add_executable(test_gapbs
     src/GAPBS/tc.cc
     src/GAPBS/pr_spmv.cc
     src/GAPBS/cc_sv.cc
+    src/GAPBS/bc.cc
     src/radixgraph.h
     src/optimized_trie.h
     src/GAPBS/bfs.h
@@ -76,6 +79,7 @@ add_executable(test_gapbs
     src/GAPBS/tc.h
     src/GAPBS/pr_spmv.h
     src/GAPBS/cc_sv.h
+    src/GAPBS/bc.h
     src/GAPBS/platform_atomics.h
 )
 
