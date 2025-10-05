@@ -32,6 +32,7 @@ void PBFS(RadixGraph *g, NodeID source, pvector<CountT> &path_counts,
     Bitmap &succ, std::vector<SlidingQueue<NodeID>::iterator> &depth_index,
     SlidingQueue<NodeID> &queue, uint32_t num_nodes) {
   pvector<NodeID> depths(num_nodes, -1);
+  std::vector<std::atomic<bool>> occurred(num_nodes);
   depths[source] = 0;
   path_counts[source] = 1;
   queue.push_back(source);
@@ -52,7 +53,11 @@ void PBFS(RadixGraph *g, NodeID source, pvector<CountT> &path_counts,
           NodeID v = e.idx;
           if ((depths[v] == -1) &&
               (compare_and_swap(depths[v], static_cast<NodeID>(-1), depth))) {
-            lqueue.push_back(v);
+            bool first_time = !occurred[v].exchange(true);
+            if (first_time) {
+                // Yet normally this is unnecessary but I don't know the compare_and_swap sometimes works malfunctionally...
+                lqueue.push_back(v);
+            }
           }
           if (depths[v] == depth) {
             succ.set_bit_atomic(v);
