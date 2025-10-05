@@ -60,9 +60,9 @@ size_t OrderedCount(RadixGraph* g, uint32_t num_vertices) {
         NodeID w = f.idx;
         if (w > v)
           break;
-        while (v_neighbours[i].idx < w)
+        while (i < v_neighbours.size() && v_neighbours[i].idx < w)
           i++;
-        if (w == v_neighbours[i].idx)
+        if (i < v_neighbours.size() && w == v_neighbours[i].idx)
           total++;
       }
     }
