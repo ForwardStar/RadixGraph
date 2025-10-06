@@ -15,8 +15,6 @@
  */
  #include "optimized_trie.h"
 
- std::atomic<int> SORT::global_timestamp = 0;
-
  void SORT::InsertSimpleVertex(NodeID id) {
      if (!root) {
         while (mtx.test_and_set()) {}
@@ -51,13 +49,14 @@
              }
          }
          else {
-             auto tmp = (SimpleDummyNode*)current->children[idx];
+             auto tmp = (SimpleVertex*)current->children[idx];
              if (!tmp) {
-                 current->children[idx] = (uint64_t)(new SimpleDummyNode());
+                 current->children[idx] = (uint64_t)(new SimpleVertex());
              }
              return;
          }
          current = (SORTNode*)current->children[idx];
+
      }
  }
 
@@ -73,7 +72,7 @@
              }
          }
          else {
-             auto tmp = (SimpleDummyNode*)current->children[idx];
+             auto tmp = (SimpleVertex*)current->children[idx];
              if (!tmp) {
                 return false;
              }
@@ -84,7 +83,7 @@
      return false;
  }
 
- DummyNode* SORT::InsertVertex(SORTNode* current, NodeID id, int d) {
+ Vertex* SORT::InsertVertex(SORTNode* current, NodeID id, int d) {
      for (int i = d; i < depth; i++) {
          int num_now = sum_bits[depth - 1] - (i > 0 ? sum_bits[i - 1] : 0);
          uint64_t idx = ((id & ((1ull << num_now) - 1)) >> (sum_bits[depth - 1] - sum_bits[i]));
@@ -104,16 +103,16 @@
              }
          }
          else {
-             auto tmp = (DummyNode*)current->children[idx];
+             auto tmp = (Vertex*)current->children[idx];
              if (!tmp) {
                  current->mtx->set_bit_atomic(idx);
-                 tmp = (DummyNode*)current->children[idx];
+                 tmp = (Vertex*)current->children[idx];
                  if (!tmp) {
                      int i = cnt.fetch_add(1);
                      tmp = &(*vertex_table.grow_by(1));
                      tmp->idx = i;
                      tmp->next.store(new WeightedEdgeArray(8));
-                     if (is_mixed_workloads) tmp->next.load()->timestamp = new int[8];
+                     if (global_info.is_mixed_workloads) tmp->next.load()->timestamp = new int[8];
                      current->children[idx] = (uint64_t)tmp;
                  }
                  tmp->node = id;
@@ -126,7 +125,7 @@
      return nullptr;
  }
  
- DummyNode* SORT::RetrieveVertex(NodeID id, bool insert_mode) {
+ Vertex* SORT::RetrieveVertex(NodeID id, bool insert_mode) {
      if (!root) {
         while (mtx.test_and_set()) {}
         if (!root) {
@@ -155,7 +154,7 @@
              }
          }
          else {
-             auto tmp = (DummyNode*)current->children[idx];
+             auto tmp = (Vertex*)current->children[idx];
              if (insert_mode && !tmp) {
                  return InsertVertex(current, id, i);
              }
@@ -170,12 +169,12 @@
  }
  
  bool SORT::DeleteVertex(NodeID id) {
-     DummyNode* tmp = RetrieveVertex(id);
+     Vertex* tmp = RetrieveVertex(id);
      if (tmp == nullptr) {
          return false;
      }
      // Do not delete the vertex directly; defer it to get_neighbor and log compaction.
-     tmp->del_time = global_timestamp;
+     tmp->del_time = global_info.global_timestamp;
      return true;
  }
 

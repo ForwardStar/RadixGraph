@@ -13,12 +13,12 @@ The RadixGraph consists of:
 
 **Initialize RadixGraph:** ``RadixGraph* r = new RadixGraph(d, a)``, where ``d``, ``a`` follow the Trie settings. Upon initializing the RadixGraph, a corresponding SORT is initialized with its corresponding setting.
 
-See APIs with comments from ``src/radixgraph.h`` and ``src/optimized_trie.h``.
+See APIs with comments from ``src/radixgraph.h`` and ``src/optimized_trie.h``. The ``Vertex`` and ``WeightedEdge`` classes are defined in ``src/utils.h``.
 
 SORT API list:
 - ``bool CheckExistence(NodeID id);``
-- ``DummyNode* InsertVertex(SORTNode* current, NodeID id, int d);``
-- ``DummyNode* RetrieveVertex(NodeID id, bool insert_mode=false);``
+- ``Vertex* InsertVertex(SORTNode* current, NodeID id, int d);``
+- ``Vertex* RetrieveVertex(NodeID id, bool insert_mode=false);``
 - ``bool DeleteVertex(NodeID id);``
 - ``void Transform(int d, std::vector<int> _num_bits, std::vector<uint64_t>& vertex_set);``
 
@@ -27,17 +27,17 @@ RadixGraph API list:
 - ``bool UpdateEdge(NodeID src, NodeID des, float weight);``
 - ``bool DeleteEdge(NodeID src, NodeID des);``
 - ``bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
-- ``bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
+- ``bool GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
 - ``bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
 - ``void CreateSnapshots();``
 - ``int GetGlobalTimestamp();``
-- ``void Init(int nth=64, int n=CAP_DUMMY_NODES);``
+- ``void Init(int nth=64, int n=-1);``
 
 To fully exploit the performance of RadixGraph and ensure correctness, do take care of following things that may affect the efficiency and space:
-- **Concurrent workloads:** by default it is disabled. To execute concurrent workloads of RadixGraph, set ``is_mixed_workloads`` of RadixGraph as true (e.g., ``r->is_mixed_workloads = true``) before executing workloads. This will enable MVCC components, like creating timestamps and multi-versioned arrays. The cost is that the memory consumption will be slightly higher and the read operations are slightly slower to ensure consistency;
+- **Concurrent workloads:** by default it is disabled. To execute concurrent workloads of RadixGraph, set ``is_mixed_workloads`` of RadixGraph as true (e.g., ``global_info.is_mixed_workloads = true``) before executing workloads. This will enable MVCC components, like creating timestamps and multi-versioned arrays. The cost is that the memory consumption will be slightly higher and the read operations are slightly slower to ensure consistency;
 - **Transactional graph analytics:** as a graph data structure, RadixGraph currently cannot initiate a transaction by itself; to ensure consistent visible graph snapshot during graph analytics, before executing graph analytics, increase ``threads_analytical`` by 1 in the DummyNode for all vertices and record the current timestamp with ``GetGlobalTimestamp()``. Then run ``GetNeighbours`` with this ``timestamp`` parameter during the graph analytics (by default, it will return the latest version of neighbor edges). When the graph analytics ends, decrease ``threads_analytical`` by 1.
 - **Read-heavy workloads:** if the next workloads are read-heavy, it is suggested to run ``CreateSnapshot()`` of RadixGraph before executing the workload. This will merge all log segments into their snapshot segments and improve read efficiency. This process is exclusive, i.e., reads and writes should be paused during the process;
-- **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64 and accomodated vertices is 5000000; to change this, run ``Init(int nth=64, int n=CAP_DUMMY_NODES)`` function or initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=CAP_DUMMY_NODES)``. The ``Init()`` function is also exclusive.
+- **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64 and accomodated vertices is 5000000; to change this, run ``Init(int nth=64, int n=-1)`` function or initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=-1)``. The ``Init()`` function is also exclusive.
 
 # Compile and run
 We recommend using compiler ``GCC 11.4.0+``. You need to run RadixGraph on Linux platform with openMP and Intel Thread Building Block (TBB). For root users:
@@ -119,7 +119,7 @@ To enable debug mode, set:
 #define DEBUG_MODE true
 ```
 
-in ``src/headers.h`` and recompile. This mode is primary used for recording the overall operation time and log compaction time for each vertex. Each vertex will maintain a struct:
+in ``src/radixgraph.h`` and recompile. This mode is primary used for recording the overall operation time and log compaction time for each vertex. Each vertex will maintain a struct:
 ```cpp
 typedef struct _debug_info {
     NodeID node = -1;

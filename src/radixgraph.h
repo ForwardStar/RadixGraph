@@ -16,16 +16,30 @@
 #ifndef RG
 #define RG
 
-#include "optimized_trie.h"
+#define DEBUG_MODE false
+#define USE_SORT true
+#define USE_ART false
+
+#include "utils.h"
+#if USE_SORT
+    #include "optimized_trie.h"
+#elif USE_ART
+    #include "art.h"
+#endif
 
 class RadixGraph {
     private:
-        bool Insert(DummyNode* src, int des, float weight, int delta_deg);
+        bool Insert(Vertex* src, int des, float weight, int delta_deg);
         WeightedEdgeArray* LogCompaction(WeightedEdgeArray* old_arr, WeightedEdgeArray* new_arr);
     public:
         static thread_local int thread_id_local;
 
-        SORT* vertex_index = nullptr;
+        #if USE_SORT
+            SORT* vertex_index = nullptr;
+        #elif USE_ART
+            ART* vertex_index = nullptr;
+        #endif
+
         AtomicBitmap** bitmap = nullptr;
         bool is_mixed_workloads = false; // set to true when executing reads and writes concurrently
         bool is_sorted = false; // whether the neighbour list of each vertex is sorted
@@ -52,7 +66,7 @@ class RadixGraph {
             timestamp: if reading a snapshot, read the latest snapshot at the timestamp.
         */
         bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);
-        bool GetNeighbours(DummyNode* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);
+        bool GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);
         /*  GetNeighboursByOffset(): get neighbours given a vertex dummy node;
             src: the offset of the source vertex, i.e., the logical ID of the vertex;
             neighbours: neighbour edges of src are stored in this array;
@@ -65,8 +79,8 @@ class RadixGraph {
         void CreateSnapshots(bool sort_neighbours=false);
         // Get the global timestamp and increment it.
         int GetGlobalTimestamp();
-        // Set the number of threads and vertices allowed in the system.
-        void Init(int nth=64, int n=CAP_DUMMY_NODES);
+        // Set the number of threads and maximum number of vertices allowed in the system.
+        void Init(int nth=64, int n=-1);
         // Get debug information of all vertices (only when DEBUG_MODE is true).
         typedef struct _debug_info {
             NodeID node = -1;
@@ -101,9 +115,9 @@ class RadixGraph {
             d: depth of the SORT (vertex index);
             _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
             _num_threads: the number of threads allowed in the system;
-            _num_vertices: the number of vertices allowed in the system.
+            _num_vertices: the maximum number of vertices allowed in the system.
         */ 
-        RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=CAP_DUMMY_NODES);
+        RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=-1);
         ~RadixGraph();
 };
 

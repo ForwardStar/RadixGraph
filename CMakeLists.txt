@@ -41,7 +41,8 @@ add_executable(test_radixgraph
     src/main.cpp
     src/radixgraph.cpp
     src/optimized_trie.cpp
-    src/headers.h
+    src/utils.cpp
+    src/utils.h
     src/radixgraph.h
     src/optimized_trie.h
 )
@@ -49,14 +50,16 @@ add_executable(test_radixgraph
 add_executable(test_trie
     src/test_trie.cpp
     src/optimized_trie.cpp
-    src/headers.h
+    src/utils.cpp
+    src/utils.h
     src/optimized_trie.h
 )
 
 add_executable(test_transform
     src/test_transform.cpp
     src/optimized_trie.cpp
-    src/headers.h
+    src/utils.cpp
+    src/utils.h
     src/optimized_trie.h
 )
 
@@ -64,7 +67,8 @@ add_executable(test_gapbs
     src/test_gapbs.cpp
     src/radixgraph.cpp
     src/optimized_trie.cpp
-    src/headers.h
+    src/utils.cpp
+    src/utils.h
     src/GAPBS/bfs.cc
     src/GAPBS/sssp.cc
     src/GAPBS/tc.cc
@@ -87,7 +91,8 @@ add_executable(test_workload
     src/test_workload.cpp
     src/radixgraph.cpp
     src/optimized_trie.cpp
-    src/headers.h
+    src/utils.cpp
+    src/utils.h
     src/radixgraph.h
     src/optimized_trie.h
 )
