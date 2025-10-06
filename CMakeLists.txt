@@ -1,19 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 project(ForwardStar)
 
-# Enable optimization
+# ---------------------------
+# Basic C++ setup
+# ---------------------------
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-
-# Set C++ standard to C++20
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Find pthreads
+# ---------------------------
+# Find libraries
+# ---------------------------
 find_package(Threads REQUIRED)
-
-find_package(TBB REQUIRED)  # Find TBB
-
-# Enable OpenMP
+find_package(TBB REQUIRED)
 find_package(OpenMP REQUIRED)
 if(OPENMP_FOUND)
     message("OpenMP found")
@@ -21,24 +20,30 @@ if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-add_library(RG STATIC src/GAPBS/bfs.cc 
-            src/GAPBS/bitmap.h 
-            src/GAPBS/benchmark.h
-            src/GAPBS/cc_sv.cc
-            src/GAPBS/platform_atomics.h
-            src/GAPBS/pr_spmv.cc
-            src/GAPBS/pvector.h
-            src/GAPBS/sliding_queue.h
-            src/GAPBS/sssp.cc
-            src/GAPBS/tc.cc
-            src/GAPBS/bfs.cc
-            src/GAPBS/bc.cc
-            src/radixgraph.cpp 
-            src/optimized_trie.cpp
-            src/utils.cpp
+# ---------------------------
+# Add your RG library
+# ---------------------------
+add_library(RG STATIC
+    src/GAPBS/bfs.cc 
+    src/GAPBS/bitmap.h 
+    src/GAPBS/benchmark.h
+    src/GAPBS/cc_sv.cc
+    src/GAPBS/platform_atomics.h
+    src/GAPBS/pr_spmv.cc
+    src/GAPBS/pvector.h
+    src/GAPBS/sliding_queue.h
+    src/GAPBS/sssp.cc
+    src/GAPBS/tc.cc
+    src/GAPBS/bfs.cc
+    src/GAPBS/bc.cc
+    src/radixgraph.cpp 
+    src/optimized_trie.cpp
+    src/utils.cpp
 )
 
-# Add executable for your main program
+# ---------------------------
+# Add your executables
+# ---------------------------
 add_executable(test_radixgraph
     src/main.cpp
     src/radixgraph.cpp
@@ -99,9 +104,45 @@ add_executable(test_workload
     src/optimized_trie.h
 )
 
+# ---------------------------
 # Link libraries
-target_link_libraries(test_radixgraph PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_trie PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_transform PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_gapbs PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
-target_link_libraries(test_workload PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb)
+# ---------------------------
+foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload)
+    target_link_libraries(${target} PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb RG)
+endforeach()
+
+# ---------------------------
+# Optional: UnoDB integration
+# ---------------------------
+set(UNODB_PATH "${CMAKE_SOURCE_DIR}/unodb")
+if(EXISTS "${UNODB_PATH}/CMakeLists.txt")
+    message(STATUS "UnoDB detected at ${UNODB_PATH}")
+
+    # Configure UnoDB
+    set(SPINLOCK_LOOP "PAUSE" CACHE STRING "Spinlock loop type")
+    set(UNODB_BUILD_TESTS OFF CACHE BOOL "Disable tests")
+    set(UNODB_BUILD_STATS OFF CACHE BOOL "Disable stats")
+
+    # Add UnoDB subdirectory
+    add_subdirectory(${UNODB_PATH})
+
+    # Include UnoDB headers
+    target_include_directories(RG PRIVATE ${UNODB_PATH})
+    foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload)
+        target_include_directories(${target} PRIVATE ${UNODB_PATH})
+        target_link_libraries(${target} PRIVATE unodb)
+    endforeach()
+
+    # Add ART source to RG only when UnoDB is available
+    target_sources(RG PRIVATE src/art.cpp)
+
+    # Enable SIMD flags for your CPU
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(RG PRIVATE -march=native -O3)
+        foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload)
+            target_compile_options(${target} PRIVATE -march=native -O3)
+        endforeach()
+    endif()
+else()
+    message(STATUS "UnoDB not found — building without UnoDB")
+endif()

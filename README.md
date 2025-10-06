@@ -135,5 +135,27 @@ std::vector<DebugInfo> GetDebugInfo();
 
 Note: debug mode seriously affects the efficiency. The time consumption may be much larger so please disable it unless you are benchmarking.
 
+# Use ART as the vertex index
+If you do not want to use SORT as the vertex index, you can use RadixGraph with the adaptive radix tree implemented by [unodb](https://github.com/laurynas-biveinis/unodb?tab=readme-ov-file). Clone the project into the folder of RadixGraph:
+```sh
+git clone https://github.com/laurynas-biveinis/unodb.git
+cd unodb
+git submodule update --init --recursive
+cd ..
+```
+
+Then reconfigure RadixGraph with the CMake:
+```sh
+cmake . --fresh -DSTATS=OFF
+```
+
+and set in ``radixgraph.h``:
+```cpp
+#define USE_SORT false
+#define USE_ART true
+```
+
+Recompile and RadixGraph automatically uses ART as its vertex index.
+
 # License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.

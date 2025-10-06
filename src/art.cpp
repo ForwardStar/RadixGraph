@@ -7,6 +7,17 @@ constexpr std::string_view test_value = "test";
   return {reinterpret_cast<const std::byte *>(sv.data()), sv.length()};
 }
 
+// Funtion to convert std::optional<value_view> to Vertex*
+Vertex* optional_value_view_to_vertex_ptr(const std::optional<unodb::value_view>& opt) {
+    if (opt.has_value()) {
+        const unodb::value_view& vv = opt.value();
+        if (vv.size() == sizeof(Vertex)) {
+            return reinterpret_cast<Vertex*>(const_cast<std::byte*>(vv.data()));
+        }
+    }
+    return nullptr;
+}
+
 void ART::InsertSimpleVertex(NodeID id) {
     tree.insert(id, from_string_view(test_value));
 }
@@ -19,9 +30,7 @@ bool ART::CheckExistence(NodeID id) {
 Vertex* ART::RetrieveVertex(NodeID id, bool insert_mode) {
     auto result = tree.get(id);
     if (result.has_value()) {
-        // Convert std::optional<value_view> to Vertex*
-        // return (Vertex*)result->data();
-        
+        return optional_value_view_to_vertex_ptr(result);
     } else if (insert_mode) {
         // Grow vertex table and insert to ART
         int i = cnt.fetch_add(1);
@@ -31,7 +40,7 @@ Vertex* ART::RetrieveVertex(NodeID id, bool insert_mode) {
         auto insert_result = tree.insert(id, unodb::value_view{(const std::byte*)v, sizeof(Vertex)});
         if (!insert_result) {
             // Another thread has inserted the vertex
-            // return (Vertex*)tree.get(id).data();
+            return optional_value_view_to_vertex_ptr(tree.get(id));
         } else {
             return v;
         }
