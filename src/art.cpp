@@ -34,15 +34,17 @@ Vertex* ART::RetrieveVertex(NodeID id, bool insert_mode) {
     } else if (insert_mode) {
         // Grow vertex table and insert to ART
         int i = cnt.fetch_add(1);
-        Vertex* v = &(*vertex_table.grow_by(1));
-        v->node = id;
-        v->idx = i;
-        auto insert_result = tree.insert(id, unodb::value_view{(const std::byte*)v, sizeof(Vertex)});
+        auto tmp = &(*vertex_table.grow_by(1));
+        tmp->node = id;
+        tmp->idx = i;
+        tmp->next.store(new WeightedEdgeArray(8));
+        if (global_info.is_mixed_workloads) tmp->next.load()->timestamp = new int[8];
+        auto insert_result = tree.insert(id, unodb::value_view{(const std::byte*)tmp, sizeof(Vertex)});
         if (!insert_result) {
             // Another thread has inserted the vertex
             return optional_value_view_to_vertex_ptr(tree.get(id));
         } else {
-            return v;
+            return tmp;
         }
     } else {
         return nullptr;
