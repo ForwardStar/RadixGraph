@@ -121,11 +121,11 @@ To enable debug mode, set:
 
 in ``src/radixgraph.h`` and recompile. This mode is primary used for recording the overall operation time and log compaction time for each vertex. Each vertex will maintain a struct:
 ```cpp
-typedef struct _debug_info {
+struct DebugInfo {
     NodeID node = -1;
     int deg = 0;
     double t_total = 0, t_compact = 0;
-} DebugInfo;
+};
 ```
 
 You can retrieve the information for all vertices by:

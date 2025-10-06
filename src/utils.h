@@ -38,11 +38,11 @@
 
 typedef uint32_t NodeID;
 
-typedef struct _global_info {
+struct GlobalInfo {
     std::atomic<int> global_timestamp = 0;
     bool is_mixed_workloads = false;
     int cap_dummy_nodes = 50000000;
-} GlobalInfo;
+};
 
 extern GlobalInfo global_info;
 
@@ -89,18 +89,15 @@ class AtomicBitmap {
   static size_t bit_offset(size_t n) { return n & (kBitsPerWord - 1); }
 };
 
-typedef struct _weighted_edge;
-typedef struct _dummy_node;
-
 /* WeightedEdge:
    - Represents a directed weighted edge;
    - e.weight: when it is 0, this edge is a delete log; otherwise it represents the weight of the edge;
    - e.idx: the offset (logical ID) of destination's vertex; vertex_table[e.idx] returns the DummyNode of the vertex.
 */
-typedef struct _weighted_edge {
+struct WeightedEdge {
     float weight = 0;
     int idx = -1; 
-} WeightedEdge;
+};
 
 /* WeightedEdgeArray: multi-versioned edge array
     - size: the number of edges in this array;
@@ -151,7 +148,7 @@ class WeightedEdgeArray {
    - t_total, t_compact: timers for measuring the time (unit: s) of total operations and log compaction operations (only used for benchmarking and debugging);
    Note that we do not store ``Size`` since it can be retrieved by next->size; N.idx is stored for practical implementation but can be removed.
 */
-typedef struct _vertex {
+struct Vertex {
     NodeID node = -1;
     int idx = -1, del_time = -1;
     std::atomic_flag mtx;
@@ -159,14 +156,14 @@ typedef struct _vertex {
     #if DEBUG_MODE
       std::atomic<double> t_total, t_compact;
     #endif
-    ~_vertex() {
+    ~Vertex() {
       delete next.load();
     }
-} Vertex;
+};
 
-typedef struct _simple_vertex {
+struct SimpleVertex {
     NodeID node = -1;
     std::atomic<WeightedEdgeArray*> next;
-} SimpleVertex;
+};
 
 #endif

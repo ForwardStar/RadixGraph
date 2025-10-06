@@ -34,7 +34,9 @@ add_library(RG STATIC src/GAPBS/bfs.cc
             src/GAPBS/bfs.cc
             src/GAPBS/bc.cc
             src/radixgraph.cpp 
-            src/optimized_trie.cpp)
+            src/optimized_trie.cpp
+            src/utils.cpp
+)
 
 # Add executable for your main program
 add_executable(test_radixgraph

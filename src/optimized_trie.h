@@ -20,15 +20,15 @@
 
 class SORT {
     public:
-        typedef struct _sort_node {
+        struct SORTNode {
             uint64_t* children = nullptr;
             AtomicBitmap* mtx = nullptr;
 
-            ~_sort_node() {
+            ~SORTNode() {
               if (mtx) delete mtx;
               if (children) delete [] children;
             }
-        } SORTNode;
+        };
 
         SORTNode* root = nullptr;
         tbb::concurrent_vector<Vertex> vertex_table;

@@ -82,11 +82,11 @@ class RadixGraph {
         // Set the number of threads and maximum number of vertices allowed in the system.
         void Init(int nth=64, int n=-1);
         // Get debug information of all vertices (only when DEBUG_MODE is true).
-        typedef struct _debug_info {
+        struct DebugInfo {
             NodeID node = -1;
             int deg = 0;
             double t_total = 0, t_compact = 0;
-        } DebugInfo;
+        };
         std::vector<DebugInfo> GetDebugInfo() {
             #if DEBUG_MODE
                 int n = vertex_index->cnt.load();

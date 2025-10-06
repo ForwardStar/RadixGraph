@@ -373,7 +373,11 @@ RadixGraph::RadixGraph(int d, std::vector<int> _num_children, int _num_threads, 
     num_threads = _num_threads;
     bitmap = new AtomicBitmap*[num_threads];
     for (int i = 0; i < num_threads; i++) bitmap[i] = new AtomicBitmap(_num_vertices), bitmap[i]->reset();
-    vertex_index = new SORT(d, _num_children);
+    #if USE_SORT
+        vertex_index = new SORT(d, _num_children);
+    #elif USE_ART
+        vertex_index = new ART();
+    #endif
 }
 
 RadixGraph::~RadixGraph() {
