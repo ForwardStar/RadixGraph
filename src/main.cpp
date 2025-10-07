@@ -248,15 +248,11 @@ int main(int argc, char* argv[]) {
                     auto res_fstar = G_fstar.BFS(vertex_ids[0]);
                 #elif USE_ART
                     unodb::this_thread().qsbr_pause();
-                    unodb::this_thread().qsbr_pause();
                     unodb::qsbr_thread bfs_thread = unodb::qsbr_thread([&]() {
                         G_fstar.thread_id_local = 0;
                         auto res_fstar = G_fstar.BFS(vertex_ids[0]);
                     });
                     bfs_thread.join();
-                    unodb::this_thread().qsbr_resume();
-                    unodb::this_thread().quiescent();
-                    unodb::this_thread().quiescent();
                     unodb::this_thread().qsbr_resume();
                     unodb::this_thread().quiescent();
                     unodb::this_thread().quiescent();
