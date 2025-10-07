@@ -19,15 +19,18 @@ Vertex* optional_value_view_to_vertex_ptr(const std::optional<unodb::value_view>
 }
 
 void ART::InsertSimpleVertex(NodeID id) {
+    unodb::quiescent_state_on_scope_exit qstate_on_exit{};
     tree.insert(id, from_string_view(test_value));
 }
 
 bool ART::CheckExistence(NodeID id) {
+    unodb::quiescent_state_on_scope_exit qstate_on_exit{};
     auto result = tree.get(id);
     return result.has_value();
 }
 
 Vertex* ART::RetrieveVertex(NodeID id, bool insert_mode) {
+    unodb::quiescent_state_on_scope_exit qstate_on_exit{};
     auto result = tree.get(id);
     if (result.has_value()) {
         return optional_value_view_to_vertex_ptr(result);
@@ -52,6 +55,7 @@ Vertex* ART::RetrieveVertex(NodeID id, bool insert_mode) {
 }
 
 bool ART::DeleteVertex(NodeID id) {
+    unodb::quiescent_state_on_scope_exit qstate_on_exit{};
     Vertex* tmp = RetrieveVertex(id);
     if (tmp == nullptr) {
         return false;

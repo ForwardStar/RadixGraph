@@ -274,33 +274,73 @@ void RadixGraph::CreateSnapshots(bool sort_neighbours) {
     // Should be executed when no updates are performed
     if (is_mixed_workloads) return;
     int n = vertex_index->cnt.load();
-    #pragma omp parallel for num_threads(num_threads)
-    for (int i = 0; i < n; i++) {
-        auto src = &vertex_index->vertex_table[i];
-        auto next = src->next.load();
-        auto deg = next->deg.load();
-        deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
-        auto new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
-        new_array = LogCompaction(next, new_array);
-        new_array->prev_arr = next;
-        next->next_arr = new_array;
-        src->next.store(new_array);
-        if (sort_neighbours && new_array->physical_size.load() > 1) {
-            std::sort(new_array->edge, new_array->edge + new_array->physical_size.load(), [](const WeightedEdge &a, const WeightedEdge &b) {
-                return a.idx < b.idx;
-            });
-        }
-        if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
-            if (next->edge) delete [] next->edge, next->edge = nullptr; // Do not delete next pointer to avoid concurrency issue
-            if (next->timestamp) delete [] next->timestamp, next->timestamp = nullptr;
-            if (next->prev_arr) {
-                auto tmp = next->prev_arr;
-                if (tmp->threads_analytical.load() == 0 && tmp->threads_get_neighbor.load() == 0) {
-                    delete tmp; // But you can delete the previous version (snapshot) safely
+    #if USE_SORT
+        #pragma omp parallel for num_threads(num_threads)
+        for (int i = 0; i < n; i++) {
+            auto src = &vertex_index->vertex_table[i];
+            auto next = src->next.load();
+            auto deg = next->deg.load();
+            deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
+            auto new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
+            new_array = LogCompaction(next, new_array);
+            new_array->prev_arr = next;
+            next->next_arr = new_array;
+            src->next.store(new_array);
+            if (sort_neighbours && new_array->physical_size.load() > 1) {
+                std::sort(new_array->edge, new_array->edge + new_array->physical_size.load(), [](const WeightedEdge &a, const WeightedEdge &b) {
+                    return a.idx < b.idx;
+                });
+            }
+            if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
+                if (next->edge) delete [] next->edge, next->edge = nullptr; // Do not delete next pointer to avoid concurrency issue
+                if (next->timestamp) delete [] next->timestamp, next->timestamp = nullptr;
+                if (next->prev_arr) {
+                    auto tmp = next->prev_arr;
+                    if (tmp->threads_analytical.load() == 0 && tmp->threads_get_neighbor.load() == 0) {
+                        delete tmp; // But you can delete the previous version (snapshot) safely
+                    }
                 }
             }
         }
-    }
+    #elif USE_ART
+        unodb::this_thread().qsbr_pause();
+        std::vector<unodb::qsbr_thread> threads(num_threads);
+        for (int i = 0; i < num_threads; i++) {
+            threads[i] = unodb::qsbr_thread([&, i]() {
+                for (int j = i; j < n; j += num_threads) {
+                    auto src = &vertex_index->vertex_table[j];
+                    auto next = src->next.load();
+                    auto deg = next->deg.load();
+                    deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
+                    auto new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
+                    new_array = LogCompaction(next, new_array);
+                    new_array->prev_arr = next;
+                    next->next_arr = new_array;
+                    src->next.store(new_array);
+                    if (sort_neighbours && new_array->physical_size.load() > 1) {
+                        std::sort(new_array->edge, new_array->edge + new_array->physical_size.load(), [](const WeightedEdge &a, const WeightedEdge &b) {
+                            return a.idx < b.idx;
+                        });
+                    }
+                    if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
+                        if (next->edge) delete [] next->edge, next->edge = nullptr; // Do not delete next pointer to avoid concurrency issue
+                        if (next->timestamp) delete [] next->timestamp, next->timestamp = nullptr;
+                        if (next->prev_arr) {
+                            auto tmp = next->prev_arr;
+                            if (tmp->threads_analytical.load() == 0 && tmp->threads_get_neighbor.load() == 0) {
+                                delete tmp; // But you can delete the previous version (snapshot) safely
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        for (int i = 0; i < num_threads; i++) threads[i].join();
+        unodb::this_thread().qsbr_resume();
+        unodb::this_thread().quiescent();
+        unodb::this_thread().quiescent();
+    #endif
+
     is_sorted = sort_neighbours;
 }
 

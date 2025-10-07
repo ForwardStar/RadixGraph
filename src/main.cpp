@@ -54,6 +54,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < num_trials; i++) {
             // std::cout << "Trial " << i + 1 << ":" << std::endl;
             RadixGraph G_fstar(d[now], a[now]);
+            G_fstar.Init(num_threads, n);
             std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
 
             // Insert edges
@@ -79,10 +80,28 @@ int main(int argc, char* argv[]) {
                 }
 
                 auto start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for num_threads(num_threads)
-                for (auto e : edges) {
-                    G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
-                }
+                #if USE_SORT
+                    #pragma omp parallel for num_threads(num_threads)
+                    for (auto e : edges) {
+                        G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
+                    }
+                #elif USE_ART
+                    unodb::this_thread().qsbr_pause();
+                    std::vector<unodb::qsbr_thread> threads(num_threads);
+                    for (int i = 0; i < num_threads; i++) {
+                        threads[i] = unodb::qsbr_thread([&, i]() {
+                            for (int j = i; j < edges.size(); j += num_threads) {
+                                G_fstar.InsertEdge(edges[j].first.first, edges[j].first.second, edges[j].second);
+                            }
+                        });
+                    }
+                    for (int i = 0; i < num_threads; i++) {
+                        threads[i].join();
+                    }
+                    unodb::this_thread().qsbr_resume();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().quiescent();
+                #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_insert_edge_fstar += duration.count();
@@ -99,10 +118,28 @@ int main(int argc, char* argv[]) {
                 }
 
                 auto start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for num_threads(num_threads)
-                for (auto e : edges_update) {
-                    G_fstar.UpdateEdge(e.first.first, e.first.second, e.second);
-                }
+                #if USE_SORT
+                    #pragma omp parallel for num_threads(num_threads)
+                    for (auto e : edges_update) {
+                        G_fstar.UpdateEdge(e.first.first, e.first.second, e.second);
+                    }
+                #elif USE_ART
+                    unodb::this_thread().qsbr_pause();
+                    std::vector<unodb::qsbr_thread> threads(num_threads);
+                    for (int i = 0; i < num_threads; i++) {
+                        threads[i] = unodb::qsbr_thread([&, i]() {
+                            for (int j = i; j < edges_update.size(); j += num_threads) {
+                                G_fstar.UpdateEdge(edges_update[j].first.first, edges_update[j].first.second, edges_update[j].second);
+                            }
+                        });
+                    }
+                    for (int i = 0; i < num_threads; i++) {
+                        threads[i].join();
+                    }
+                    unodb::this_thread().qsbr_resume();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().quiescent();
+                #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_update_edge_fstar += duration.count();
@@ -125,10 +162,28 @@ int main(int argc, char* argv[]) {
                 }
 
                 auto start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for num_threads(num_threads)
-                for (auto e : edges_delete) {
-                    G_fstar.DeleteEdge(e.first.first, e.first.second);
-                }
+                #if USE_SORT
+                    #pragma omp parallel for num_threads(num_threads)
+                    for (auto e : edges_delete) {
+                        G_fstar.DeleteEdge(e.first.first, e.first.second);
+                    }
+                #elif USE_ART
+                    unodb::this_thread().qsbr_pause();
+                    std::vector<unodb::qsbr_thread> threads(num_threads);
+                    for (int i = 0; i < num_threads; i++) {
+                        threads[i] = unodb::qsbr_thread([&, i]() {
+                            for (int j = i; j < edges_delete.size(); j += num_threads) {
+                                G_fstar.DeleteEdge(edges_delete[j].first.first, edges_delete[j].first.second);
+                            }
+                        });
+                    }
+                    for (int i = 0; i < num_threads; i++) {
+                        threads[i].join();
+                    }
+                    unodb::this_thread().qsbr_resume();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().quiescent();
+                #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_delete_edge_fstar += duration.count();
@@ -140,11 +195,27 @@ int main(int argc, char* argv[]) {
             {
                 G_fstar.CreateSnapshots();
                 auto start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for num_threads(num_threads)
-                for (int j = 0; j < n; j++) {
-                    std::vector<WeightedEdge> neighbours;
-                    G_fstar.GetNeighbours(vertex_ids[j], neighbours);
-                }
+                #if USE_SORT
+                    #pragma omp parallel for num_threads(num_threads)
+                    for (int j = 0; j < n; j++) {
+                        std::vector<WeightedEdge> neighbours;
+                        G_fstar.GetNeighbours(vertex_ids[j], neighbours);
+                    }
+                #elif USE_ART
+                    unodb::this_thread().qsbr_pause();
+                    std::vector<unodb::qsbr_thread> threads(num_threads);
+                    for (int i = 0; i < num_threads; i++) {
+                        threads[i] = unodb::qsbr_thread([&, i]() {
+                            for (int j = i; j < n; j += num_threads) {
+                                std::vector<WeightedEdge> neighbours;
+                                G_fstar.GetNeighbours(vertex_ids[j], neighbours);
+                            }
+                        });
+                    }
+                    for (int i = 0; i < num_threads; i++) {
+                        threads[i].join();
+                    }
+                #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
                 duration_get_neighbours_fstar += duration.count();
