@@ -155,7 +155,7 @@ and set in ``radixgraph.h``:
 #define USE_ART true
 ```
 
-Recompile and RadixGraph automatically uses ART as its vertex index. Note: we do not suggest using ART, as it has its own thread management scheme (``Optimistic Lock Coupling (OLC)`` with ``Quiescent State Based Reclamation (QSBR)``), while RadixGraph is mainly designed for ``openMP`` and ``std::thread``. We do not guarantee concurrency correctness when using ART.
+Recompile and RadixGraph automatically uses ART as its vertex index. Note: we do not suggest using ART, as it has its own thread management scheme (``Optimistic Lock Coupling (OLC)`` with ``Quiescent State Based Reclamation (QSBR)``), while RadixGraph is mainly designed for ``openMP`` and ``std::thread``. Although we currently did not find problems with the ART integration, we do not guarantee full concurrency correctness when using ART.
 
 # License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
