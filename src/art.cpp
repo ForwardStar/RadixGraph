@@ -36,6 +36,13 @@ Vertex* ART::RetrieveVertex(NodeID id, bool insert_mode) {
         return optional_value_view_to_vertex_ptr(result);
     } else if (insert_mode) {
         // Grow vertex table and insert to ART
+        mtx.lock();
+        result = tree.get(id);
+        if (result.has_value()) {
+            mtx.unlock();
+            return optional_value_view_to_vertex_ptr(result);
+        }
+        // Insert new vertex
         int i = cnt.fetch_add(1);
         auto tmp = &(*vertex_table.grow_by(1));
         tmp->node = id;
@@ -43,12 +50,8 @@ Vertex* ART::RetrieveVertex(NodeID id, bool insert_mode) {
         tmp->next.store(new WeightedEdgeArray(8));
         if (global_info.is_mixed_workloads) tmp->next.load()->timestamp = new int[8];
         auto insert_result = tree.insert(id, unodb::value_view{(const std::byte*)tmp, sizeof(Vertex)});
-        if (!insert_result) {
-            // Another thread has inserted the vertex
-            return optional_value_view_to_vertex_ptr(tree.get(id));
-        } else {
-            return tmp;
-        }
+        mtx.unlock();
+        return tmp;
     } else {
         return nullptr;
     }

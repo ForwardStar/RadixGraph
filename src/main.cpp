@@ -90,6 +90,7 @@ int main(int argc, char* argv[]) {
                     std::vector<unodb::qsbr_thread> threads(num_threads);
                     for (int i = 0; i < num_threads; i++) {
                         threads[i] = unodb::qsbr_thread([&, i]() {
+                            G_fstar.thread_id_local = i;
                             for (int j = i; j < edges.size(); j += num_threads) {
                                 G_fstar.InsertEdge(edges[j].first.first, edges[j].first.second, edges[j].second);
                             }
@@ -128,6 +129,7 @@ int main(int argc, char* argv[]) {
                     std::vector<unodb::qsbr_thread> threads(num_threads);
                     for (int i = 0; i < num_threads; i++) {
                         threads[i] = unodb::qsbr_thread([&, i]() {
+                            G_fstar.thread_id_local = i;
                             for (int j = i; j < edges_update.size(); j += num_threads) {
                                 G_fstar.UpdateEdge(edges_update[j].first.first, edges_update[j].first.second, edges_update[j].second);
                             }
@@ -172,6 +174,7 @@ int main(int argc, char* argv[]) {
                     std::vector<unodb::qsbr_thread> threads(num_threads);
                     for (int i = 0; i < num_threads; i++) {
                         threads[i] = unodb::qsbr_thread([&, i]() {
+                            G_fstar.thread_id_local = i;
                             for (int j = i; j < edges_delete.size(); j += num_threads) {
                                 G_fstar.DeleteEdge(edges_delete[j].first.first, edges_delete[j].first.second);
                             }
@@ -193,7 +196,18 @@ int main(int argc, char* argv[]) {
 
             // Get neighbours
             {
-                G_fstar.CreateSnapshots();
+                #if USE_SORT
+                    G_fstar.CreateSnapshots();
+                #elif USE_ART
+                    unodb::this_thread().qsbr_pause();
+                    unodb::qsbr_thread build_thread = unodb::qsbr_thread([&]() {
+                        G_fstar.CreateSnapshots();
+                    });
+                    build_thread.join();
+                    unodb::this_thread().qsbr_resume();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().quiescent();
+                #endif
                 auto start = std::chrono::high_resolution_clock::now();
                 #if USE_SORT
                     #pragma omp parallel for num_threads(num_threads)
@@ -206,6 +220,7 @@ int main(int argc, char* argv[]) {
                     std::vector<unodb::qsbr_thread> threads(num_threads);
                     for (int i = 0; i < num_threads; i++) {
                         threads[i] = unodb::qsbr_thread([&, i]() {
+                            G_fstar.thread_id_local = i;
                             for (int j = i; j < n; j += num_threads) {
                                 std::vector<WeightedEdge> neighbours;
                                 G_fstar.GetNeighbours(vertex_ids[j], neighbours);

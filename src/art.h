@@ -18,6 +18,7 @@
 
 #include "utils.h"
 #include <string_view>
+#include <mutex>
 
 #define UNODB_SPINLOCK_LOOP_VALUE 1
 
@@ -32,7 +33,8 @@ class ART {
         Db tree;
         tbb::concurrent_vector<Vertex> vertex_table;
         std::atomic<int> cnt;
-
+        std::mutex mtx;
+        
         /*  InsertSimpleVertex(): insert a simple vertex into ART (only useful for benchmarking and testing);
             id: the vertex ID to be inserted. */
         void InsertSimpleVertex(NodeID id);
