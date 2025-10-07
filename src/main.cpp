@@ -199,14 +199,14 @@ int main(int argc, char* argv[]) {
                 #if USE_SORT
                     G_fstar.CreateSnapshots();
                 #elif USE_ART
-                    // unodb::this_thread().qsbr_pause();
-                    // unodb::qsbr_thread build_thread = unodb::qsbr_thread([&]() {
-                    //     G_fstar.CreateSnapshots();
-                    // });
-                    // build_thread.join();
-                    // unodb::this_thread().qsbr_resume();
-                    // unodb::this_thread().quiescent();
-                    // unodb::this_thread().quiescent();
+                    unodb::this_thread().qsbr_pause();
+                    unodb::qsbr_thread build_thread = unodb::qsbr_thread([&]() {
+                        G_fstar.CreateSnapshots();
+                    });
+                    build_thread.join();
+                    unodb::this_thread().qsbr_resume();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().quiescent();
                 #endif
                 auto start = std::chrono::high_resolution_clock::now();
                 #if USE_SORT
@@ -230,6 +230,9 @@ int main(int argc, char* argv[]) {
                     for (int i = 0; i < num_threads; i++) {
                         threads[i].join();
                     }
+                    unodb::this_thread().qsbr_resume();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().quiescent();
                 #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
@@ -244,15 +247,19 @@ int main(int argc, char* argv[]) {
                 #if USE_SORT
                     auto res_fstar = G_fstar.BFS(vertex_ids[0]);
                 #elif USE_ART
-                    // unodb::this_thread().qsbr_pause();
-                    // unodb::qsbr_thread bfs_thread = unodb::qsbr_thread([&]() {
-                    //     G_fstar.thread_id_local = 0;
-                    //     auto res_fstar = G_fstar.BFS(vertex_ids[0]);
-                    // });
-                    // bfs_thread.join();
-                    // unodb::this_thread().qsbr_resume();
-                    // unodb::this_thread().quiescent();
-                    // unodb::this_thread().quiescent();
+                    unodb::this_thread().qsbr_pause();
+                    unodb::this_thread().qsbr_pause();
+                    unodb::qsbr_thread bfs_thread = unodb::qsbr_thread([&]() {
+                        G_fstar.thread_id_local = 0;
+                        auto res_fstar = G_fstar.BFS(vertex_ids[0]);
+                    });
+                    bfs_thread.join();
+                    unodb::this_thread().qsbr_resume();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().qsbr_resume();
+                    unodb::this_thread().quiescent();
+                    unodb::this_thread().quiescent();
                 #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
