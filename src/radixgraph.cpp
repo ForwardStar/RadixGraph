@@ -376,6 +376,8 @@ RadixGraph::RadixGraph(int d, std::vector<int> _num_children, int _num_threads, 
         vertex_index = new SORT(d, _num_children);
     #elif USE_ART
         vertex_index = new ART();
+    #else
+        vertex_index = new VertexArray(_num_vertices);
     #endif
 }
 

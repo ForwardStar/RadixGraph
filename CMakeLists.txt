@@ -39,6 +39,7 @@ add_library(RG STATIC
     src/radixgraph.cpp 
     src/optimized_trie.cpp
     src/utils.cpp
+    src/vertex_array.cpp
 )
 
 # ---------------------------
@@ -49,9 +50,11 @@ add_executable(test_radixgraph
     src/radixgraph.cpp
     src/optimized_trie.cpp
     src/utils.cpp
+    src/vertex_array.cpp
     src/utils.h
     src/radixgraph.h
     src/optimized_trie.h
+    src/vertex_array.h
 )
 
 add_executable(test_trie
@@ -74,8 +77,10 @@ add_executable(test_gapbs
     src/test_gapbs.cpp
     src/radixgraph.cpp
     src/optimized_trie.cpp
+    src/vertex_array.cpp
     src/utils.cpp
     src/utils.h
+    src/vertex_array.h
     src/GAPBS/bfs.cc
     src/GAPBS/sssp.cc
     src/GAPBS/tc.cc

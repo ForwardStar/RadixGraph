@@ -102,6 +102,11 @@ int main(int argc, char* argv[]) {
                     unodb::this_thread().qsbr_resume();
                     unodb::this_thread().quiescent();
                     unodb::this_thread().quiescent();
+                #else
+                    #pragma omp parallel for num_threads(num_threads)
+                    for (auto e : edges) {
+                        G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
+                    }
                 #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
@@ -141,6 +146,11 @@ int main(int argc, char* argv[]) {
                     unodb::this_thread().qsbr_resume();
                     unodb::this_thread().quiescent();
                     unodb::this_thread().quiescent();
+                #else
+                    #pragma omp parallel for num_threads(num_threads)
+                    for (auto e : edges) {
+                        G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
+                    }
                 #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
@@ -186,6 +196,11 @@ int main(int argc, char* argv[]) {
                     unodb::this_thread().qsbr_resume();
                     unodb::this_thread().quiescent();
                     unodb::this_thread().quiescent();
+                #else
+                    #pragma omp parallel for num_threads(num_threads)
+                    for (auto e : edges) {
+                        G_fstar.InsertEdge(e.first.first, e.first.second, e.second);
+                    }
                 #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
@@ -207,6 +222,8 @@ int main(int argc, char* argv[]) {
                     unodb::this_thread().qsbr_resume();
                     unodb::this_thread().quiescent();
                     unodb::this_thread().quiescent();
+                #else
+                    G_fstar.CreateSnapshots();
                 #endif
                 auto start = std::chrono::high_resolution_clock::now();
                 #if USE_SORT
@@ -233,6 +250,12 @@ int main(int argc, char* argv[]) {
                     unodb::this_thread().qsbr_resume();
                     unodb::this_thread().quiescent();
                     unodb::this_thread().quiescent();
+                #else
+                    #pragma omp parallel for num_threads(num_threads)
+                    for (int j = 0; j < n; j++) {
+                        std::vector<WeightedEdge> neighbours;
+                        G_fstar.GetNeighbours(vertex_ids[j], neighbours);
+                    }
                 #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;
@@ -256,6 +279,8 @@ int main(int argc, char* argv[]) {
                     unodb::this_thread().qsbr_resume();
                     unodb::this_thread().quiescent();
                     unodb::this_thread().quiescent();
+                #else
+                    auto res_fstar = G_fstar.BFS(vertex_ids[0]);
                 #endif
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double> duration = end - start;

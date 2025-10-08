@@ -16,15 +16,17 @@
 #ifndef RG
 #define RG
 
-#define DEBUG_MODE false
-#define USE_SORT true
-#define USE_ART false
+#define DEBUG_MODE 0
+#define USE_SORT 1
+#define USE_ART 0
 
 #include "utils.h"
 #if USE_SORT
     #include "optimized_trie.h"
 #elif USE_ART
     #include "art.h"
+#else
+    #include "vertex_array.h"
 #endif
 
 class RadixGraph {
@@ -38,6 +40,8 @@ class RadixGraph {
             SORT* vertex_index = nullptr;
         #elif USE_ART
             ART* vertex_index = nullptr;
+        #else
+            VertexArray* vertex_index = nullptr;
         #endif
 
         AtomicBitmap** bitmap = nullptr;
@@ -116,8 +120,10 @@ class RadixGraph {
             _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
             _num_threads: the number of threads allowed in the system;
             _num_vertices: the maximum number of vertices allowed in the system.
+            -----------------------------------------------------------------------------------------------------------------------
+            If you are using ART or vertex array instead of SORT, you can leave the parameters empty to call RadixGraph() directly.
         */ 
-        RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=-1);
+        RadixGraph(int d=1, std::vector<int> _num_children={25}, int _num_threads=64, int _num_vertices=-1);
         ~RadixGraph();
 };
 

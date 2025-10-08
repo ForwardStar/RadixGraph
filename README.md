@@ -9,7 +9,7 @@ The RadixGraph consists of:
 **Which graphs to support:** this version of RadixGraph supports weighted, directed, simple graphs, but the ``weight`` field can be generalized to any properties as long as a NULL value is reserved (for weights, this NULL value is 0). This means RadixGraph can also support labeled graph. RadixGraph can also be extended to support multi-graphs, but adaptation is needed. Refer to our paper for details.
 
 # APIs
-**Initialize SORT:** ``SORT* s = new SORT(d, a)``, where ``d`` is an int representing the number of layers, ``a`` is an array or a vector with length ``l`` representing the node in i-th layer has a fan-out of 2^a[i]. The expected-space-optimized setting can be computed via the optimizer and is included in the latter section of this README.
+**Initialize SORT:** ``SORT* s = new SORT(d, a)``, where ``d`` is an int representing the number of layers, ``a`` is an array or a vector with length ``d`` representing the node in i-th layer has a fan-out of 2^a[i]. The expected-space-optimized setting can be computed via the optimizer and is included in the latter section of this README.
 
 **Initialize RadixGraph:** ``RadixGraph* r = new RadixGraph(d, a)``, where ``d``, ``a`` follow the Trie settings. Upon initializing the RadixGraph, a corresponding SORT is initialized with its corresponding setting.
 
@@ -116,7 +116,7 @@ python3 memory_footprint.py
 # Debug mode of RadixGraph
 To enable debug mode, set:
 ```cpp
-#define DEBUG_MODE true
+#define DEBUG_MODE 1
 ```
 
 in ``src/radixgraph.h`` and recompile. This mode is primary used for recording the overall operation time and log compaction time for each vertex. Each vertex will maintain a struct:
@@ -151,11 +151,19 @@ cmake . --fresh -DSTATS=OFF
 
 and set in ``radixgraph.h``:
 ```cpp
-#define USE_SORT false
-#define USE_ART true
+#define USE_SORT 0
+#define USE_ART 1
 ```
 
 Recompile and RadixGraph automatically uses ART as its vertex index. Note: we do not suggest using ART, as it has its own thread management scheme (``Optimistic Lock Coupling (OLC)`` with ``Quiescent State Based Reclamation (QSBR)``), while RadixGraph is mainly designed for ``openMP`` and ``std::thread``. Although we currently did not find problems with the ART integration, we do not guarantee full concurrency correctness when using ART.
+
+If you set both ``USE_SORT`` and ``USE_ART`` as 0:
+```cpp
+#define USE_SORT 0
+#define USE_ART 0
+```
+
+RadixGraph will use vertex array as the default vertex index. If you are not using SORT, you do not to initialize RadixGraph with parameters ``d`` and ``a``. Instead, initialize RadixGraph simply by ``RadixGraph db`` or ``RadixGraph* db = new RadixGraph()``.
 
 # License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.

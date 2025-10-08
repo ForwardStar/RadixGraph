@@ -157,7 +157,7 @@ struct Vertex {
       std::atomic<double> t_total, t_compact;
     #endif
     ~Vertex() {
-      delete next.load();
+      if (next.load()) delete next.load();
     }
 };
 
