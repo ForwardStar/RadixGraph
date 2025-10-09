@@ -18,11 +18,7 @@
 
 int u, d, n;
 
-int main() {
-    std::cout << "Input n: ";
-    std::cin >> n;
-    std::cout << "Input log(u): ";
-    std::cin >> u;
+int main(int argc, char* argv[]) {
     std::cout << "Input d: ";
     std::cin >> d;
     std::cout << "Input a_before: ";
@@ -40,21 +36,39 @@ int main() {
         a_after.push_back(ai);
     }
     SORT trie(d, a_before);
-    std::default_random_engine generator;
-    unsigned long long maximum = u < 64 ? (1ull << u) - 1 : -1;
-    std::uniform_int_distribution distribution(0ull, maximum);
-    std::unordered_set<uint64_t> vertex_ids;
-    for (int i = 0; i < n; i++) {
-        uint64_t id = distribution(generator);
-        while (vertex_ids.find(id) != vertex_ids.end()) {
-            id = distribution(generator);
-        }
-        vertex_ids.insert(id);
-    }
     std::vector<uint64_t> vids;
-    for (auto u : vertex_ids) {
-        vids.emplace_back(u);
+    
+    if (argc > 1) {
+        // There is input file, read vids from file
+        // Format: each line contains one vertex ID
+        std::ifstream fin(argv[1]);
+        uint64_t id;
+        while (fin >> id) {
+            vids.emplace_back(id);
+        }
     }
+    else {
+        // No input file, generate random vids
+        std::cout << "Input n: ";
+        std::cin >> n;
+        std::cout << "Input log(u): ";
+        std::cin >> u;
+        std::default_random_engine generator;
+        unsigned long long maximum = u < 64 ? (1ull << u) - 1 : -1;
+        std::uniform_int_distribution distribution(0ull, maximum);
+        std::unordered_set<uint64_t> vertex_ids;
+        for (int i = 0; i < n; i++) {
+            uint64_t id = distribution(generator);
+            while (vertex_ids.find(id) != vertex_ids.end()) {
+                id = distribution(generator);
+            }
+            vertex_ids.insert(id);
+        }
+        for (auto u : vertex_ids) {
+            vids.emplace_back(u);
+        }
+    }
+    
     double duration_insert = 0;
     double duration_transform = 0;
     for (int i = 0; i < n; i++) {
