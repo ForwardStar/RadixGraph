@@ -44,7 +44,7 @@ class RadixGraph {
             VertexArray* vertex_index = nullptr;
         #endif
 
-        AtomicBitmap** bitmap = nullptr;
+        SegmentedBitmap** bitmap = nullptr;
         bool is_mixed_workloads = false; // set to true when executing reads and writes concurrently
         bool is_sorted = false; // whether the neighbour list of each vertex is sorted
         int num_threads = 64; // 64 by default
@@ -83,7 +83,7 @@ class RadixGraph {
         void CreateSnapshots(bool sort_neighbours=false, bool make_dense=false);
         // Get the global timestamp and increment it.
         int GetGlobalTimestamp();
-        // Set the number of threads and maximum number of vertices allowed in the system.
+        // Set the number of threads and maximum number of vertices allowed in the system (when using vertex array).
         void Init(int nth=64, int n=-1);
         // Get debug information of all vertices (only when DEBUG_MODE is true).
         struct DebugInfo {
@@ -119,7 +119,7 @@ class RadixGraph {
             d: depth of the SORT (vertex index);
             _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
             _num_threads: the number of threads allowed in the system;
-            _num_vertices: the maximum number of vertices allowed in the system.
+            _num_vertices: the maximum number of vertices allowed in the system (when using vertex array).
             -----------------------------------------------------------------------------------------------------------------------
             If you are using ART or vertex array instead of SORT, you can leave the parameters empty to call RadixGraph() directly.
         */ 

@@ -37,7 +37,7 @@ To fully exploit the performance of RadixGraph and ensure correctness, do take c
 - **Concurrent reads and writes:** by default it is disabled. To support concurrent workloads of RadixGraph where reads and writes are executed concurrently, you can: (1) set ``global_info.is_mixed_workloads = true`` before initiating RadixGraph; (2) pause all current workloads, set ``global_info.is_mixed_workloads = true`` and execute ``CreateSnapshots()`` in RadixGraph, after which you can resume workloads. This will enable MVCC components, like creating timestamps and multi-versioned arrays. The cost is that the memory consumption will be slightly higher and the read operations are slightly slower to ensure consistency;
 - **Transactional graph analytics:** RadixGraph currently cannot initiate a transaction by itself; to ensure consistent visible graph snapshot during graph analytics, before executing graph analytics, increase ``threads_analytical`` by 1 in the ``Vertex`` class for all vertices and record the current timestamp with ``GetGlobalTimestamp()``. Then run ``GetNeighbours()`` with this ``timestamp`` parameter during the graph analytics (by default, it will return the latest version of neighbor edges if not given a timestamp). When the graph analytics ends, decrease ``threads_analytical`` by 1 for all vertices.
 - **Read-heavy workloads:** if the next workloads are read-heavy, it is suggested to run ``CreateSnapshot()`` of RadixGraph before executing the workload. This will merge all log segments into their snapshot segments and improve read efficiency. This process is exclusive, i.e., reads and writes should be paused during the process.
-- **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64 and accomodated vertices is 5000000; to change this, run ``Init(int nth=64, int n=-1)`` function or initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64, int _num_vertices=-1)``. The ``Init()`` function is also exclusive.
+- **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64; to change this, run ``Init(int nth=64)`` function or initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64)``. The ``Init()`` function is also exclusive. If you are using vertex array as the vertex index (see how to set this in the latter part of this README), the default capacity of the array is 50000000. You can also change this by passing the maximum number of vertices as a parameter to ``Init()`` or ``RadixGraph()``.
 
 # Compile and run
 We recommend using compiler ``GCC 11.4.0+``. You need to run RadixGraph on Linux platform with openMP and Intel Thread Building Block (TBB). For root users:
@@ -135,7 +135,7 @@ std::vector<DebugInfo> GetDebugInfo();
 
 Note: debug mode seriously affects the efficiency. The time consumption may be much larger so please disable it unless you are benchmarking.
 
-# Use ART as the vertex index
+# Use ART or vertex array as the vertex index
 If you do not want to use SORT as the vertex index, you can use RadixGraph with the adaptive radix tree implemented by [unodb](https://github.com/laurynas-biveinis/unodb?tab=readme-ov-file). Clone the project into the folder of RadixGraph:
 ```sh
 git clone https://github.com/laurynas-biveinis/unodb.git

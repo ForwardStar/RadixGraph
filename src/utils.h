@@ -89,6 +89,60 @@ class AtomicBitmap {
   static size_t bit_offset(size_t n) { return n & (kBitsPerWord - 1); }
 };
 
+class SegmentedBitmap {
+  private:
+    std::vector<AtomicBitmap*> segments;
+    int segment_size = 10000000; // 10 million bits per segment
+    int current_size = 0;
+  public:
+    SegmentedBitmap(int n=0, int seg_size=10000000) {
+        segment_size = seg_size;
+        int num_segments = (n + segment_size - 1) / segment_size;
+        segments.resize(num_segments, nullptr);
+        current_size = num_segments * segment_size;
+        for (int i = 0; i < num_segments; i++) {
+            segments[i] = new AtomicBitmap(segment_size);
+        }
+    }
+
+    void reset() {
+        for (auto p : segments) {
+            p->reset();
+        }
+    }
+
+    void set_bit(int pos) {
+        if (pos >= current_size) {
+            int num_segments = (pos + segment_size) / segment_size;
+            int k = segments.size();
+            while (segments.size() < num_segments) {
+                segments.push_back(nullptr);
+            }
+            for (int i = k; i < num_segments; i++) {
+                segments[i] = new AtomicBitmap(segment_size);
+            }
+            current_size = num_segments * segment_size;
+        }
+        segments[pos / segment_size]->set_bit(pos % segment_size);
+    }
+
+    void clear_bit(int pos) {
+        if (pos >= current_size) return;
+        segments[pos / segment_size]->clear_bit(pos % segment_size);
+    }
+
+    bool get_bit(int pos) {
+        if (pos >= current_size) return false;
+        return segments[pos / segment_size]->get_bit(pos % segment_size);
+    }
+
+    ~SegmentedBitmap() {
+        for (auto p : segments) {
+            delete p;
+        }
+    }
+};
+
 /* WeightedEdge:
    - Represents a directed weighted edge;
    - e.weight: when it is 0, this edge is a delete log; otherwise it represents the weight of the edge;

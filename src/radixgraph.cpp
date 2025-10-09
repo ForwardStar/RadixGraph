@@ -321,8 +321,12 @@ void RadixGraph::Init(int nth, int n) {
             delete [] bitmap;
         }
         num_threads = nth;
-        bitmap = new AtomicBitmap*[num_threads];
-        for (int i = 0; i < num_threads; i++) bitmap[i] = new AtomicBitmap(n), bitmap[i]->reset();
+        bitmap = new SegmentedBitmap*[num_threads];
+        for (int i = 0; i < num_threads; i++) bitmap[i] = new SegmentedBitmap(), bitmap[i]->reset();
+        #if !USE_SORT && !USE_ART
+            delete vertex_index;
+            vertex_index = new VertexArray(n);
+        #endif
     }
 }
 
@@ -376,8 +380,8 @@ std::vector<double> RadixGraph::SSSP(NodeID src) {
 RadixGraph::RadixGraph(int d, std::vector<int> _num_children, int _num_threads, int _num_vertices) {
     if (_num_vertices == -1) _num_vertices = global_info.cap_dummy_nodes;
     num_threads = _num_threads;
-    bitmap = new AtomicBitmap*[num_threads];
-    for (int i = 0; i < num_threads; i++) bitmap[i] = new AtomicBitmap(_num_vertices), bitmap[i]->reset();
+    bitmap = new SegmentedBitmap*[num_threads];
+    for (int i = 0; i < num_threads; i++) bitmap[i] = new SegmentedBitmap(), bitmap[i]->reset();
     #if USE_SORT
         vertex_index = new SORT(d, _num_children);
     #elif USE_ART
