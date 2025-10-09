@@ -270,7 +270,7 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
     return new_arr;
 }
 
-void RadixGraph::CreateSnapshots(bool sort_neighbours) {
+void RadixGraph::CreateSnapshots(bool sort_neighbours, bool make_dense) {
     // Should be executed when no updates are performed
     int n = vertex_index->cnt.load();
     #pragma omp parallel for num_threads(num_threads)
@@ -279,7 +279,13 @@ void RadixGraph::CreateSnapshots(bool sort_neighbours) {
         auto next = src->next.load();
         auto deg = next->deg.load();
         deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
-        auto new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
+        WeightedEdgeArray* new_array;
+        if (!make_dense) {
+            new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
+        }
+        else {
+            new_array = new WeightedEdgeArray(deg + 8);
+        }
         new_array = LogCompaction(next, new_array);
         new_array->prev_arr = next;
         next->next_arr = new_array;
