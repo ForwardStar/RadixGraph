@@ -34,6 +34,7 @@
 #include <stack>
 #include <thread>
 #include <omp.h>
+#include <unistd.h>
 #include <tbb/concurrent_vector.h>
 
 typedef uint32_t NodeID;
@@ -88,6 +89,10 @@ class AtomicBitmap {
   static size_t word_offset(size_t n) { return n / kBitsPerWord; }
   static size_t bit_offset(size_t n) { return n & (kBitsPerWord - 1); }
 };
+
+// From Spruce (https://github.com/Stardust-SJF/Spruce/blob/main/src/memory_analysis.cpp)
+#define VMRSS_LINE 22 // Different OSs have different values
+unsigned int get_proc_mem(); // in KB
 
 class SegmentedBitmap {
   private:
