@@ -16,5 +16,6 @@ settings
 optimizer
 test_transform
 test_workload
+test_vertex_index
 workload.txt
 results*

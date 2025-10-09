@@ -109,10 +109,22 @@ add_executable(test_workload
     src/optimized_trie.h
 )
 
+add_executable(test_vertex_index
+    src/test_vertex_index.cpp
+    src/radixgraph.cpp
+    src/optimized_trie.cpp
+    src/utils.cpp
+    src/vertex_array.cpp
+    src/utils.h
+    src/radixgraph.h
+    src/optimized_trie.h
+    src/vertex_array.h
+)
+
 # ---------------------------
 # Link libraries
 # ---------------------------
-foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload)
+foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index)
     target_link_libraries(${target} PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb RG)
 endforeach()
 
@@ -133,7 +145,7 @@ if(EXISTS "${UNODB_PATH}/CMakeLists.txt")
 
     # Include UnoDB headers
     target_include_directories(RG PRIVATE ${UNODB_PATH})
-    foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload)
+    foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index)
         target_include_directories(${target} PRIVATE ${UNODB_PATH})
         target_link_libraries(${target} PRIVATE unodb)
     endforeach()
@@ -144,7 +156,7 @@ if(EXISTS "${UNODB_PATH}/CMakeLists.txt")
     # Enable SIMD flags for your CPU
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(RG PRIVATE -march=native -O3)
-        foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload)
+        foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index)
             target_compile_options(${target} PRIVATE -march=native -O3)
         endforeach()
     endif()
