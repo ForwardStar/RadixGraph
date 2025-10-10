@@ -48,8 +48,7 @@ If prerequisites are completed, compile radixgraph by:
 ```sh
 git clone https://github.com/ForwardStar/RadixGraph.git
 cmake .
-make
-./radixgraph
+make -j
 ```
 
 For non-root users that can only install TBB locally, replace the cmake step with:
@@ -57,26 +56,22 @@ For non-root users that can only install TBB locally, replace the cmake step wit
 cmake . -DCMAKE_CXX_FLAGS="-I/path/to/tbb/include" -DCMAKE_EXE_LINKER_FLAGS="-L/path/to/tbb/lib"
 ```
 
-Note that the executable ``test_radixgraph`` is a demo experiment. To integrate RadixGraph into your project, use the compiled library ``libRG.a``.
+This will generate ``libRG.a`` and some test modules.
 
-# Demo experiment
-This demo (i.e., ``test_radixgraph`` executable file) randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will output the efficiency of RadixGraph on this randomly generated graph. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
+# Test modules
+Test modules contain ``test_radixgraph``, ``test_trie``, ``test_workload``, ``test_vertex_index``, ``test_gapbs`` and ``test_transform``. They are mainly used for testing correctness and case studies for RadixGraph and SORT. For comparison with other systems and experiments on real-world graphs, please refer to [GFE Driver for RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
-Test settings:
-```
-n = [10000, 100000, 1000000]
-m = [10000000, 10000000, 10000000]
-log(u) = 30
-```
-Trie settings:
-```cpp
-std::vector<int> d = {3, 3, 3};
-std::vector<std::vector<int>> a = {
-    {19, 6, 5},
-    {21, 5, 4},
-    {23, 4, 3},
-};
-```
+``test_radixgraph`` randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will output the efficiency of RadixGraph on this randomly generated graph.
+
+``test_trie`` randomly generates n vertex ids within [0, u-1] and inserts them into SORT. It will output the efficiency of SORT on this vertex set.
+
+``test_workload`` evaluates memory footprints of SORT and vEB tree under different workloads. You can generate a workload file using ``workload_generator.py``. See the latter section **Test Tries under different workloads** of this README for details.
+
+``test_vertex_index`` randomly generates n vertex ids within [0, u-1] and inserts them into SORT/ART/vertex array (you can choose which one to use by setting ``USE_SORT``, ``USE_ART`` in ``src/radixgraph.h``). It will output the efficiency of different vertex indexes on this vertex set.
+
+``test_gapbs`` randomly generates a graph and tests RadixGraph with graph algorithms in [GAP Benchmark Suite](https://github.com/sbeamer/gapbs).
+
+``test_transform`` randomly generates n vertex ids within [0, u-1] and transforms the SORT configuration to another one with a different number of layers. It will output the memory consumption of SORT before and after the transformation.
 
 # Compute SORT configuration
 The optimizer is compiled separately with the main RadixGraph components:

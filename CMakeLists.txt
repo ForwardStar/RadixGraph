@@ -46,7 +46,7 @@ add_library(RG STATIC
 # Add your executables
 # ---------------------------
 add_executable(test_radixgraph
-    src/main.cpp
+    src/test_radixgraph.cpp
     src/radixgraph.cpp
     src/sort.cpp
     src/utils.cpp
