@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include "utils.h"
-#include "optimized_trie.h"
+#include "sort.h"
 
 int u, d, n;
 

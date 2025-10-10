@@ -313,8 +313,7 @@ int RadixGraph::GetGlobalTimestamp() {
     return global_info.global_timestamp++;
 }
 
-void RadixGraph::Init(int nth, int n) {
-    if (n == -1) n = global_info.cap_dummy_nodes;
+void RadixGraph::SetNumThreads(int nth) {
     if (num_threads != nth) {
         if (bitmap) {
             for (int i = 0; i < num_threads; i++) delete bitmap[i];
@@ -323,12 +322,15 @@ void RadixGraph::Init(int nth, int n) {
         num_threads = nth;
         bitmap = new SegmentedBitmap*[num_threads];
         for (int i = 0; i < num_threads; i++) bitmap[i] = new SegmentedBitmap(), bitmap[i]->reset();
-        #if !USE_SORT && !USE_ART
-            delete vertex_index;
-            vertex_index = new VertexArray(n);
-        #endif
     }
 }
+
+#if !USE_SORT && !USE_ART
+    void RadixGraph::SetMaximumID(int max_id) {
+        delete vertex_index;
+        vertex_index = new VertexArray(max_id + 1);
+    }
+#endif
 
 std::vector<uint64_t> RadixGraph::BFS(NodeID src) {
     std::queue<int> Q;
@@ -377,19 +379,28 @@ std::vector<double> RadixGraph::SSSP(NodeID src) {
     return dist;
 }
 
-RadixGraph::RadixGraph(int d, std::vector<int> _num_children, int _num_threads, int _num_vertices) {
-    if (_num_vertices == -1) _num_vertices = global_info.cap_dummy_nodes;
-    num_threads = _num_threads;
-    bitmap = new SegmentedBitmap*[num_threads];
-    for (int i = 0; i < num_threads; i++) bitmap[i] = new SegmentedBitmap(), bitmap[i]->reset();
-    #if USE_SORT
+#if USE_SORT
+    RadixGraph::RadixGraph(int d, std::vector<int> _num_children, int _num_threads) {
+        num_threads = _num_threads;
+        bitmap = new SegmentedBitmap*[num_threads];
+        for (int i = 0; i < num_threads; i++) bitmap[i] = new SegmentedBitmap(), bitmap[i]->reset();
         vertex_index = new SORT(d, _num_children);
-    #elif USE_ART
+    }
+#elif USE_ART
+    RadixGraph::RadixGraph(int _num_threads) {
+        num_threads = _num_threads;
+        bitmap = new SegmentedBitmap*[num_threads];
+        for (int i = 0; i < num_threads; i++) bitmap[i] = new SegmentedBitmap(), bitmap[i]->reset();
         vertex_index = new ART();
-    #else
-        vertex_index = new VertexArray(_num_vertices);
-    #endif
-}
+    }
+#else
+    RadixGraph::RadixGraph(int _num_threads, int _max_vertex_id) {
+        num_threads = _num_threads;
+        bitmap = new SegmentedBitmap*[num_threads];
+        for (int i = 0; i < num_threads; i++) bitmap[i] = new SegmentedBitmap(), bitmap[i]->reset();
+        vertex_index = new VertexArray(_max_vertex_id + 1);
+    }
+#endif
 
 RadixGraph::~RadixGraph() {
     if (bitmap) {

@@ -46,7 +46,13 @@ int main(int argc, char* argv[]) {
             m++;
         }
 
-        RadixGraph G(d, a);
+        #if USE_SORT
+            RadixGraph G(d, a, omp_get_num_threads());
+        #elif USE_ART
+            RadixGraph G(omp_get_num_threads());
+        #else
+            RadixGraph G(omp_get_num_threads(), maxu - 1);
+        #endif
         #pragma omp parallel for
         for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5), G.InsertEdge(e.second, e.first, 0.5);
         G.CreateSnapshots(true);
@@ -142,7 +148,13 @@ int main(int argc, char* argv[]) {
         edge_set.emplace(std::make_pair(u, v));
     }
 
-    RadixGraph G(d, a);
+    #if USE_SORT
+        RadixGraph G(d, a, omp_get_num_threads());
+    #elif USE_ART
+        RadixGraph G(omp_get_num_threads());
+    #else
+        RadixGraph G(omp_get_num_threads(), maximum);
+    #endif
     #pragma omp parallel for
     for (auto e : edges) {
         G.InsertEdge(e.first.first, e.first.second, e.second);

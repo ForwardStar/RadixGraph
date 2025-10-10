@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "optimized_trie.h"
+#include "sort.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {

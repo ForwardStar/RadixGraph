@@ -37,7 +37,7 @@ add_library(RG STATIC
     src/GAPBS/bfs.cc
     src/GAPBS/bc.cc
     src/radixgraph.cpp 
-    src/optimized_trie.cpp
+    src/sort.cpp
     src/utils.cpp
     src/vertex_array.cpp
 )
@@ -48,35 +48,35 @@ add_library(RG STATIC
 add_executable(test_radixgraph
     src/main.cpp
     src/radixgraph.cpp
-    src/optimized_trie.cpp
+    src/sort.cpp
     src/utils.cpp
     src/vertex_array.cpp
     src/utils.h
     src/radixgraph.h
-    src/optimized_trie.h
+    src/sort.h
     src/vertex_array.h
 )
 
 add_executable(test_trie
     src/test_trie.cpp
-    src/optimized_trie.cpp
+    src/sort.cpp
     src/utils.cpp
     src/utils.h
-    src/optimized_trie.h
+    src/sort.h
 )
 
 add_executable(test_transform
     src/test_transform.cpp
-    src/optimized_trie.cpp
+    src/sort.cpp
     src/utils.cpp
     src/utils.h
-    src/optimized_trie.h
+    src/sort.h
 )
 
 add_executable(test_gapbs
     src/test_gapbs.cpp
     src/radixgraph.cpp
-    src/optimized_trie.cpp
+    src/sort.cpp
     src/vertex_array.cpp
     src/utils.cpp
     src/utils.h
@@ -88,7 +88,7 @@ add_executable(test_gapbs
     src/GAPBS/cc_sv.cc
     src/GAPBS/bc.cc
     src/radixgraph.h
-    src/optimized_trie.h
+    src/sort.h
     src/GAPBS/bfs.h
     src/GAPBS/benchmark.h
     src/GAPBS/sssp.h
@@ -102,22 +102,22 @@ add_executable(test_gapbs
 add_executable(test_workload
     src/test_workload.cpp
     src/radixgraph.cpp
-    src/optimized_trie.cpp
+    src/sort.cpp
     src/utils.cpp
     src/utils.h
     src/radixgraph.h
-    src/optimized_trie.h
+    src/sort.h
 )
 
 add_executable(test_vertex_index
     src/test_vertex_index.cpp
     src/radixgraph.cpp
-    src/optimized_trie.cpp
+    src/sort.cpp
     src/utils.cpp
     src/vertex_array.cpp
     src/utils.h
     src/radixgraph.h
-    src/optimized_trie.h
+    src/sort.h
     src/vertex_array.h
 )
 

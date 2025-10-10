@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #include "optimized_trie.h"
+ #include "sort.h"
 
  void SORT::InsertSimpleVertex(NodeID id) {
      if (!root) {

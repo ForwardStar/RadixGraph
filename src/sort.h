@@ -19,7 +19,7 @@
 #include "utils.h"
 
 class SORT {
-    public:
+    private:
         struct SORTNode {
             uint64_t* children = nullptr;
             AtomicBitmap* mtx = nullptr;
@@ -29,7 +29,8 @@ class SORT {
               if (children) delete [] children;
             }
         };
-
+        inline Vertex* InsertVertex(SORTNode* current, NodeID id, int d);
+    public:
         SORTNode* root = nullptr;
         tbb::concurrent_vector<Vertex> vertex_table;
         std::vector<int> num_bits, sum_bits;
@@ -43,11 +44,6 @@ class SORT {
         /*  CheckExistence(): check whether a vertex exists in SORT;
             id: the vertex ID to be retrieved; */
         bool CheckExistence(NodeID id);
-        /*  InsertVertex(): insert a vertex into SORT;
-            current: using a recursive algorithm, current represents currently traversed tree node (initially be root);
-            id: the vertex ID to be inserted;
-            d: the layer of currently traversed tree node. */
-        inline Vertex* InsertVertex(SORTNode* current, NodeID id, int d);
         /*  RetrieveVertex(): retrieve a vertex from SORT;
             id: the vertex ID to be retrieved;
             insert_mode: if set to true, insert the vertex if not found. */

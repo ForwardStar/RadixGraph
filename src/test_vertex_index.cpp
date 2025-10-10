@@ -15,7 +15,7 @@
  */
 #include "utils.h"
 #include "radixgraph.h"
-#include "optimized_trie.h"
+#include "sort.h"
 #if USE_ART
     #include "art.h"
 #endif

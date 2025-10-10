@@ -41,7 +41,13 @@ int main(int argc, char* argv[]) {
         std::vector<int> a(d);
         for (auto& i : a) fin_settings >> i;
 
-        RadixGraph G_fstar(d, a, NUM_THREADS);
+        #if USE_SORT
+            RadixGraph G_fstar(d, a, NUM_THREADS);
+        #elif USE_ART
+            RadixGraph G_fstar(NUM_THREADS);
+        #else
+            RadixGraph G_fstar(NUM_THREADS);
+        #endif
         // Insert all edges
         {
             auto start_memory = get_proc_mem(); // record memory
@@ -150,8 +156,13 @@ int main(int argc, char* argv[]) {
         }
         for (int i = 0; i < num_trials; i++) {
             // std::cout << "Trial " << i + 1 << ":" << std::endl;
-            RadixGraph G_fstar(d[now], a[now]);
-            G_fstar.Init(NUM_THREADS, n);
+            #if USE_SORT
+                RadixGraph G_fstar(d[now], a[now], NUM_THREADS);
+            #elif USE_ART
+                RadixGraph G_fstar(NUM_THREADS);
+            #else
+                RadixGraph G_fstar(NUM_THREADS, maximum);
+            #endif
             std::vector<std::pair<std::pair<uint64_t, uint64_t>, double>> edges;
 
             // Insert edges

@@ -11,13 +11,12 @@ The RadixGraph consists of:
 # APIs
 **Initialize SORT:** ``SORT* s = new SORT(d, a)``, where ``d`` is an int representing the number of layers, ``a`` is an array or a vector with length ``d`` representing the node in i-th layer has a fan-out of 2^a[i]. The expected-space-optimized setting can be computed via the optimizer and is included in the latter section of this README.
 
-**Initialize RadixGraph:** ``RadixGraph* r = new RadixGraph(d, a)``, where ``d``, ``a`` follow the Trie settings. Upon initializing the RadixGraph, a corresponding SORT is initialized with its corresponding setting.
+**Initialize RadixGraph:** ``RadixGraph* r = new RadixGraph(d, a)``, where ``d``, ``a`` follow the SORT settings. Upon initializing the RadixGraph, a corresponding SORT is initialized with its corresponding setting.
 
-See APIs with comments from ``src/radixgraph.h`` and ``src/optimized_trie.h``. The ``Vertex`` and ``WeightedEdge`` classes are defined in ``src/utils.h``.
+See APIs with comments from ``src/radixgraph.h`` and ``src/sort.h``. The ``Vertex`` and ``WeightedEdge`` classes are defined in ``src/utils.h``.
 
 SORT API list:
 - ``bool CheckExistence(NodeID id);``
-- ``Vertex* InsertVertex(SORTNode* current, NodeID id, int d);``
 - ``Vertex* RetrieveVertex(NodeID id, bool insert_mode=false);``
 - ``bool DeleteVertex(NodeID id);``
 - ``void Transform(int d, std::vector<int> _num_bits, std::vector<uint64_t>& vertex_set);``
@@ -29,15 +28,15 @@ RadixGraph API list:
 - ``bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
 - ``bool GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
 - ``bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
-- ``void CreateSnapshots();``
+- ``void CreateSnapshots(bool sort_neighbours=false, bool make_dense=false);``
 - ``int GetGlobalTimestamp();``
-- ``void Init(int nth=64, int n=-1);``
+- ``void SetNumThreads(int nth=64);``
 
 To fully exploit the performance of RadixGraph and ensure correctness, do take care of following things that may affect the efficiency and space:
 - **Concurrent reads and writes:** by default it is disabled. To support concurrent workloads of RadixGraph where reads and writes are executed concurrently, you can: (1) set ``global_info.is_mixed_workloads = true`` before initiating RadixGraph; (2) pause all current workloads, set ``global_info.is_mixed_workloads = true`` and execute ``CreateSnapshots()`` in RadixGraph, after which you can resume workloads. This will enable MVCC components, like creating timestamps and multi-versioned arrays. The cost is that the memory consumption will be slightly higher and the read operations are slightly slower to ensure consistency;
 - **Transactional graph analytics:** RadixGraph currently cannot initiate a transaction by itself; to ensure consistent visible graph snapshot during graph analytics, before executing graph analytics, increase ``threads_analytical`` by 1 in the ``Vertex`` class for all vertices and record the current timestamp with ``GetGlobalTimestamp()``. Then run ``GetNeighbours()`` with this ``timestamp`` parameter during the graph analytics (by default, it will return the latest version of neighbor edges if not given a timestamp). When the graph analytics ends, decrease ``threads_analytical`` by 1 for all vertices.
 - **Read-heavy workloads:** if the next workloads are read-heavy, it is suggested to run ``CreateSnapshot()`` of RadixGraph before executing the workload. This will merge all log segments into their snapshot segments and improve read efficiency. This process is exclusive, i.e., reads and writes should be paused during the process.
-- **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64; to change this, run ``Init(int nth=64)`` function or initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads=64)``. The ``Init()`` function is also exclusive. If you are using vertex array as the vertex index (see how to set this in the latter part of this README), the default capacity of the array is 50000000. You can also change this by passing the maximum number of vertices as a parameter to ``Init()`` or ``RadixGraph()``.
+- **Maximum number of threads and accomadated vertices:** the default maximum number of threads is 64; to change this, use ``SetNumThreads()`` function or initialize the RadixGraph with: ``RadixGraph(int d, std::vector<int> _num_children, int _num_threads)`` with an appropriate ``_num_threads`` parameter. The ``SetNumThreads()`` function is also exclusive.
 
 # Compile and run
 We recommend using compiler ``GCC 11.4.0+``. You need to run RadixGraph on Linux platform with openMP and Intel Thread Building Block (TBB). For root users:
@@ -58,10 +57,10 @@ For non-root users that can only install TBB locally, replace the cmake step wit
 cmake . -DCMAKE_CXX_FLAGS="-I/path/to/tbb/include" -DCMAKE_EXE_LINKER_FLAGS="-L/path/to/tbb/lib"
 ```
 
-Note that the executable ``radixgraph`` is a demo experiment. To integrate RadixGraph into your project, use the compiled library ``libRG.a``.
+Note that the executable ``test_radixgraph`` is a demo experiment. To integrate RadixGraph into your project, use the compiled library ``libRG.a``.
 
 # Demo experiment
-This demo (i.e., ``radixgraph`` executable file) randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will output the efficiency of RadixGraph on this randomly generated graph. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
+This demo (i.e., ``test_radixgraph`` executable file) randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will output the efficiency of RadixGraph on this randomly generated graph. For full experiments, please refer to [gfe_driver_RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
 Test settings:
 ```
@@ -133,10 +132,10 @@ You can retrieve the information for all vertices by:
 std::vector<DebugInfo> GetDebugInfo();
 ```
 
-Note: debug mode seriously affects the efficiency. The time consumption may be much larger so please disable it unless you are benchmarking.
+# Alternative vertex indexes
+If you do not want to use SORT as the vertex index, you can use RadixGraph with the **adaptive radix tree (ART)** or **vertex array**.
 
-# Use ART or vertex array as the vertex index
-If you do not want to use SORT as the vertex index, you can use RadixGraph with the adaptive radix tree implemented by [unodb](https://github.com/laurynas-biveinis/unodb?tab=readme-ov-file). Clone the project into the folder of RadixGraph:
+ART is implemented by [unodb](https://github.com/laurynas-biveinis/unodb?tab=readme-ov-file). Clone the project into the folder of RadixGraph:
 ```sh
 git clone https://github.com/laurynas-biveinis/unodb.git
 cd unodb
@@ -155,15 +154,15 @@ and set in ``radixgraph.h``:
 #define USE_ART 1
 ```
 
-Recompile and RadixGraph automatically uses ART as its vertex index. Note: we do not suggest using ART, as it has its own thread management scheme (``Optimistic Lock Coupling (OLC)`` with ``Quiescent State Based Reclamation (QSBR)``), while RadixGraph is mainly designed for ``openMP`` and ``std::thread``. Although we currently did not find problems with the ART integration, we do not guarantee full concurrency correctness when using ART.
+Recompile and RadixGraph automatically uses ART as its vertex index. Under this case, the RadixGraph initialization interface becomes ``RadixGraph(int _num_threads=64)`` and you do not need to pass SORT settings. Note: we do not suggest using ART, as it has its own thread management scheme (``Optimistic Lock Coupling (OLC)`` with ``Quiescent State Based Reclamation (QSBR)``), while RadixGraph is mainly designed for ``openMP`` and ``std::thread``. Although we currently did not find problems with the ART integration, we do not guarantee full concurrency correctness when using ART.
 
-If you set both ``USE_SORT`` and ``USE_ART`` as 0:
+To use vertex array, set both ``USE_SORT`` and ``USE_ART`` as 0:
 ```cpp
 #define USE_SORT 0
 #define USE_ART 0
 ```
 
-RadixGraph will use vertex array as the default vertex index. If you are not using SORT, you do not to initialize RadixGraph with parameters ``d`` and ``a``. Instead, initialize RadixGraph simply by ``RadixGraph db`` or ``RadixGraph* db = new RadixGraph()``.
+RadixGraph will use vertex array as the default vertex index. Under this case, the RadixGraph initialization interface becomes ``RadixGraph(int _num_threads=64, int _max_vertex_id=MAX_VERTEX_ID)``, which pre-allocates a vertex array of size ``_max_vertex_id+1``. The default ``MAX_VERTEX_ID`` is 50000000, you can change it in ``src/radixgraph.h``. Alternatively, reset the vertex array size using the RadixGraph API ``void SetMaximumID(int max_id=MAX_VERTEX_ID);``. Note that vertex array is only suitable for dense graphs with small ID ranges.
 
 # License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.

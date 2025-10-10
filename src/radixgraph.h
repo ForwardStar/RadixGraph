@@ -22,10 +22,11 @@
 
 #include "utils.h"
 #if USE_SORT
-    #include "optimized_trie.h"
+    #include "sort.h"
 #elif USE_ART
     #include "art.h"
 #else
+    #define MAX_VERTEX_ID 50000000 // Maximum vertex ID allowed in the system
     #include "vertex_array.h"
 #endif
 
@@ -83,8 +84,12 @@ class RadixGraph {
         void CreateSnapshots(bool sort_neighbours=false, bool make_dense=false);
         // Get the global timestamp and increment it.
         int GetGlobalTimestamp();
-        // Set the number of threads and maximum number of vertices allowed in the system (when using vertex array).
-        void Init(int nth=64, int n=-1);
+        // Set the number of threads in the system.
+        void SetNumThreads(int nth=64);
+        // Set the maximum vertex ID allowed in the system (only when using vertex array).
+        #if !USE_SORT && !USE_ART
+            void SetMaximumID(int max_id=MAX_VERTEX_ID);
+        #endif
         // Get debug information of all vertices (only when DEBUG_MODE is true).
         struct DebugInfo {
             NodeID node = -1;
@@ -119,11 +124,17 @@ class RadixGraph {
             d: depth of the SORT (vertex index);
             _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
             _num_threads: the number of threads allowed in the system;
-            _num_vertices: the maximum number of vertices allowed in the system (when using vertex array).
+            _max_vertex_id: the maximum vertex ID allowed in the system (when using vertex array).
             -----------------------------------------------------------------------------------------------------------------------
             If you are using ART or vertex array instead of SORT, you can leave the parameters empty to call RadixGraph() directly.
         */ 
-        RadixGraph(int d=1, std::vector<int> _num_children={25}, int _num_threads=64, int _num_vertices=-1);
+        #if USE_SORT
+            RadixGraph(int d=1, std::vector<int> _num_children={25}, int _num_threads=64);
+        #elif USE_ART
+            RadixGraph(int _num_threads=64);
+        #else
+            RadixGraph(int _num_threads=64, int _max_vertex_id=MAX_VERTEX_ID);
+        #endif
         ~RadixGraph();
 };
 

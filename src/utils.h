@@ -42,7 +42,6 @@ typedef uint32_t NodeID;
 struct GlobalInfo {
     std::atomic<int> global_timestamp = 0;
     bool is_mixed_workloads = false;
-    int cap_dummy_nodes = 50000000;
 };
 
 extern GlobalInfo global_info;
