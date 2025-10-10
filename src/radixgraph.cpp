@@ -244,7 +244,7 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
                     if (num >= new_arr->cap) {
                         // Normally should not happen. In case for invalid operations like duplicate edges, deleting or updating non-existing edges.
                         auto tmp = new_arr;
-                        new_arr = new WeightedEdgeArray(num * 2);
+                        new_arr = new WeightedEdgeArray(num + 8);
                         for (int j = 0; j < num; j++) {
                             new_arr->edge[j] = tmp->edge[j];
                         }
@@ -279,12 +279,12 @@ void RadixGraph::CreateSnapshots(bool sort_neighbours, bool make_dense) {
         auto next = src->next.load();
         auto deg = next->deg.load();
         deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
-        WeightedEdgeArray* new_array;
+        WeightedEdgeArray* new_array = nullptr;
         if (!make_dense) {
             new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
         }
         else {
-            new_array = new WeightedEdgeArray(deg + 8);
+            new_array = new WeightedEdgeArray(deg);
         }
         new_array = LogCompaction(next, new_array);
         new_array->prev_arr = next;
@@ -295,16 +295,8 @@ void RadixGraph::CreateSnapshots(bool sort_neighbours, bool make_dense) {
                 return a.idx < b.idx;
             });
         }
-        if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
-            if (next->edge) delete [] next->edge, next->edge = nullptr; // Do not delete next pointer to avoid concurrency issue
-            if (next->timestamp) delete [] next->timestamp, next->timestamp = nullptr;
-            if (next->prev_arr) {
-                auto tmp = next->prev_arr;
-                if (tmp->threads_analytical.load() == 0 && tmp->threads_get_neighbor.load() == 0) {
-                    delete tmp; // But you can delete the previous version (snapshot) safely
-                }
-            }
-        }
+        // Since CreateSnapshot() is exclusive, can delete previous versions safely
+        delete next;
     }
     is_sorted = sort_neighbours;
 }
