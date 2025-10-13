@@ -129,10 +129,36 @@ add_executable(test_transform_continuous
     src/sort.h
 )
 
+add_executable(test_analytics
+    src/test_analytics.cpp
+    src/radixgraph.cpp
+    src/sort.cpp
+    src/vertex_array.cpp
+    src/utils.cpp
+    src/utils.h
+    src/radixgraph.h
+    src/sort.h
+    src/vertex_array.h
+    src/GAPBS/bfs.cc
+    src/GAPBS/sssp.cc
+    src/GAPBS/tc.cc
+    src/GAPBS/pr_spmv.cc
+    src/GAPBS/cc_sv.cc
+    src/GAPBS/bc.cc
+    src/GAPBS/bfs.h
+    src/GAPBS/benchmark.h
+    src/GAPBS/sssp.h
+    src/GAPBS/tc.h
+    src/GAPBS/pr_spmv.h
+    src/GAPBS/cc_sv.h
+    src/GAPBS/bc.h
+    src/GAPBS/platform_atomics.h
+)
+
 # ---------------------------
 # Link libraries
 # ---------------------------
-foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_transform_continuous)
+foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_transform_continuous test_analytics)
     target_link_libraries(${target} PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb RG)
 endforeach()
 
@@ -153,7 +179,7 @@ if(EXISTS "${UNODB_PATH}/CMakeLists.txt")
 
     # Include UnoDB headers
     target_include_directories(RG PRIVATE ${UNODB_PATH})
-    foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index)
+    foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_analytics)
         target_include_directories(${target} PRIVATE ${UNODB_PATH})
         target_link_libraries(${target} PRIVATE unodb)
     endforeach()

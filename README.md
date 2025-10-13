@@ -59,7 +59,7 @@ cmake . -DCMAKE_CXX_FLAGS="-I/path/to/tbb/include" -DCMAKE_EXE_LINKER_FLAGS="-L/
 This will generate ``libRG.a`` and some test modules.
 
 # Test modules
-Test modules contain ``test_radixgraph``, ``test_trie``, ``test_workload``, ``test_vertex_index``, ``test_gapbs``, ``test_transform`` and ``test_transform_continuous``. They are mainly used for testing correctness and case studies for RadixGraph and SORT. For comparison with other systems and experiments on real-world graphs, please refer to [GFE Driver for RadixGraph](https://github.com/ForwardStar/gfe_driver).
+Test modules contain ``test_radixgraph``, ``test_trie``, ``test_workload``, ``test_vertex_index``, ``test_gapbs``, ``test_analytics``, ``test_transform`` and ``test_transform_continuous``. They are mainly used for testing correctness and case studies for RadixGraph and SORT. For comparison with other systems and experiments on real-world graphs, please refer to [GFE Driver for RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
 ``test_radixgraph`` randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will output the efficiency of RadixGraph on this randomly generated graph.
 
@@ -70,6 +70,8 @@ Test modules contain ``test_radixgraph``, ``test_trie``, ``test_workload``, ``te
 ``test_vertex_index`` randomly generates n vertex ids within [0, u-1] and inserts them into SORT/ART/vertex array (you can choose which one to use by setting ``USE_SORT``, ``USE_ART`` in ``src/radixgraph.h``). It will output the efficiency of different vertex indexes on this vertex set.
 
 ``test_gapbs`` randomly generates a graph and tests RadixGraph with graph algorithms in [GAP Benchmark Suite](https://github.com/sbeamer/gapbs).
+
+``test_analytics`` reads in an edge list file and evaluates graph analytics on RadixGraph.
 
 ``test_transform`` randomly generates n vertex ids within [0, u-1] and, inserts those vertex ids to SORT and then transforms the SORT to another configuration. It will output the memory consumption of SORT before and after the transformation.
 
