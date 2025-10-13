@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         }
         std::string line;
         std::vector<std::pair<uint32_t, uint32_t>> edges;
-        std::unordered_set<int> vertex_set;
+        std::unordered_map<int, int> vertex_set;
         uint32_t max_id = 0, source = 0;
         bool has_source = false;
         while (std::getline(fin, line)) {
@@ -55,9 +55,14 @@ int main(int argc, char* argv[]) {
             if (!(iss >> u >> v)) { break; } // error
             edges.emplace_back(u, v);
             max_id = std::max(max_id, std::max(u, v));
-            vertex_set.insert(u);
-            vertex_set.insert(v);
+            vertex_set[u]++;
+            vertex_set[v]++;
             if (!has_source) source = u, has_source = true;
+            else {
+                // Select a vertex with the largest degree as the source
+                if (vertex_set[u] > vertex_set[source]) source = u;
+                if (vertex_set[v] > vertex_set[source]) source = v;
+            }
         }
         int l = 5, n = vertex_set.size();
         auto a = OptimizeParameters(n, 32, l);
@@ -72,7 +77,8 @@ int main(int argc, char* argv[]) {
         // Sample some vertices for hop-query
         std::default_random_engine generator(42);
         int sample_num = std::min(1000, (int)vertex_set.size());
-        std::vector<int> vertex_vec(vertex_set.begin(), vertex_set.end());
+        std::vector<int> vertex_vec;
+        for (auto& it : vertex_set) vertex_vec.push_back(it.first);
         std::shuffle(vertex_vec.begin(), vertex_vec.end(), generator);
         #if EVALUATE_ONE_HOP
             // Test efficiency of 1-hop neighbors
