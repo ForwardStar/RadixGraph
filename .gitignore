@@ -15,6 +15,7 @@ libRG.a
 settings
 optimizer
 test_transform
+test_transform_continuous
 test_workload
 test_vertex_index
 workload.txt

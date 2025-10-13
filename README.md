@@ -59,7 +59,7 @@ cmake . -DCMAKE_CXX_FLAGS="-I/path/to/tbb/include" -DCMAKE_EXE_LINKER_FLAGS="-L/
 This will generate ``libRG.a`` and some test modules.
 
 # Test modules
-Test modules contain ``test_radixgraph``, ``test_trie``, ``test_workload``, ``test_vertex_index``, ``test_gapbs`` and ``test_transform``. They are mainly used for testing correctness and case studies for RadixGraph and SORT. For comparison with other systems and experiments on real-world graphs, please refer to [GFE Driver for RadixGraph](https://github.com/ForwardStar/gfe_driver).
+Test modules contain ``test_radixgraph``, ``test_trie``, ``test_workload``, ``test_vertex_index``, ``test_gapbs``, ``test_transform`` and ``test_transform_continuous``. They are mainly used for testing correctness and case studies for RadixGraph and SORT. For comparison with other systems and experiments on real-world graphs, please refer to [GFE Driver for RadixGraph](https://github.com/ForwardStar/gfe_driver).
 
 ``test_radixgraph`` randomly generates a graph of n vertices, m edges and the vertex ids are within [0, u-1]. It will output the efficiency of RadixGraph on this randomly generated graph.
 
@@ -71,7 +71,9 @@ Test modules contain ``test_radixgraph``, ``test_trie``, ``test_workload``, ``te
 
 ``test_gapbs`` randomly generates a graph and tests RadixGraph with graph algorithms in [GAP Benchmark Suite](https://github.com/sbeamer/gapbs).
 
-``test_transform`` randomly generates n vertex ids within [0, u-1] and transforms the SORT configuration to another one with a different number of layers. It will output the memory consumption of SORT before and after the transformation.
+``test_transform`` randomly generates n vertex ids within [0, u-1] and, inserts those vertex ids to SORT and then transforms the SORT to another configuration. It will output the memory consumption of SORT before and after the transformation.
+
+``test_transform_continuous`` randomly generates 10^7 vertex ids within [0, 2^32-1] and tests time costs of transforming SORT when inserting these 10^7 vertex ids.
 
 # Compute SORT configuration
 The optimizer is compiled separately with the main RadixGraph components:
@@ -92,7 +94,7 @@ a(0) a(1) ... a(l-1)
 
 Note that ``l'`` may be less than ``l``, since ``ai=0`` layers are pruned. All experiments will absorb SORT configuration file as in the above format.
 
-# Test Tries under different workloads
+# Test SORT under different workloads
 ```sh
 python3 workload_generator.py [n] [u]
 ```
