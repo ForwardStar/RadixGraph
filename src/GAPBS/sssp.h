@@ -22,7 +22,7 @@ inline void RelaxEdges(RadixGraph* g, int u, WeightT delta,
     #if USE_EDGE_CHAIN
       g->GetNeighboursByOffset(u, neighbours);
     #else
-      g->GetNeighbours(g->vertex_index[u].node, neighbours);
+      g->GetNeighbours(g->vertex_index->vertex_table[u].node, neighbours);
     #endif
     for (auto e : neighbours) {
         int vidx = e.idx;

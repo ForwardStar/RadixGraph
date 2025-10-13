@@ -51,7 +51,7 @@ void PBFS(RadixGraph *g, NodeID source, pvector<CountT> &path_counts,
         #if USE_EDGE_CHAIN
           g->GetNeighboursByOffset(u, u_neighbours);
         #else
-          g->GetNeighbours(g->vertex_index[u].node, u_neighbours);
+          g->GetNeighbours(g->vertex_index->vertex_table[u].node, u_neighbours);
         #endif
         for (auto &e : u_neighbours) {
           NodeID v = e.idx;
@@ -107,7 +107,7 @@ pvector<ScoreT> Brandes(RadixGraph *g, NodeID num_iters, uint32_t num_nodes) {
         #if USE_EDGE_CHAIN
           g->GetNeighboursByOffset(u, g_out_neigh);
         #else
-          g->GetNeighbours(g->vertex_index[u].node, g_out_neigh);
+          g->GetNeighbours(g->vertex_index->vertex_table[u].node, g_out_neigh);
         #endif
         for (auto &e : g_out_neigh) {
           NodeID v = e.idx;

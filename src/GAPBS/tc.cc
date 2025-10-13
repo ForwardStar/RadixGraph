@@ -41,7 +41,7 @@ size_t OrderedCount(RadixGraph* g, uint32_t num_vertices) {
     #if USE_EDGE_CHAIN
       g->GetNeighboursByOffset(u, neighbours);
     #else
-      g->GetNeighbours(g->vertex_index[u].node, neighbours);
+      g->GetNeighbours(g->vertex_index->vertex_table[u].node, neighbours);
     #endif
     if (!is_sorted) {
       std::sort(neighbours.begin(), neighbours.end(), [](const WeightedEdge &a, const WeightedEdge &b) {
@@ -56,7 +56,7 @@ size_t OrderedCount(RadixGraph* g, uint32_t num_vertices) {
       #if USE_EDGE_CHAIN
         g->GetNeighboursByOffset(v, v_neighbours);
       #else
-        g->GetNeighbours(g->vertex_index[v].node, v_neighbours);
+        g->GetNeighbours(g->vertex_index->vertex_table[v].node, v_neighbours);
       #endif
       if (!is_sorted) {
         std::sort(v_neighbours.begin(), v_neighbours.end(), [](const WeightedEdge &a, const WeightedEdge &b) {

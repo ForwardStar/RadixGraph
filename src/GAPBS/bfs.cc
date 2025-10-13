@@ -39,7 +39,7 @@ int64_t BUStep(RadixGraph* g, pvector<NodeID> &parent, Bitmap &front,
             #if USE_EDGE_CHAIN
               g->GetNeighboursByOffset(i, neighbours);
             #else
-              g->GetNeighbours(g->vertex_index[i].node, neighbours);
+              g->GetNeighbours(g->vertex_index->vertex_table[i].node, neighbours);
             #endif
             for (auto e : neighbours) {
                 int vidx = e.idx;
@@ -69,7 +69,7 @@ int64_t TDStep(RadixGraph* g, pvector<NodeID> &parent,
             #if USE_EDGE_CHAIN
               g->GetNeighboursByOffset(from_node_id, neighbours);
             #else
-              g->GetNeighbours(g->vertex_index[from_node_id].node, neighbours);
+              g->GetNeighbours(g->vertex_index->vertex_table[from_node_id].node, neighbours);
             #endif
             for (auto e : neighbours) {
                 int vidx = e.idx;
