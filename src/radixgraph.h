@@ -19,6 +19,7 @@
 #define DEBUG_MODE 0
 #define USE_SORT 1
 #define USE_ART 0
+#define USE_EDGE_CHAIN 1
 
 #include "utils.h"
 #if USE_SORT

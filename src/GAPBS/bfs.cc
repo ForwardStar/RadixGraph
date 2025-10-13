@@ -36,7 +36,11 @@ int64_t BUStep(RadixGraph* g, pvector<NodeID> &parent, Bitmap &front,
     for (int i = 0; i < vertex_num; i++) {
         if (parent[i] == -1) {
             std::vector<WeightedEdge> neighbours;
-            g->GetNeighboursByOffset(i, neighbours);
+            #if USE_EDGE_CHAIN
+              g->GetNeighboursByOffset(i, neighbours);
+            #else
+              g->GetNeighbours(g->vertex_index[i].node, neighbours);
+            #endif
             for (auto e : neighbours) {
                 int vidx = e.idx;
                 if (front.get_bit(vidx)) {
@@ -62,7 +66,11 @@ int64_t TDStep(RadixGraph* g, pvector<NodeID> &parent,
         for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
             NodeID from_node_id = *q_iter;
             std::vector<WeightedEdge> neighbours;
-            g->GetNeighboursByOffset(from_node_id, neighbours);
+            #if USE_EDGE_CHAIN
+              g->GetNeighboursByOffset(from_node_id, neighbours);
+            #else
+              g->GetNeighbours(g->vertex_index[from_node_id].node, neighbours);
+            #endif
             for (auto e : neighbours) {
                 int vidx = e.idx;
                 NodeID curr_val = parent[vidx];

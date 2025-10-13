@@ -337,7 +337,11 @@ std::vector<uint64_t> RadixGraph::BFS(NodeID src) {
         Q.pop();
         res.push_back(vertex_index->vertex_table[u].node);
         std::vector<WeightedEdge> neighbours;
-        GetNeighboursByOffset(u, neighbours);
+        #if USE_EDGE_CHAIN
+            GetNeighboursByOffset(u, neighbours);
+        #else
+            GetNeighbours(vertex_index->vertex_table[u].node, neighbours);
+        #endif
         for (auto e : neighbours) {
             if (!vis.get_bit(e.idx)) {
                 vis.set_bit(e.idx);
@@ -359,7 +363,11 @@ std::vector<double> RadixGraph::SSSP(NodeID src) {
         auto v = Q.top().second;
         Q.pop();
         std::vector<WeightedEdge> neighbours;
-        GetNeighboursByOffset(v, neighbours);
+        #if USE_EDGE_CHAIN
+            GetNeighboursByOffset(v, neighbours);
+        #else
+            GetNeighbours(vertex_index->vertex_table[v].node, neighbours);
+        #endif
         for (auto e : neighbours) {
             auto w = e.idx;
             if (dist[v] + e.weight < dist[w]) {

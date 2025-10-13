@@ -19,7 +19,11 @@
 inline void RelaxEdges(RadixGraph* g, int u, WeightT delta,
                 pvector<WeightT> &dist, std::vector<std::vector<int>> &local_bins) {
     std::vector<WeightedEdge> neighbours;
-    g->GetNeighboursByOffset(u, neighbours);
+    #if USE_EDGE_CHAIN
+      g->GetNeighboursByOffset(u, neighbours);
+    #else
+      g->GetNeighbours(g->vertex_index[u].node, neighbours);
+    #endif
     for (auto e : neighbours) {
         int vidx = e.idx;
         WeightT old_dist = dist[vidx];

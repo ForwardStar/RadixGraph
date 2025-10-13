@@ -48,7 +48,11 @@ void PBFS(RadixGraph *g, NodeID source, pvector<CountT> &path_counts,
       for (auto q_iter = queue.begin(); q_iter < queue.end(); q_iter++) {
         NodeID u = *q_iter;
         std::vector<WeightedEdge> u_neighbours;
-        g->GetNeighboursByOffset(u, u_neighbours);
+        #if USE_EDGE_CHAIN
+          g->GetNeighboursByOffset(u, u_neighbours);
+        #else
+          g->GetNeighbours(g->vertex_index[u].node, u_neighbours);
+        #endif
         for (auto &e : u_neighbours) {
           NodeID v = e.idx;
           if ((depths[v] == -1) &&
@@ -100,7 +104,11 @@ pvector<ScoreT> Brandes(RadixGraph *g, NodeID num_iters, uint32_t num_nodes) {
         NodeID u = *it;
         ScoreT delta_u = 0;
         std::vector<WeightedEdge> g_out_neigh;
-        g->GetNeighboursByOffset(u, g_out_neigh);
+        #if USE_EDGE_CHAIN
+          g->GetNeighboursByOffset(u, g_out_neigh);
+        #else
+          g->GetNeighbours(g->vertex_index[u].node, g_out_neigh);
+        #endif
         for (auto &e : g_out_neigh) {
           NodeID v = e.idx;
           if (succ.get_bit(v)) {

@@ -38,7 +38,11 @@ size_t OrderedCount(RadixGraph* g, uint32_t num_vertices) {
   #pragma omp parallel for reduction(+ : total) schedule(dynamic, 64)
   for (NodeID u=0; u < num_vertices; u++) {
     std::vector<WeightedEdge> neighbours;
-    g->GetNeighboursByOffset(u, neighbours);
+    #if USE_EDGE_CHAIN
+      g->GetNeighboursByOffset(u, neighbours);
+    #else
+      g->GetNeighbours(g->vertex_index[u].node, neighbours);
+    #endif
     if (!is_sorted) {
       std::sort(neighbours.begin(), neighbours.end(), [](const WeightedEdge &a, const WeightedEdge &b) {
         return a.idx < b.idx;
@@ -49,7 +53,11 @@ size_t OrderedCount(RadixGraph* g, uint32_t num_vertices) {
       if (v > u)
         break;
       std::vector<WeightedEdge> v_neighbours;
-      g->GetNeighboursByOffset(v, v_neighbours);
+      #if USE_EDGE_CHAIN
+        g->GetNeighboursByOffset(v, v_neighbours);
+      #else
+        g->GetNeighbours(g->vertex_index[v].node, v_neighbours);
+      #endif
       if (!is_sorted) {
         std::sort(v_neighbours.begin(), v_neighbours.end(), [](const WeightedEdge &a, const WeightedEdge &b) {
           return a.idx < b.idx;
