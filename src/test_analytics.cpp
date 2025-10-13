@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
                     #if USE_EDGE_CHAIN
                       g.GetNeighboursByOffset(e.idx, neighbours2);
                     #else
-                      g.GetNeighbours(g->vertex_index->vertex_table[e.idx].node, neighbours2);
+                      g.GetNeighbours(g.vertex_index->vertex_table[e.idx].node, neighbours2);
                     #endif
                 }
             }
