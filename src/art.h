@@ -34,6 +34,9 @@ class ART {
         tbb::concurrent_vector<Vertex> vertex_table;
         std::atomic<int> cnt;
         std::mutex mtx;
+        #if ENABLE_GARBAGE_COLLECTION
+            tbb::concurrent_queue<int> deleted_slots;
+        #endif
         
         /*  InsertSimpleVertex(): insert a simple vertex into ART (only useful for benchmarking and testing);
             id: the vertex ID to be inserted. */

@@ -36,6 +36,10 @@
 #include <omp.h>
 #include <unistd.h>
 #include <tbb/concurrent_vector.h>
+#define ENABLE_GARBAGE_COLLECTION 0
+#if ENABLE_GARBAGE_COLLECTION
+    #include <tbb/concurrent_queue.h>
+#endif
 
 typedef uint32_t NodeID;
 

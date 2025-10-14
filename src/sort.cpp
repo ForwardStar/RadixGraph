@@ -108,7 +108,14 @@
                  current->mtx->set_bit_atomic(idx);
                  tmp = (Vertex*)current->children[idx];
                  if (!tmp) {
-                     int i = cnt.fetch_add(1);
+                     int i = -1;
+                     #if ENABLE_GARBAGE_COLLECTION
+                        if (deleted_slots.try_pop(i)) {
+                            // Reuse a deleted slot
+                            i = i;
+                        }
+                     #endif
+                     if (i == -1) i = cnt.fetch_add(1);
                      tmp = &(*vertex_table.grow_by(1));
                      tmp->idx = i;
                      tmp->next.store(new WeightedEdgeArray(8));
@@ -175,6 +182,9 @@
      }
      // Do not delete the vertex directly; defer it to get_neighbor and log compaction.
      tmp->del_time = global_info.global_timestamp;
+     #if ENABLE_GARBAGE_COLLECTION
+         deleted_slots.push(tmp->idx);
+     #endif
      return true;
  }
 

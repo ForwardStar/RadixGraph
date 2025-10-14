@@ -37,6 +37,9 @@ class SORT {
         int depth = 0, space = 0;
         std::atomic<int> cnt;
         std::atomic_flag mtx;
+        #if ENABLE_GARBAGE_COLLECTION
+            tbb::concurrent_queue<int> deleted_slots;
+        #endif
 
         /*  InsertSimpleVertex(): insert a simple vertex into SORT (only useful for benchmarking and testing);
             id: the vertex ID to be inserted. */
