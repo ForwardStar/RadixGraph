@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
             edges.emplace_back(std::make_pair(std::make_pair(src, des), weight));
             weight = 1.0;  // Reset weight for the next edge
         }
+        std::shuffle(edges.begin(), edges.end(), std::default_random_engine(0));
         // Read SORT configuration from "settings" file
         std::ifstream fin_settings("settings");
         int d;

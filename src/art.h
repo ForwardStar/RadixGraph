@@ -21,7 +21,7 @@
 #include <mutex>
 
 #define UNODB_SPINLOCK_LOOP_VALUE 1
-#define USE_VERTEX_TABLE 1 // vertex table is used for graph analytics, you can disable it if benchmarking insertions and deletions
+#define USE_VERTEX_TABLE 0 // vertex table is used for graph analytics, you can disable it if benchmarking insertions and deletions
 
 #include "../unodb/art_common.hpp"
 #include "../unodb/olc_art.hpp"
