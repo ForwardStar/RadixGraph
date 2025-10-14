@@ -87,6 +87,9 @@ Vertex* ART::RetrieveVertex(NodeID id, bool insert_mode) {
                 auto result = tree.get(id);
                 return optional_value_view_to_vertex_ptr(result);
             }
+            else {
+                return tmp;
+            }
         #endif
     } else {
         return nullptr;
