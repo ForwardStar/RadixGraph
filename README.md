@@ -75,7 +75,7 @@ Test modules contain ``test_radixgraph``, ``test_trie``, ``test_workload``, ``te
 
 ``test_transform`` randomly generates n vertex ids within [0, u-1] and, inserts those vertex ids to SORT and then transforms the SORT to another configuration. It will output the memory consumption of SORT before and after the transformation.
 
-``test_transform_continuous`` randomly generates 10^7 vertex ids within [0, 2^32-1] and tests time costs of transforming SORT when inserting these 10^7 vertex ids.
+``test_transform_continuous`` randomly generates 10^7 vertex ids within [0, 2^32-1] and tests time costs of transforming SORT when inserting these 10^7 vertex ids. It will also write the memory footprint of SORT during the insertion and transformation process into ``memory_log.txt``. You can plot the footprint by running ``python3 plot_memory_log.py``. Figures will be saved in ``figures/memory_log.pdf``.
 
 # Compute SORT configuration
 The optimizer is compiled separately with the main RadixGraph components:
@@ -110,6 +110,8 @@ To plot memory footprints of different methods over different workloads:
 ```
 python3 memory_footprint.py
 ```
+
+Figures will be saved in ``figures/memory_progress.pdf``.
 
 # Debug mode of RadixGraph
 To enable debug mode, set:

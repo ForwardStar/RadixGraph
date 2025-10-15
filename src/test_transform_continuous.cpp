@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     std::ofstream f("memory_log.txt");
     for (int i = 0; i < vids.size(); i++) {
         trie.RetrieveVertex(vids[i], true);
-        if (i % 100000 == 0) f << i << " " << trie.size() << std::endl;
+        if (i % 100000 == 0) f << i << " " << trie.size() * 8 << std::endl;
         current_vids.push_back(vids[i]);
         if (i == results_n[now]) {
             std::cout << "Transforming to n = " << results_n[now] << ", a = ";

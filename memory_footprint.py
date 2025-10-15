@@ -100,4 +100,4 @@ if __name__ == "__main__":
     
     print(workloads)
 
-    plot_memory(workloads, "memory_progress.pdf")
+    plot_memory(workloads, "figures/memory_progress.pdf")

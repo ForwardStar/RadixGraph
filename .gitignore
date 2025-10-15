@@ -22,3 +22,4 @@ test_vertex_index
 workload.txt
 results*
 memory_log.txt
+figures
