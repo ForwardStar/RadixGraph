@@ -72,8 +72,10 @@ int main(int argc, char* argv[]) {
     SORT trie(5, results_a[0]);
     int now = 1;
     std::vector<uint64_t> current_vids;
+    std::ofstream f("memory_log.txt");
     for (int i = 0; i < vids.size(); i++) {
         trie.RetrieveVertex(vids[i], true);
+        if (i % 100000 == 0) f << i << " " << trie.size() << std::endl;
         current_vids.push_back(vids[i]);
         if (i == results_n[now]) {
             std::cout << "Transforming to n = " << results_n[now] << ", a = ";
