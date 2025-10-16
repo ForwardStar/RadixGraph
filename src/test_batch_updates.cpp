@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
         // Generate batch updates
         std::vector<uint32_t> update_sizes = {10, 100, 1000, 10000, 100000};
         for (auto update_size : update_sizes) {
+            G.CreateSnapshots(); // create snapshots before batch updates
             double avg_insert = 0;
             double avg_delete = 0;
             int n_trials = 1;
