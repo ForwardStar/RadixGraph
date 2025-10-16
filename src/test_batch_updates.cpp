@@ -31,13 +31,17 @@ int main(int argc, char* argv[]) {
         uint64_t src, des;
         float weight = 1.0;
         std::vector<std::pair<std::pair<uint64_t, uint64_t>, float>> edges;
+        std::unordered_set<uint64_t> vertex_set;
         while (fin >> src >> des) {
             if (fin.peek() == ' ' || fin.peek() == '\t') {
                 fin >> weight;
             }
             edges.emplace_back(std::make_pair(std::make_pair(src, des), weight));
+            vertex_set.insert(src);
+            vertex_set.insert(des);
             weight = 1.0;  // Reset weight for the next edge
         }
+        std::vector<uint64_t> vertices(vertex_set.begin(), vertex_set.end());
         std::shuffle(edges.begin(), edges.end(), std::default_random_engine(0));
         // Read SORT configuration from "settings" file
         std::ifstream fin_settings("settings");
@@ -67,7 +71,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Memory usage: " << (end_memory - start_memory) / 1024.0 / 1024.0 << " GB" << std::endl;
 
         // Generate batch updates
-        std::vector<uint32_t> update_sizes = {10000, 100000, 1000000, 10000000};
+        std::vector<uint32_t> update_sizes = {10, 100, 1000, 10000, 100000};
         for (auto update_size : update_sizes) {
             double avg_insert = 0;
             double avg_delete = 0;
@@ -78,8 +82,8 @@ int main(int argc, char* argv[]) {
                 std::vector<uint32_t> new_dests(update_size);
                 #pragma omp parallel for
                 for (uint32_t i = 0; i < update_size; i++) {
-                    new_srcs[i] = rand() % n;
-                    new_dests[i] = rand() % n;
+                    new_srcs[i] = vertices[rand() % n];
+                    new_dests[i] = vertices[rand() % n];
                 }
                 // Test batch insert
                 std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
