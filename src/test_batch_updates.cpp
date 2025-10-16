@@ -54,12 +54,20 @@ int main(int argc, char* argv[]) {
             RadixGraph G(NUM_THREADS);
         #endif
         // Insert all edges
+        std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+        auto start_memory = get_proc_mem(); // record memory
+        start = std::chrono::high_resolution_clock::now();
         #pragma omp parallel for
         for (auto e : edges) G.InsertEdge(e.first.first, e.first.second, e.second), G.InsertEdge(e.first.second, e.first.first, e.second);
-        std::cout << "Initial graph loaded." << std::endl;
+        end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = end - start;
+        auto end_memory = get_proc_mem(); // record memory
+        std::cout << "Initial graph loaded in " << duration.count() << "s" << std::endl;
+        std::cout << "Throughput: " << edges.size() * 2 / duration.count() << " ops/s" << std::endl;
+        std::cout << "Memory usage: " << (end_memory - start_memory) / 1024.0 / 1024.0 << " GB" << std::endl;
 
         // Generate batch updates
-        std::vector<uint32_t> update_sizes = {10, 100, 1000, 10000, 100000, 1000000, 10000000};
+        std::vector<uint32_t> update_sizes = {10000, 100000, 1000000, 10000000};
         for (auto update_size : update_sizes) {
             double avg_insert = 0;
             double avg_delete = 0;
@@ -76,7 +84,7 @@ int main(int argc, char* argv[]) {
                 // Test batch insert
                 std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
                 start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for
+                #pragma omp parallel for num_threads(NUM_THREADS)
                 for (uint32_t i = 0; i < update_size; i++) {
                     G.InsertEdge(new_srcs[i], new_dests[i], 1.0);
                 }
@@ -85,7 +93,7 @@ int main(int argc, char* argv[]) {
                 avg_insert += duration.count();
                 // Test batch delete
                 start = std::chrono::high_resolution_clock::now();
-                #pragma omp parallel for
+                #pragma omp parallel for num_threads(NUM_THREADS)
                 for (uint32_t i = 0; i < update_size; i++) {
                     G.DeleteEdge(new_srcs[i], new_dests[i]);
                 }

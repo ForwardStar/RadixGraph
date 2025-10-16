@@ -155,10 +155,22 @@ add_executable(test_analytics
     src/GAPBS/platform_atomics.h
 )
 
+add_executable(test_batch_updates
+    src/test_batch_updates.cpp
+    src/radixgraph.cpp
+    src/sort.cpp
+    src/vertex_array.cpp
+    src/utils.cpp
+    src/utils.h
+    src/radixgraph.h
+    src/sort.h
+    src/vertex_array.h
+)
+
 # ---------------------------
 # Link libraries
 # ---------------------------
-foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_transform_continuous test_analytics)
+foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_transform_continuous test_analytics test_batch_updates)
     target_link_libraries(${target} PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb RG)
 endforeach()
 
@@ -179,7 +191,7 @@ if(EXISTS "${UNODB_PATH}/CMakeLists.txt")
 
     # Include UnoDB headers
     target_include_directories(RG PRIVATE ${UNODB_PATH})
-    foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_analytics)
+    foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_analytics test_batch_updates)
         target_include_directories(${target} PRIVATE ${UNODB_PATH})
         target_link_libraries(${target} PRIVATE unodb)
     endforeach()
@@ -190,7 +202,7 @@ if(EXISTS "${UNODB_PATH}/CMakeLists.txt")
     # Enable SIMD flags for your CPU
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(RG PRIVATE -march=native -O3)
-        foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index)
+        foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_analytics test_batch_updates)
             target_compile_options(${target} PRIVATE -march=native -O3)
         endforeach()
     endif()
