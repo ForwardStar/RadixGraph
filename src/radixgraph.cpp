@@ -111,16 +111,16 @@ bool RadixGraph::DeleteEdge(NodeID src, NodeID des) {
     return true;
 }
 
-bool RadixGraph::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
+bool RadixGraph::GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp) {
     Vertex* src_ptr = vertex_index->RetrieveVertex(src);
     if (!src_ptr || (src_ptr->del_time != -1 && timestamp >= src_ptr->del_time)) {
         // Vertex not exist or deleted
         return false;
     }
-    return GetNeighbours(src_ptr, neighbours, is_snapshot, timestamp);
+    return GetNeighbours(src_ptr, neighbours, timestamp);
 }
 
-bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
+bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp) {
     if (src >= vertex_index->cnt) {
         // Vertex not exist
         return false;
@@ -130,10 +130,10 @@ bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neigh
         // Vertex deleted
         return false;
     }
-    return GetNeighbours(src_ptr, neighbours, is_snapshot, timestamp);
+    return GetNeighbours(src_ptr, neighbours, timestamp);
 }
 
-bool RadixGraph::GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot, int timestamp) {
+bool RadixGraph::GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
     if (is_mixed_workloads) {
         // Before reference counter is updated, no log compactions should be performed
         while (src->mtx.test_and_set()) {}
@@ -150,8 +150,8 @@ bool RadixGraph::GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbour
     }
     next->threads_get_neighbor.fetch_add(1);
     if (is_mixed_workloads) src->mtx.clear();
-    int cnt = is_snapshot ? next->snapshot_deg.load() : next->physical_size.load();
-    if (!is_snapshot && cnt > next->snapshot_deg.load()) {
+    int cnt = next->physical_size.load();
+    if (cnt > next->snapshot_deg.load()) {
         // Full neighbor list
         int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
         if (next->timestamp) {

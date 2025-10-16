@@ -32,7 +32,7 @@ def parse_memory_file(filename="memory_log.txt"):
     return data
 
 def plot_memory(data, output_path):
-    fig, ax = plt.subplots(figsize=(11, 6))
+    fig, ax = plt.subplots(figsize=(8, 4))
 
     # Drop the initial memory and take 10 items
     data = data[1:100]
@@ -45,15 +45,17 @@ def plot_memory(data, output_path):
         memory,
         color=colors,
         label=methods,
-        markerfacecolor='white',
-        markeredgewidth=1.5,
         linewidth=2,
     )
 
-    ax.set_xlabel("Number of inserted vertices", fontsize=35, fontweight='bold')
-    ax.set_ylabel("Memory (MB)", fontsize=35, fontweight='bold')
-    ax.tick_params(axis='y', labelsize=35)
-    ax.tick_params(axis='x', labelsize=35)
+    ax.scatter([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 98],
+               [memory[i] for i in [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 98]],
+               color=colors, s=100)
+
+    ax.set_xlabel("Number of inserted vertices", fontsize=30, fontweight='bold')
+    ax.set_ylabel("Memory (MB)", fontsize=30, fontweight='bold')
+    ax.tick_params(axis='y', labelsize=25)
+    ax.tick_params(axis='x', labelsize=25)
     ax.set_xticks(x)
     # create x tick labels 1e6, 2e6, ..., 9e6, leaving empty for other ticks
     x_labels = [f"{(i+1) // 10}e6" if (i+1) % 10 == 0 else "" for i in range(99)]

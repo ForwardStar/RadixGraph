@@ -15,22 +15,23 @@ The RadixGraph consists of:
 
 See APIs with comments from ``src/radixgraph.h`` and ``src/sort.h``. The ``Vertex`` and ``WeightedEdge`` classes are defined in ``src/utils.h``.
 
+RadixGraph API list:
+- ``bool InsertEdge(NodeID src, NodeID des, float weight);``
+- ``bool UpdateEdge(NodeID src, NodeID des, float weight);``
+- ``bool DeleteEdge(NodeID src, NodeID des);``
+- ``bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, int timestamp=2147483647);``
+- ``bool GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbours, int timestamp=2147483647);``
+- ``bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp=2147483647);``
+- ``void CreateSnapshots(bool sort_neighbours=false, bool make_dense=false);``
+- ``int GetGlobalTimestamp();``
+- ``void SetNumThreads(int nth=64);``
+- ``int GetNumVertices();``
+
 SORT API list:
 - ``bool CheckExistence(NodeID id);``
 - ``Vertex* RetrieveVertex(NodeID id, bool insert_mode=false);``
 - ``bool DeleteVertex(NodeID id);``
 - ``void Transform(int d, std::vector<int> _num_bits, std::vector<uint64_t>& vertex_set);``
-
-RadixGraph API list:
-- ``bool InsertEdge(NodeID src, NodeID des, float weight);``
-- ``bool UpdateEdge(NodeID src, NodeID des, float weight);``
-- ``bool DeleteEdge(NodeID src, NodeID des);``
-- ``bool GetNeighbours(NodeID src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
-- ``bool GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
-- ``bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, bool is_snapshot=false, int timestamp=2147483647);``
-- ``void CreateSnapshots(bool sort_neighbours=false, bool make_dense=false);``
-- ``int GetGlobalTimestamp();``
-- ``void SetNumThreads(int nth=64);``
 
 To fully exploit the performance of RadixGraph and ensure correctness, do take care of following things that may affect the efficiency and space:
 - **Concurrent reads and writes:** by default it is disabled. To support concurrent workloads of RadixGraph where reads and writes are executed concurrently, you can: (1) set ``global_info.is_mixed_workloads = true`` before initiating RadixGraph; (2) pause all current workloads, set ``global_info.is_mixed_workloads = true`` and execute ``CreateSnapshots()`` in RadixGraph, after which you can resume workloads. This will enable MVCC components, like creating timestamps and multi-versioned arrays. The cost is that the memory consumption will be slightly higher and the read operations are slightly slower to ensure consistency;

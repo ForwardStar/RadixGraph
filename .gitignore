@@ -19,6 +19,7 @@ test_transform
 test_transform_continuous
 test_workload
 test_vertex_index
+test_batch_updates
 workload.txt
 results*
 memory_log.txt
