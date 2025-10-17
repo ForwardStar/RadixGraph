@@ -72,6 +72,29 @@ int main() {
         duration = end - start;
         std::cout << "Time for ART insertion: " << duration.count() << "s" << std::endl;
         std::cout << "Throughput for ART insertion: " << n / duration.count() << " ops" << std::endl;
+
+        // Test query
+        start = std::chrono::high_resolution_clock::now();
+        unodb::this_thread().qsbr_pause();
+        threads.clear();
+        threads.resize(NUM_THREADS);
+        for (int i = 0; i < NUM_THREADS; i++) {
+            threads[i] = unodb::qsbr_thread([&, i]() {
+                for (int j = i; j < vertex_ids.size(); j += NUM_THREADS) {
+                    art->RetrieveVertex(vertex_ids[j], false);
+                }
+            });
+        }
+        for (int i = 0; i < NUM_THREADS; i++) {
+            threads[i].join();
+        }
+        unodb::this_thread().qsbr_resume();
+        unodb::this_thread().quiescent();
+        unodb::this_thread().quiescent();
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        std::cout << "Time for ART query: " << duration.count() << "s" << std::endl;
+        std::cout << "Throughput for ART query: " << n / duration.count() << " ops" << std::endl;
         delete art;
     #endif
 
@@ -89,6 +112,17 @@ int main() {
     duration = end - start;
     std::cout << "Time for SORT insertion: " << duration.count() << "s" << std::endl;
     std::cout << "Throughput for SORT insertion: " << n / duration.count() << " ops" << std::endl;
+
+    // Test query
+    start = std::chrono::high_resolution_clock::now();
+    #pragma omp parallel for num_threads(NUM_THREADS)
+    for (auto id : vertex_ids) {
+        sort->RetrieveVertex(id, false);
+    }
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    std::cout << "Time for SORT query: " << duration.count() << "s" << std::endl;
+    std::cout << "Throughput for SORT query: " << n / duration.count() << " ops" << std::endl;
     delete sort;
 
     return 0;
