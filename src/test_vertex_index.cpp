@@ -47,7 +47,7 @@ int main() {
     start = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (auto id : vertex_ids) {
-        sort->InsertSimpleVertex(id);
+        sort->RetrieveVertex(id, true);
     }
     end = std::chrono::high_resolution_clock::now();
     auto end_memory = get_proc_mem();
@@ -67,7 +67,7 @@ int main() {
         for (int i = 0; i < NUM_THREADS; i++) {
             threads[i] = unodb::qsbr_thread([&, i]() {
                 for (int j = i; j < vertex_ids.size(); j += NUM_THREADS) {
-                    art->InsertSimpleVertex(vertex_ids[j]);
+                    art->RetrieveVertex(vertex_ids[j], true);
                 }
             });
         }

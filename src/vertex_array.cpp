@@ -28,9 +28,9 @@ Vertex* VertexArray::RetrieveVertex(NodeID id, bool insert_mode) {
         if (insert_mode) {
             mtx->set_bit_atomic(id);
             if (vertex_table[id].idx == -1) {
+                vertex_table[id].next = new WeightedEdgeArray(8);
                 vertex_table[id].node = id;
                 vertex_table[id].idx = id;
-                vertex_table[id].next = new WeightedEdgeArray(8);
             }
             mtx->clear_bit(id);
         }
