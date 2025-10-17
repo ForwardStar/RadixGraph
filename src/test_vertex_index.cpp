@@ -22,9 +22,11 @@
 #define NUM_THREADS 64
 
 int main() {
-    int n, bit_length = 32;
+    int n, bit_length;
     std::cout << "Enter number of vertices: ";
     std::cin >> n;
+    std::cout << "Enter bit length of vertex IDs: ";
+    std::cin >> bit_length;
     // Generate data
     std::default_random_engine generator(42);
     unsigned long long maximum = (1ull << bit_length) - 1;
@@ -40,22 +42,9 @@ int main() {
         vertex_set.insert(id);
     }
 
-    // Test SORT
-    SORT* sort = new SORT(n, bit_length, 5);
-    auto start_memory = get_proc_mem();
+    unsigned int start_memory, end_memory;
     std::chrono::high_resolution_clock::time_point start, end;
-    start = std::chrono::high_resolution_clock::now();
-    #pragma omp parallel for num_threads(NUM_THREADS)
-    for (auto id : vertex_ids) {
-        sort->RetrieveVertex(id, true);
-    }
-    end = std::chrono::high_resolution_clock::now();
-    auto end_memory = get_proc_mem();
-    std::cout << "Memory used by SORT: " << (end_memory - start_memory) << " KB" << std::endl;
-    std::chrono::duration<double> duration = end - start;
-    std::cout << "Time for SORT insertion: " << duration.count() << "s" << std::endl;
-    std::cout << "Throughput for SORT insertion: " << n / duration.count() << " ops" << std::endl;
-    delete sort;
+    std::chrono::duration<double> duration;
 
     // Test ART
     #if USE_ART
@@ -85,5 +74,22 @@ int main() {
         std::cout << "Throughput for ART insertion: " << n / duration.count() << " ops" << std::endl;
         delete art;
     #endif
+
+    // Test SORT
+    SORT* sort = new SORT(n, bit_length, 5);
+    start_memory = get_proc_mem();
+    start = std::chrono::high_resolution_clock::now();
+    #pragma omp parallel for num_threads(NUM_THREADS)
+    for (auto id : vertex_ids) {
+        sort->RetrieveVertex(id, true);
+    }
+    end = std::chrono::high_resolution_clock::now();
+    end_memory = get_proc_mem();
+    std::cout << "Memory used by SORT: " << (end_memory - start_memory) << " KB" << std::endl;
+    duration = end - start;
+    std::cout << "Time for SORT insertion: " << duration.count() << "s" << std::endl;
+    std::cout << "Throughput for SORT insertion: " << n / duration.count() << " ops" << std::endl;
+    delete sort;
+
     return 0;
 }
