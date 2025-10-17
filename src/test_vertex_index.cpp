@@ -23,20 +23,12 @@
 #define NUM_THREADS 64
 
 int main() {
-    int n, logu;
+    int n, bit_length = 32;
     std::cout << "Enter number of vertices: ";
     std::cin >> n;
-    std::cout << "Enter log2 of integer universe size: ";
-    std::cin >> logu;
-    // Read settings from file
-    std::ifstream fin("settings");
-    int d;
-    fin >> d;
-    std::vector<int> a(d);
-    for (auto& i : a) fin >> i;
     // Generate data
     std::default_random_engine generator(42);
-    unsigned long long maximum = (1ull << logu) - 1;
+    unsigned long long maximum = (1ull << bit_length) - 1;
     std::uniform_int_distribution distribution(0ull, maximum);
     std::unordered_set<uint64_t> vertex_set;
     std::vector<uint64_t> vertex_ids;
@@ -53,7 +45,7 @@ int main() {
     auto start_memory = get_proc_mem();
     std::chrono::high_resolution_clock::time_point start, end;
     start = std::chrono::high_resolution_clock::now();
-    SORT* sort = new SORT(d, a);
+    SORT* sort = new SORT(n, bit_length, 5);
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (auto id : vertex_ids) {
         sort->InsertSimpleVertex(id);
@@ -68,18 +60,22 @@ int main() {
     // Test concurrent hash map
     start_memory = get_proc_mem();
     start = std::chrono::high_resolution_clock::now();
-    tbb::concurrent_hash_map<uint64_t, int> cmap;
+    tbb::concurrent_hash_map<uint64_t, SimpleVertex*> cmap;
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (auto id : vertex_ids) {
-        tbb::concurrent_hash_map<uint64_t, int>::accessor a;
+        tbb::concurrent_hash_map<uint64_t, SimpleVertex*>::accessor a;
         cmap.insert(a, id);
-        a->second = 1;
+        a->second = new SimpleVertex{(NodeID)id, nullptr};
     }
     end = std::chrono::high_resolution_clock::now();
     end_memory = get_proc_mem();
     std::cout << "Memory used by concurrent hash map: " << (end_memory - start_memory) << " KB" << std::endl;
     duration = end - start;
     std::cout << "Time for concurrent hash map insertion: " << duration.count() << "s" << std::endl;
+    // Clean up
+    for (auto it = cmap.begin(); it != cmap.end(); ++it) {
+        delete it->second;
+    }
 
     // Test ART
     #if USE_ART

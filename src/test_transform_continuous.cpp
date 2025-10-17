@@ -15,7 +15,6 @@
  */
 #include "utils.h"
 #include "sort.h"
-#include "optimizer.h"
 
 int main(int argc, char* argv[]) {
     std::cout << "Set n from 10^5 to 10^7 and log(u) = 32. Computing optimal parameters for l = 5 for all n..." << std::endl;
@@ -23,11 +22,11 @@ int main(int argc, char* argv[]) {
     std::vector<int> results_n;
     // Compute using binary search
     for (int n = 100000; n <= 10000000; n++) {
-        auto a = OptimizeParameters(n, 32, 5);
+        auto a = Optimizer::OptimalFanout(n, 32, 5);
         int l = n, r = 10000000;
         while (l < r) {
             int mid = (l + r + 1) / 2;
-            auto b = OptimizeParameters(mid, 32, 5);
+            auto b = Optimizer::OptimalFanout(mid, 32, 5);
             bool equal = true;
             for (int i = 0; i < 5; i++) {
                 if (a[i] != b[i]) {
@@ -69,13 +68,13 @@ int main(int argc, char* argv[]) {
         vids.emplace_back(u);
     }
     std::cout << "Testing transformation..." << std::endl;
-    SORT trie(5, results_a[0]);
+    SORT trie(results_a[0]);
     int now = 1;
     std::vector<uint64_t> current_vids;
     std::ofstream f("memory_log.txt");
     for (int i = 0; i < vids.size(); i++) {
         trie.RetrieveVertex(vids[i], true);
-        if (i % 100000 == 0) f << i << " " << trie.size() * 8 << std::endl;
+        if (i % 100000 == 0) f << i << " " << trie.Size() * 8 << std::endl;
         current_vids.push_back(vids[i]);
         if (i == results_n[now]) {
             std::cout << "Transforming to n = " << results_n[now] << ", a = ";

@@ -26,28 +26,27 @@ int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
     if (argc > 1) {
-        std::ifstream f("settings");
-        int d;
-        f >> d;
-        std::vector<int> a(d);
-        for (auto& i : a) f >> i;
-
         std::ifstream fin(argv[argc - 1]);
         uint64_t u, v, s;
         bool has_source = false;
+        std::unordered_set<uint64_t> vertex_set;
         std::vector<std::pair<uint64_t, uint64_t>> edges;
-        int m = 0;
+        int n = 0, m = 0;
         uint64_t maxu = 0;
         while (fin >> u >> v) {
             edges.emplace_back(u, v);
             maxu = std::max(maxu, u + 1);
             maxu = std::max(maxu, v + 1);
             if (!has_source) s = u, has_source = true;
+            vertex_set.insert(u);
+            vertex_set.insert(v);
             m++;
         }
+        n = vertex_set.size();
+        fin.close();
 
         #if USE_SORT
-            RadixGraph G(d, a, omp_get_num_threads());
+            RadixGraph G(n, ceil(log2(maxu)), omp_get_num_threads());
         #elif USE_ART
             RadixGraph G(omp_get_num_threads());
         #else
@@ -56,7 +55,6 @@ int main(int argc, char* argv[]) {
         #pragma omp parallel for
         for (auto e : edges) G.InsertEdge(e.first, e.second, 0.5), G.InsertEdge(e.second, e.first, 0.5);
         G.CreateSnapshots(true);
-        int n = G.vertex_index->cnt;
 
         std::cout << "Testing BFS..." << std::endl;
         auto start = std::chrono::high_resolution_clock::now();
@@ -149,7 +147,7 @@ int main(int argc, char* argv[]) {
     }
 
     #if USE_SORT
-        RadixGraph G(d, a, omp_get_num_threads());
+        RadixGraph G(n, 20, omp_get_num_threads());
     #elif USE_ART
         RadixGraph G(omp_get_num_threads());
     #else
@@ -163,7 +161,6 @@ int main(int argc, char* argv[]) {
 
     // Test BFS
     std::cout << "Testing BFS..." << std::endl;
-    auto res1 = G.BFS(vertex_ids[0]);
     auto p = DOBFS(&G, vertex_ids[0], n, m, -1);
     std::vector<uint64_t> res2;
     for (int i = 0; i < n; i++) {
@@ -171,35 +168,10 @@ int main(int argc, char* argv[]) {
             res2.emplace_back(G.vertex_index->vertex_table[i].node);
         }
     }
-    std::sort(res1.begin(), res1.end());
-    std::sort(res2.begin(), res2.end());
-    if (res1.size() != res2.size()) {
-        std::cout << "BFS wrong results detected. Expected size = " << res1.size() << ", actual size = " << res2.size() << std::endl;
-        return 0;
-    }
-    for (int i = 0; i < res1.size(); i++) {
-        if (res1[i] != res2[i]) {
-            std::cout << "BFS wrong results detected. Wrong node id." << std::endl;
-            return 0;
-        }
-    }
-    std::cout << "BFS results verified!" << std::endl;
 
     // Test SSSP
     std::cout << "Testing SSSP..." << std::endl;
-    auto res3 = G.SSSP(vertex_ids[0]);
     auto res4 = DeltaStep(&G, vertex_ids[0], 2.0, n, m);
-    if (res3.size() != res4.size()) {
-        std::cout << "SSSP wrong results detected. Expected size = " << res3.size() << ", actual size = " << res4.size() << std::endl;
-        return 0;
-    }
-    for (int i = 0; i < res3.size(); i++) {
-        if ((res3[i] <= 1e9 || res4[i] <= 1e9) && abs(res3[i] - res4[i]) > 1e-6) {
-            std::cout << "SSSP wrong results detected. Distance of node " << G.vertex_index->vertex_table[i].node << " is expected to be: " << res3[i] << ", actual: " << res4[i] << std::endl;
-            return 0;
-        }
-    }
-    std::cout << "SSSP results verified!" << std::endl;
 
     // Test LCC
     std::cout << "Testing LCC..." << std::endl;

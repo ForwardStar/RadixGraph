@@ -15,7 +15,6 @@
  */
 #include "utils.h"
 #include "radixgraph.h"
-#include "optimizer.h"
 #include "GAPBS/bfs.h"
 #include "GAPBS/sssp.h"
 #include "GAPBS/pr_spmv.h"
@@ -34,7 +33,7 @@
 int main(int argc, char* argv[]) {
     #if USE_SORT
         if (argc < 2) {
-            std::cout << "Usage: ./test_edge_chain <edge_file>" << std::endl;
+            std::cout << "Usage: ./test_analytics <edge_file>" << std::endl;
             return 0;
         }
         // Read edge from the file
@@ -65,8 +64,8 @@ int main(int argc, char* argv[]) {
             }
         }
         int l = 5, n = vertex_set.size();
-        auto a = OptimizeParameters(n, 32, l);
-        RadixGraph g(l, a);
+        auto a = Optimizer::OptimalFanout(n, 32, l);
+        RadixGraph g(a);
         #pragma omp parallel for
         for (auto e : edges) {
             g.InsertEdge(e.first, e.second, 1.0);

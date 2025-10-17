@@ -16,9 +16,8 @@
 #ifndef RG
 #define RG
 
-#define DEBUG_MODE 0
-#define USE_SORT 1
-#define USE_ART 0
+#define USE_SORT 0
+#define USE_ART 1
 #define USE_EDGE_CHAIN 1
 
 #include "utils.h"
@@ -94,50 +93,21 @@ class RadixGraph {
         #if !USE_SORT && !USE_ART
             void SetMaximumID(int max_id=MAX_VERTEX_ID);
         #endif
-        // Get debug information of all vertices (only when DEBUG_MODE is true).
-        struct DebugInfo {
-            NodeID node = -1;
-            int deg = 0;
-            double t_total = 0, t_compact = 0;
-        };
-        std::vector<DebugInfo> GetDebugInfo() {
-            #if DEBUG_MODE
-                int n = vertex_index->cnt.load();
-                std::vector<DebugInfo> res(n);
-                for (int i = 0; i < n; i++) {
-                    auto& node = vertex_index->vertex_table[i];
-                    res[i] = {node.node, node.next.load()->deg, node.t_total.load(), node.t_compact.load()};
-                }
-                return res;
-            #endif
-            return {};
-        }
-
-        /*  BFS(): get all reachable vertices from a given vertex ID (single-threaded);
-            src: the source vertex ID;
-            Returns an array of all reachable vertex IDs.
-        */
-        std::vector<uint64_t> BFS(NodeID src);
-        /*  SSSP(): get shortest distances from a given vertex ID (single-threaded);
-            src: the source vertex ID;
-            Returns an array of numbers containing shortest distances to all vertices.
-        */
-        std::vector<double> SSSP(NodeID src);
 
         /*  RadixGraph(): initialization of a RadixGraph instance;
-            d: depth of the SORT (vertex index);
-            _num_children: a_i for each layer i, meaning a node in the i-th layer has 2^(a_i) child pointers;
+            n: exact or estimated number of vertices to be stored (when using SORT);
+            bit_length: bit length of vertex IDs (when using SORT);
             _num_threads: the number of threads allowed in the system;
-            _max_vertex_id: the maximum vertex ID allowed in the system (when using vertex array).
-            -----------------------------------------------------------------------------------------------------------------------
-            If you are using ART or vertex array instead of SORT, you can leave the parameters empty to call RadixGraph() directly.
-        */ 
+            _max_vertex_id: the maximum vertex ID allowed in the system (when using vertex array);
+            L: the segment size of the segmented bitmap. */ 
         #if USE_SORT
-            RadixGraph(int d=1, std::vector<int> _num_children={25}, int _num_threads=64);
+            RadixGraph(int n, int bit_length, int _num_threads=64, int L=1000000);
+            // Alternatively, initialize with your custom fanout configuration
+            RadixGraph(std::vector<int> _num_bits, int _num_threads=64, int L=1000000);
         #elif USE_ART
-            RadixGraph(int _num_threads=64);
+            RadixGraph(int _num_threads=64, int L=1000000);
         #else
-            RadixGraph(int _num_threads=64, int _max_vertex_id=MAX_VERTEX_ID);
+            RadixGraph(int _num_threads=64, int _max_vertex_id=MAX_VERTEX_ID, int L=1000000);
         #endif
         ~RadixGraph();
 };

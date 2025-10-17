@@ -12,12 +12,10 @@ libRG.a
 *.e
 *.v
 *.properties
-settings
 optimizer
 test_analytics
-test_transform
 test_transform_continuous
-test_workload
+test_trie_workload
 test_vertex_index
 test_batch_updates
 workload.txt

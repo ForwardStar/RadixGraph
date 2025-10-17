@@ -1,0 +1,70 @@
+#include "utils.h"
+#include "sort.h"
+
+int main(int argc, char* argv[]) {
+    int n, bit_length;
+    std::cout << "The number of IDs to be inserted: ";
+    std::cin >> n;
+    std::cout << "The bit length of IDs: ";
+    std::cin >> bit_length;
+    std::cout << "Which workload to use? (u: uniform; s: skewed) ";
+    char workload_type;
+    std::cin >> workload_type;
+    std::default_random_engine generator(42);
+    unsigned long long maximum = bit_length < 64 ? (1ull << bit_length) - 1 : -1;
+    std::uniform_int_distribution distribution(0ull, maximum);
+    std::vector<uint64_t> IDs;
+    if (workload_type == 'u') {
+        std::unordered_set<uint64_t> vertex_ids;
+        while (IDs.size() < n) {
+            uint64_t id = distribution(generator);
+            if (vertex_ids.find(id) == vertex_ids.end()) {
+                vertex_ids.insert(id);
+                IDs.push_back(id);
+            }
+        }
+    } else {
+        // Generate skewed IDs using Zipf distribution
+        double s = 1.0; // skewness parameter
+        std::vector<double> harmonic_series(n + 1, 0.0);
+        for (int i = 1; i <= n; i++) {
+            harmonic_series[i] = harmonic_series[i - 1] + 1.0 / std::pow(i, s);
+        }
+        std::unordered_set<uint64_t> vertex_ids;
+        while (IDs.size() < n) {
+            double z = ((double) rand() / RAND_MAX) * harmonic_series[n];
+            int rank = 1;
+            while (rank <= n && harmonic_series[rank] < z) {
+                rank++;
+            }
+            uint64_t id = rank - 1;
+            if (vertex_ids.find(id) == vertex_ids.end()) {
+                vertex_ids.insert(id);
+                IDs.push_back(id);
+            }
+        }
+    }
+    SORT sort(n, bit_length, ceil(log2(bit_length)));
+    // Generate vEB-tree setting
+    std::vector<int> num_bits(ceil(log2(bit_length)));
+    int now = bit_length, i = 0;
+    while (now > 1) {
+        int b = ceil(now / 2.0);
+        num_bits[i++] = b;
+        now -= b;
+        if (i == num_bits.size()) num_bits[i - 1] += now;
+    }
+    SORT vEB(num_bits);
+    // Insert IDs to SORT in original order
+    // Print memory usage after 10% insertions
+    size_t total = IDs.size();
+    for (size_t i = 0; i < total; ++i) {
+        sort.RetrieveVertex(IDs[i], true);
+        if ((i + 1) % (total / 10) == 0)
+            std::cout << "SORT: memory after " << (i + 1) << " insertions is " << sort.Size() * 8 << " bytes" << std::endl;
+        vEB.RetrieveVertex(IDs[i], true);
+        if ((i + 1) % (total / 10) == 0)
+            std::cout << "vEB: memory after " << (i + 1) << " insertions is " << vEB.Size() * 8 << " bytes" << std::endl;
+    }
+    return 0;
+}

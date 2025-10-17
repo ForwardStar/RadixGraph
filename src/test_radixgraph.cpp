@@ -26,24 +26,25 @@ int main(int argc, char* argv[]) {
         std::ifstream fin(argv[1]);
         uint64_t src, des;
         float weight = 1.0;
+        std::unordered_set<uint64_t> vertex_set;
         std::vector<std::pair<std::pair<uint64_t, uint64_t>, float>> edges;
+        int n = 0;
+        uint64_t max_id = 0;
         while (fin >> src >> des) {
             if (fin.peek() == ' ' || fin.peek() == '\t') {
                 fin >> weight;
             }
             edges.emplace_back(std::make_pair(std::make_pair(src, des), weight));
             weight = 1.0;  // Reset weight for the next edge
+            vertex_set.insert(src);
+            vertex_set.insert(des);
+            max_id = std::max(max_id, std::max(src, des));
         }
+        n = vertex_set.size();
         std::shuffle(edges.begin(), edges.end(), std::default_random_engine(0));
-        // Read SORT configuration from "settings" file
-        std::ifstream fin_settings("settings");
-        int d;
-        fin_settings >> d;
-        std::vector<int> a(d);
-        for (auto& i : a) fin_settings >> i;
 
         #if USE_SORT
-            RadixGraph G_fstar(d, a, NUM_THREADS);
+            RadixGraph G_fstar(n, ceil(log2(max_id + 1)), NUM_THREADS);
         #elif USE_ART
             RadixGraph G_fstar(NUM_THREADS);
         #else
@@ -124,12 +125,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    std::vector<int> d = {3, 3, 3};
-    std::vector<std::vector<int>> a = {
-        {19, 6, 5},
-        {21, 5, 4},
-        {23, 4, 3},
-    };
     int m = 10000000;
     int num_trials = 3;
     
@@ -158,7 +153,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < num_trials; i++) {
             // std::cout << "Trial " << i + 1 << ":" << std::endl;
             #if USE_SORT
-                RadixGraph G_fstar(d[now], a[now], NUM_THREADS);
+                RadixGraph G_fstar(n, 30, NUM_THREADS);
             #elif USE_ART
                 RadixGraph G_fstar(NUM_THREADS);
             #else
@@ -372,38 +367,12 @@ int main(int argc, char* argv[]) {
             }
 
             // std::cout << "Get neighbors done" << std::endl;
-
-            // BFS
-            {
-                auto start = std::chrono::high_resolution_clock::now();
-                #if USE_SORT
-                    auto res_fstar = G_fstar.BFS(vertex_ids[0]);
-                #elif USE_ART
-                    unodb::this_thread().qsbr_pause();
-                    unodb::qsbr_thread bfs_thread = unodb::qsbr_thread([&]() {
-                        G_fstar.thread_id_local = 0;
-                        auto res_fstar = G_fstar.BFS(vertex_ids[0]);
-                    });
-                    bfs_thread.join();
-                    unodb::this_thread().qsbr_resume();
-                    unodb::this_thread().quiescent();
-                    unodb::this_thread().quiescent();
-                #else
-                    auto res_fstar = G_fstar.BFS(vertex_ids[0]);
-                #endif
-                auto end = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> duration = end - start;
-                duration_bfs_fstar += duration.count();
-            }
-
-            // std::cout << "BFS done" << std::endl;
         }
         ++now;
 
-        std::cout << "Average insertion time for RadixGraph: " << duration_insert_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average deletion time for RadixGraph: " << duration_delete_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average update time for RadixGraph: " << duration_update_edge_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average get neighbours time for RadixGraph: " << duration_get_neighbours_fstar / num_trials << "s" << std::endl;
-        std::cout << "Average BFS time for RadixGraph: " << duration_bfs_fstar / num_trials << "s" << std::endl;
+        std::cout << "Average insertion throughput for RadixGraph: " << (double)m / (duration_insert_edge_fstar / num_trials) << " ops" << std::endl;
+        std::cout << "Average deletion throughput for RadixGraph: " << (double)10000 / (duration_delete_edge_fstar / num_trials) << " ops" << std::endl;
+        std::cout << "Average update throughput for RadixGraph: " << (double)10000 / (duration_update_edge_fstar / num_trials) << " ops" << std::endl;
+        std::cout << "Average get neighbours throughput for RadixGraph: " << (double)n / (duration_get_neighbours_fstar / num_trials) << " ops" << std::endl;
     }
 }

@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     srand((int)time(NULL));
     if (argc <= 1) {
-        std::cout << "Usage: ./test_batch_updates [input_file]" << std::endl;
+        std::cout << "Usage: ./test_batch_updates <edge_file>" << std::endl;
         return 0;
     }
 
@@ -32,6 +32,8 @@ int main(int argc, char* argv[]) {
         float weight = 1.0;
         std::vector<std::pair<std::pair<uint64_t, uint64_t>, float>> edges;
         std::unordered_set<uint64_t> vertex_set;
+        int n = 0;
+        uint64_t max_id = 0;
         while (fin >> src >> des) {
             if (fin.peek() == ' ' || fin.peek() == '\t') {
                 fin >> weight;
@@ -40,18 +42,14 @@ int main(int argc, char* argv[]) {
             vertex_set.insert(src);
             vertex_set.insert(des);
             weight = 1.0;  // Reset weight for the next edge
+            max_id = std::max(max_id, std::max(src, des));
         }
+        n = vertex_set.size();
         std::vector<uint64_t> vertices(vertex_set.begin(), vertex_set.end());
         std::shuffle(edges.begin(), edges.end(), std::default_random_engine(0));
-        // Read SORT configuration from "settings" file
-        std::ifstream fin_settings("settings");
-        int d;
-        fin_settings >> d;
-        std::vector<int> a(d);
-        for (auto& i : a) fin_settings >> i;
 
         #if USE_SORT
-            RadixGraph G(d, a, NUM_THREADS);
+            RadixGraph G(n, ceil(log2(max_id)), NUM_THREADS);
         #elif USE_ART
             RadixGraph G(NUM_THREADS);
         #else

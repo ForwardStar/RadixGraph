@@ -65,14 +65,6 @@ add_executable(test_trie
     src/sort.h
 )
 
-add_executable(test_transform
-    src/test_transform.cpp
-    src/sort.cpp
-    src/utils.cpp
-    src/utils.h
-    src/sort.h
-)
-
 add_executable(test_gapbs
     src/test_gapbs.cpp
     src/radixgraph.cpp
@@ -99,8 +91,8 @@ add_executable(test_gapbs
     src/GAPBS/platform_atomics.h
 )
 
-add_executable(test_workload
-    src/test_workload.cpp
+add_executable(test_trie_workload
+    src/test_trie_workload.cpp
     src/radixgraph.cpp
     src/sort.cpp
     src/utils.cpp
@@ -170,7 +162,7 @@ add_executable(test_batch_updates
 # ---------------------------
 # Link libraries
 # ---------------------------
-foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_transform_continuous test_analytics test_batch_updates)
+foreach(target test_radixgraph test_trie test_gapbs test_trie_workload test_vertex_index test_transform_continuous test_analytics test_batch_updates)
     target_link_libraries(${target} PRIVATE Threads::Threads OpenMP::OpenMP_CXX TBB::tbb RG)
 endforeach()
 
@@ -191,7 +183,7 @@ if(EXISTS "${UNODB_PATH}/CMakeLists.txt")
 
     # Include UnoDB headers
     target_include_directories(RG PRIVATE ${UNODB_PATH})
-    foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_analytics test_batch_updates)
+    foreach(target test_radixgraph test_trie test_gapbs test_trie_workload test_vertex_index test_analytics test_batch_updates)
         target_include_directories(${target} PRIVATE ${UNODB_PATH})
         target_link_libraries(${target} PRIVATE unodb)
     endforeach()
@@ -202,7 +194,7 @@ if(EXISTS "${UNODB_PATH}/CMakeLists.txt")
     # Enable SIMD flags for your CPU
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         target_compile_options(RG PRIVATE -march=native -O3)
-        foreach(target test_radixgraph test_trie test_transform test_gapbs test_workload test_vertex_index test_analytics test_batch_updates)
+        foreach(target test_radixgraph test_trie test_gapbs test_trie_workload test_vertex_index test_analytics test_batch_updates)
             target_compile_options(${target} PRIVATE -march=native -O3)
         endforeach()
     endif()

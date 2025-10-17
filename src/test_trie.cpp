@@ -21,21 +21,19 @@ int u, d, n;
 int main() {
     std::cout << "Input n: ";
     std::cin >> n;
-    std::cout << "Input log(u): ";
+    std::cout << "Input bit length of IDs: ";
     std::cin >> u;
-    std::cout << "Input d: ";
+    std::cout << "Input number of layers of your Trie: ";
     std::cin >> d;
-    std::vector<int> a_base;
-    a_base.assign(d, ceil(double(u) / d));
-    std::cout << "Input a: ";
+    std::cout << "Input fanout array a: ";
     std::vector<int> a;
     for (int i = 0; i < d; i++) {
         int ai;
         std::cin >> ai;
         a.push_back(ai);
     }
-    SORT trie_base(d, a_base);
-    SORT trie_opt(d, a);
+    SORT trie(a);
+    SORT sort(n, u, d);
     std::default_random_engine generator;
     unsigned long long maximum = u < 64 ? (1ull << u) - 1 : -1;
     std::uniform_int_distribution distribution(0ull, maximum);
@@ -51,58 +49,70 @@ int main() {
     for (auto u : vertex_ids) {
         vids.emplace_back(u);
     }
-    double duration_trie_base_insert = 0;
-    double duration_trie_base_query = 0;
-    double duration_trie_opt_insert = 0;
-    double duration_trie_opt_query = 0;
-    // #pragma omp parallel for num_threads(10)
+    double duration_trie_insert = 0;
+    double duration_trie_query = 0;
+    double duration_sort_insert = 0;
+    double duration_sort_query = 0;
+
+    // Insert of Trie
+    #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         uint64_t id = vids[i];
-        auto start = std::chrono::high_resolution_clock::now();
-        auto x = trie_base.RetrieveVertex(id, true);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duration = end - start;
-        duration_trie_base_insert += duration.count();
-
+        std::chrono::high_resolution_clock::time_point start, end;
+        std::chrono::duration<double> duration;
         start = std::chrono::high_resolution_clock::now();
-        x = trie_opt.RetrieveVertex(id, true);
+        trie.InsertSimpleVertex(id);
         end = std::chrono::high_resolution_clock::now();
         duration = end - start;
-        duration_trie_opt_insert += duration.count();
-
-        start = std::chrono::high_resolution_clock::now();
-        auto tmp = trie_base.RetrieveVertex(id);
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        duration_trie_base_query += duration.count();
-        assert(tmp->node == id);
-        
-        start = std::chrono::high_resolution_clock::now();
-        tmp = trie_opt.RetrieveVertex(id);
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        duration_trie_opt_query += duration.count();
-        assert(tmp->node == id);
+        duration_trie_insert += duration.count();
     }
-    std::cout << "Allocated space of a baseline Trie: " << trie_base.size() << std::endl;
-    std::cout << "Allocated space of your Trie: " << trie_opt.size() << std::endl;
-    std::cout << "Total insertion time of a baseline Trie: " << duration_trie_base_insert << std::endl;
-    std::cout << "Total insertion time of your Trie: " << duration_trie_opt_insert << std::endl;
-    std::cout << "Total query time of a baseline Trie: " << duration_trie_base_query << std::endl;
-    std::cout << "Total query time of your Trie: " << duration_trie_opt_query << std::endl;
 
-    // Test insert simple dummy nodes in parallel
-    std::cout << "Testing parallel insertion of simple dummy nodes..." << std::endl;
-    SORT trie_simple(d, a);
-    #pragma omp parallel for num_threads(10)
+    // Insert of SORT
+    #pragma omp parallel for
     for (int i = 0; i < n; i++) {
         uint64_t id = vids[i];
-        trie_simple.InsertSimpleVertex(id);
-        if (!trie_simple.CheckExistence(id)) {
-            std::cout << "Error: vertex " << id << " not found after insertion!" << std::endl;
-        }
+        std::chrono::high_resolution_clock::time_point start, end;
+        std::chrono::duration<double> duration;
+        start = std::chrono::high_resolution_clock::now();
+        sort.InsertSimpleVertex(id);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        duration_sort_insert += duration.count();
     }
-    std::cout << "Done!" << std::endl;
+
+    // Query of Trie
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        uint64_t id = vids[i];
+        std::chrono::high_resolution_clock::time_point start, end;
+        std::chrono::duration<double> duration;
+        start = std::chrono::high_resolution_clock::now();
+        auto tmp = trie.RetrieveVertex(id);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        duration_trie_query += duration.count();
+    }
+
+    // Query of SORT
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        uint64_t id = vids[i];
+        std::chrono::high_resolution_clock::time_point start, end;
+        std::chrono::duration<double> duration;
+        start = std::chrono::high_resolution_clock::now();
+        auto tmp = sort.RetrieveVertex(id);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        duration_sort_query += duration.count();
+    }
+
+    std::cout << "Allocated space of your Trie: " << trie.Size() * 8 << " bytes" << std::endl;
+    std::cout << "Insertion throughput of your Trie: " << n / duration_trie_insert << " ops" << std::endl;
+    std::cout << "Query throughput of your Trie: " << n / duration_trie_query << " ops" << std::endl;
+    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "Allocated space of SORT: " << sort.Size() * 8 << " bytes" << std::endl;
+    std::cout << "Insertion throughput of SORT: " << n / duration_sort_insert << " ops" << std::endl;
+    std::cout << "Query throughput of SORT: " << n / duration_sort_query << " ops" << std::endl;
 
     return 0;
 }

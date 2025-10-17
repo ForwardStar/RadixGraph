@@ -100,10 +100,10 @@ unsigned int get_proc_mem(); // in KB
 class SegmentedBitmap {
   private:
     std::vector<AtomicBitmap*> segments;
-    int segment_size = 10000000; // 10 million bits per segment
+    int segment_size = 1000000; // 1 million bits per segment
     int current_size = 0;
   public:
-    SegmentedBitmap(int n=0, int seg_size=10000000) {
+    SegmentedBitmap(int seg_size=1000000, int n=0) {
         segment_size = seg_size;
         int num_segments = (n + segment_size - 1) / segment_size;
         segments.resize(num_segments, nullptr);
@@ -154,8 +154,7 @@ class SegmentedBitmap {
 /* WeightedEdge:
    - Represents a directed weighted edge;
    - e.weight: when it is 0, this edge is a delete log; otherwise it represents the weight of the edge;
-   - e.idx: the offset (logical ID) of destination's vertex; vertex_table[e.idx] returns the DummyNode of the vertex.
-*/
+   - e.idx: the offset (logical ID) of destination's vertex; vertex_table[e.idx] returns the DummyNode of the vertex. */
 struct WeightedEdge {
     float weight = 0;
     int idx = -1; 
@@ -173,8 +172,7 @@ struct WeightedEdge {
     - snapshot_deg: if this array is a snapshot, it stores the degree when the snapshot is created; otherwise it is 0;
     - deg: the latest degree of this vertex;
     - threads_get_neighbor: how many threads are currently reading this edge array;
-    - threads_analytical: how many analytical threads are currently reading this edge array (for analytical queries).
-*/
+    - threads_analytical: how many analytical threads are currently reading this edge array (for analytical queries). */
 class WeightedEdgeArray {
     public:
       std::atomic<int> size = 0, cap = 0, physical_size = 0; // Size and capacity of the array; physical size (<= size) is the number of written edges
@@ -208,8 +206,7 @@ class WeightedEdgeArray {
    - N.del_time: the deletion time of this vertex;
    - N.next: the edge array pointer;
    - t_total, t_compact: timers for measuring the time (unit: s) of total operations and log compaction operations (only used for benchmarking and debugging);
-   Note that we do not store ``Size`` since it can be retrieved by next->size; N.idx is stored for practical implementation but can be removed.
-*/
+   Note that we do not store ``Size`` since it can be retrieved by next->size; N.idx is stored for practical implementation but can be removed. */
 struct Vertex {
     NodeID node = -1;
     int idx = -1, del_time = -1;

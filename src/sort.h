@@ -13,10 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef TRIE
-#define TRIE
+#ifndef SORT_H
+#define SORT_H
 
 #include "utils.h"
+
+namespace Optimizer {
+    /*  OptimalFanout(): the optimal fanout array a for SORT;
+        n: number of vertices;
+        bit_length: bit length of vertex IDs;
+        l: number of layers in SORT;
+        return: optimal fanout array a. */
+    std::vector<int> OptimalFanout(int n, int bit_length, int l);
+
+    /*  Prune(): prune the zero ai values in the fanout array;
+        a: the fanout array to be pruned;
+        return: pruned fanout array. */
+    std::vector<int> Prune(std::vector<int> a);
+};
 
 class SORT {
     private:
@@ -45,7 +59,7 @@ class SORT {
             id: the vertex ID to be inserted. */
         void InsertSimpleVertex(NodeID id);
         /*  CheckExistence(): check whether a vertex exists in SORT;
-            id: the vertex ID to be retrieved; */
+            id: the vertex ID to be retrieved. */
         bool CheckExistence(NodeID id);
         /*  RetrieveVertex(): retrieve a vertex from SORT;
             id: the vertex ID to be retrieved;
@@ -60,11 +74,23 @@ class SORT {
             vertex_set: set of current inserted vertices. */
         void Transform(int d, std::vector<int> _num_bits, std::vector<uint64_t>& vertex_set);
 
-        long long size();
+        /*  Size(): number of pointers created in SORT. */
+        long long Size();
 
         SORT() {}
+        /*  SORT(): initialization of a SORT instance;
+            n: number of vertices;
+            bit_length: bit length of vertex IDs;
+            l: number of layers in SORT;
+            prune: whether to prune the 0 values in the optimal fanout array. */
+        SORT(int n, int bit_length, int l, bool prune=true);
+        /*  SORT(): initialization of a SORT instance;
+            d: number of layers;
+            _num_bits: values of ai. */
         SORT(int d, int _num_bits[]);
-        SORT(int d, std::vector<int> _num_bits);
+        /*  SORT(): initialization of a SORT instance;
+            _num_bits: values of ai. */
+        SORT(std::vector<int> _num_bits);
         ~SORT();
 };
 
