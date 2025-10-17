@@ -60,7 +60,7 @@ Test modules contain ``test_radixgraph``, ``test_gapbs``, ``test_analytics``, ``
 
 ``test_transform_continuous`` randomly generates 10^7 vertex ids within [0, 2^32-1] and tests time costs of transforming SORT when inserting these 10^7 vertex ids. It will also record the memory footprint of SORT during the insertion and transformation process into ``memory_log.txt``. You can plot the footprint by running ``python3 plot_memory_log.py``. Figures will be saved in ``figures/memory_log.pdf``.
 
-``test_vertex_index`` randomly generates n vertex ids and inserts them into SORT/ART/hashmap. It will output the efficiency and space consumption of different vertex indexes.
+``test_vertex_index`` randomly generates n vertex ids and inserts them into SORT and ART. It will output the efficiency and space consumption of different vertex indexes.
 
 # Alternative vertex indexes
 If you do not want to use SORT as the vertex index, you can use RadixGraph with the **adaptive radix tree (ART)** or **vertex array**.

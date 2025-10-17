@@ -16,7 +16,7 @@
 #ifndef RG
 #define RG
 
-#define USE_SORT 0
+#define USE_SORT 1
 #define USE_ART 0
 #define USE_EDGE_CHAIN 1
 

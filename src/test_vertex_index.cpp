@@ -19,7 +19,6 @@
 #if USE_ART
     #include "art.h"
 #endif
-#include <tbb/concurrent_hash_map.h>
 #define NUM_THREADS 64
 
 int main() {
@@ -42,10 +41,10 @@ int main() {
     }
 
     // Test SORT
+    SORT* sort = new SORT(n, bit_length, 5);
     auto start_memory = get_proc_mem();
     std::chrono::high_resolution_clock::time_point start, end;
     start = std::chrono::high_resolution_clock::now();
-    SORT* sort = new SORT(n, bit_length, 5);
     #pragma omp parallel for num_threads(NUM_THREADS)
     for (auto id : vertex_ids) {
         sort->InsertSimpleVertex(id);
@@ -55,42 +54,35 @@ int main() {
     std::cout << "Memory used by SORT: " << (end_memory - start_memory) << " KB" << std::endl;
     std::chrono::duration<double> duration = end - start;
     std::cout << "Time for SORT insertion: " << duration.count() << "s" << std::endl;
+    std::cout << "Throughput for SORT insertion: " << n / duration.count() << " ops" << std::endl;
     delete sort;
-
-    // Test concurrent hash map
-    start_memory = get_proc_mem();
-    start = std::chrono::high_resolution_clock::now();
-    tbb::concurrent_hash_map<uint64_t, SimpleVertex*> cmap;
-    #pragma omp parallel for num_threads(NUM_THREADS)
-    for (auto id : vertex_ids) {
-        tbb::concurrent_hash_map<uint64_t, SimpleVertex*>::accessor a;
-        cmap.insert(a, id);
-        a->second = new SimpleVertex{(NodeID)id, nullptr};
-    }
-    end = std::chrono::high_resolution_clock::now();
-    end_memory = get_proc_mem();
-    std::cout << "Memory used by concurrent hash map: " << (end_memory - start_memory) << " KB" << std::endl;
-    duration = end - start;
-    std::cout << "Time for concurrent hash map insertion: " << duration.count() << "s" << std::endl;
-    // Clean up
-    for (auto it = cmap.begin(); it != cmap.end(); ++it) {
-        delete it->second;
-    }
 
     // Test ART
     #if USE_ART
         start_memory = get_proc_mem();
         start = std::chrono::high_resolution_clock::now();
         ART* art = new ART();
-        #pragma omp parallel for num_threads(NUM_THREADS)
-        for (auto id : vertex_ids) {
-            art->InsertSimpleVertex(id);
+        unodb::this_thread().qsbr_pause();
+        std::vector<unodb::qsbr_thread> threads(NUM_THREADS);
+        for (int i = 0; i < NUM_THREADS; i++) {
+            threads[i] = unodb::qsbr_thread([&, i]() {
+                for (int j = i; j < vertex_ids.size(); j += NUM_THREADS) {
+                    art->InsertSimpleVertex(vertex_ids[j]);
+                }
+            });
         }
+        for (int i = 0; i < NUM_THREADS; i++) {
+            threads[i].join();
+        }
+        unodb::this_thread().qsbr_resume();
+        unodb::this_thread().quiescent();
+        unodb::this_thread().quiescent();
         end = std::chrono::high_resolution_clock::now();
         end_memory = get_proc_mem();
         std::cout << "Memory used by ART: " << (end_memory - start_memory) << " KB" << std::endl;
         duration = end - start;
         std::cout << "Time for ART insertion: " << duration.count() << "s" << std::endl;
+        std::cout << "Throughput for ART insertion: " << n / duration.count() << " ops" << std::endl;
         delete art;
     #endif
     return 0;
