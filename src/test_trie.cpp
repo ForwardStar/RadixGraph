@@ -53,58 +53,48 @@ int main() {
     double duration_trie_query = 0;
     double duration_sort_insert = 0;
     double duration_sort_query = 0;
+    std::chrono::high_resolution_clock::time_point start, end;
+    std::chrono::duration<double> duration;
 
     // Insert of Trie
+    start = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        uint64_t id = vids[i];
-        std::chrono::high_resolution_clock::time_point start, end;
-        std::chrono::duration<double> duration;
-        start = std::chrono::high_resolution_clock::now();
-        trie.InsertSimpleVertex(id);
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        duration_trie_insert += duration.count();
+        trie.InsertSimpleVertex(vids[i]);
     }
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    duration_trie_insert += duration.count();
 
     // Insert of SORT
+    start = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        uint64_t id = vids[i];
-        std::chrono::high_resolution_clock::time_point start, end;
-        std::chrono::duration<double> duration;
-        start = std::chrono::high_resolution_clock::now();
-        sort.InsertSimpleVertex(id);
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        duration_sort_insert += duration.count();
+        sort.InsertSimpleVertex(vids[i]);
     }
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    duration_sort_insert += duration.count();
 
     // Query of Trie
+    start = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        uint64_t id = vids[i];
-        std::chrono::high_resolution_clock::time_point start, end;
-        std::chrono::duration<double> duration;
-        start = std::chrono::high_resolution_clock::now();
-        auto tmp = trie.RetrieveVertex(id);
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        duration_trie_query += duration.count();
+        trie.RetrieveVertex(vids[i]);
     }
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    duration_trie_query += duration.count();
 
     // Query of SORT
+    start = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
     for (int i = 0; i < n; i++) {
-        uint64_t id = vids[i];
-        std::chrono::high_resolution_clock::time_point start, end;
-        std::chrono::duration<double> duration;
-        start = std::chrono::high_resolution_clock::now();
-        auto tmp = sort.RetrieveVertex(id);
-        end = std::chrono::high_resolution_clock::now();
-        duration = end - start;
-        duration_sort_query += duration.count();
+        sort.RetrieveVertex(vids[i]);
     }
+    end = std::chrono::high_resolution_clock::now();
+    duration = end - start;
+    duration_sort_query += duration.count();
 
     std::cout << "Allocated space of your Trie: " << trie.Size() * 8 << " bytes" << std::endl;
     std::cout << "Insertion throughput of your Trie: " << n / duration_trie_insert << " ops" << std::endl;
