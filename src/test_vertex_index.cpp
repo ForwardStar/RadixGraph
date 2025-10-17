@@ -76,7 +76,7 @@ int main() {
     #endif
 
     // Test SORT
-    SORT* sort = new SORT(n, bit_length, 5);
+    SORT* sort = new SORT(n, bit_length, ceil(log2(bit_length)));
     start_memory = get_proc_mem();
     start = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for num_threads(NUM_THREADS)
