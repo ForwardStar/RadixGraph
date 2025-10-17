@@ -188,16 +188,16 @@ Vertex* SORT::InsertVertex(SORTNode* current, NodeID id, int d) {
 Vertex* SORT::RetrieveVertex(NodeID id, bool insert_mode) {
     if (!root) {
     while (mtx.test_and_set()) {}
-    if (!root) {
-        auto tmp = new SORTNode();
-        int sz = (1 << num_bits[0]);
-        tmp->children = new uint64_t[sz];
-        std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
-        tmp->mtx = new AtomicBitmap(sz);
-        tmp->mtx->reset();
-        root = tmp;
-    }
-    mtx.clear();
+        if (!root) {
+            auto tmp = new SORTNode();
+            int sz = (1 << num_bits[0]);
+            tmp->children = new uint64_t[sz];
+            std::memset(tmp->children, 0, sizeof(tmp->children) * sz);
+            tmp->mtx = new AtomicBitmap(sz);
+            tmp->mtx->reset();
+            root = tmp;
+        }
+        mtx.clear();
     }
     SORTNode* current = root;
     for (int i = 0; i < depth; i++) {
