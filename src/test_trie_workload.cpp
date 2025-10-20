@@ -50,40 +50,18 @@ int main(int argc, char* argv[]) {
             }
         }
     } else if (workload_type == 'h') {
-        // Generate skewed IDs using Zipf distribution
-        // Generate in parallel
-        std::cout << "Generating skewed IDs using Zipf distribution...\n";
-        std::cout << "This may take a while for large n... Generating in parallel...\n";
-        double s = 1.0; // skewness parameter
-        std::vector<double> harmonic_series(n + 1, 0.0);
-        for (int i = 1; i <= n; i++) {
-            harmonic_series[i] = harmonic_series[i - 1] + 1.0 / std::pow(i, s);
-        }
-        tbb::concurrent_unordered_set<uint64_t> vertex_ids;
-        #pragma omp parallel
-        {
-            if (omp_get_thread_num() == 0) {
-                int tm = 0;
-                while (vertex_ids.size() < n) {
-                    std::cout << "Generated: " << vertex_ids.size() << " / " << n << ", time count: " << tm++ << "s" << std::endl;
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-                    #pragma omp flush
-                }
-                std::cout << "Generation complete!" << std::endl;
-            }
-            while (vertex_ids.size() < n) {
-                double z = ((double) rand() / RAND_MAX) * harmonic_series[n];
-                int rank = 1;
-                while (rank <= n && harmonic_series[rank] < z) {
-                    rank++;
-                }
-                uint64_t id = rank - 1;
-                if (vertex_ids.find(id) == vertex_ids.end()) {
-                    vertex_ids.insert(id);
-                }
+        // Generate skewed IDs using Reciprocal Distribution
+        std::unordered_set<uint64_t> vertex_ids;
+        std::uniform_real_distribution<double> real_distribution(0.000001, 1.0);
+        while (IDs.size() < n) {
+            double u = real_distribution(generator);
+            double logx = u * log(static_cast<double>(maximum) + 1);
+            uint64_t id = static_cast<uint64_t>(exp(logx)) - 1;
+            if (vertex_ids.find(id) == vertex_ids.end()) {
+                vertex_ids.insert(id);
+                IDs.push_back(id);
             }
         }
-        IDs.assign(vertex_ids.begin(), vertex_ids.end());
     }
     SORT sort(n, bit_length, ceil(log2(bit_length)));
     // Generate vEB-tree setting
