@@ -37,7 +37,7 @@ bool RadixGraph::Insert(Vertex* src, int des, float weight, int delta_deg) {
             #endif
             auto deg = next->deg.load();
             deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
-            auto new_array = new WeightedEdgeArray(deg * 2 + (next->size - next->cap + 1) + 8); // +(next->size -next->cap + 1) to avoid repititive expanding (especially the updates are intensive), +8 to avoid empty edge array
+            auto new_array = new WeightedEdgeArray(deg * expand_rate + (next->size - next->cap + 1) + 8); // +(next->size -next->cap + 1) to avoid repititive expanding (especially the updates are intensive), +8 to avoid empty edge array
             new_array = LogCompaction(next, new_array);
             new_array->prev_arr = next;
             next->next_arr = new_array;
@@ -281,7 +281,7 @@ void RadixGraph::CreateSnapshots(bool sort_neighbours, bool make_dense) {
         deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
         WeightedEdgeArray* new_array = nullptr;
         if (!make_dense) {
-            new_array = new WeightedEdgeArray(deg * 2 + 8); // +8 to avoid empty edge array
+            new_array = new WeightedEdgeArray(deg * expand_rate + 8); // +8 to avoid empty edge array
         }
         else {
             new_array = new WeightedEdgeArray(deg);
