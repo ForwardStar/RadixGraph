@@ -15,6 +15,7 @@
  */
 #include "utils.h"
 #include "sort.h"
+#include <tbb/concurrent_unordered_set.h>
 
 int main(int argc, char* argv[]) {
     int n, bit_length;
@@ -50,24 +51,39 @@ int main(int argc, char* argv[]) {
         }
     } else if (workload_type == 'h') {
         // Generate skewed IDs using Zipf distribution
+        // Generate in parallel
+        std::cout << "Generating skewed IDs using Zipf distribution...\n";
+        std::cout << "This may take a while for large n... Generating in parallel...\n";
         double s = 1.0; // skewness parameter
         std::vector<double> harmonic_series(n + 1, 0.0);
         for (int i = 1; i <= n; i++) {
             harmonic_series[i] = harmonic_series[i - 1] + 1.0 / std::pow(i, s);
         }
-        std::unordered_set<uint64_t> vertex_ids;
-        while (IDs.size() < n) {
-            double z = ((double) rand() / RAND_MAX) * harmonic_series[n];
-            int rank = 1;
-            while (rank <= n && harmonic_series[rank] < z) {
-                rank++;
+        tbb::concurrent_unordered_set<uint64_t> vertex_ids;
+        #pragma omp parallel
+        {
+            if (omp_get_thread_num() == 0) {
+                int tm = 0;
+                while (vertex_ids.size() < n) {
+                    std::cout << "Generated: " << vertex_ids.size() << " / " << n << ", time count: " << tm++ << "s" << std::endl;
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    #pragma omp flush
+                }
+                std::cout << "Generation complete!" << std::endl;
             }
-            uint64_t id = rank - 1;
-            if (vertex_ids.find(id) == vertex_ids.end()) {
-                vertex_ids.insert(id);
-                IDs.push_back(id);
+            while (vertex_ids.size() < n) {
+                double z = ((double) rand() / RAND_MAX) * harmonic_series[n];
+                int rank = 1;
+                while (rank <= n && harmonic_series[rank] < z) {
+                    rank++;
+                }
+                uint64_t id = rank - 1;
+                if (vertex_ids.find(id) == vertex_ids.end()) {
+                    vertex_ids.insert(id);
+                }
             }
         }
+        IDs.assign(vertex_ids.begin(), vertex_ids.end());
     }
     SORT sort(n, bit_length, ceil(log2(bit_length)));
     // Generate vEB-tree setting
@@ -86,7 +102,7 @@ int main(int argc, char* argv[]) {
     filename += workload_type;;
     filename += "_log.txt";
     std::ofstream f(filename);
-    size_t total = IDs.size();
+    size_t total = n;
     int cnt = 0;
     for (size_t i = 0; i < total; ++i) {
         sort.RetrieveVertex(IDs[i], true);
