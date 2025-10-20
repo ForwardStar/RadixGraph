@@ -56,7 +56,7 @@ Test modules contain ``test_radixgraph``, ``test_gapbs``, ``test_analytics``, ``
 
 ``test_trie`` randomly generates n vertex ids and inserts them into your customized Trie. It will output the efficiency and space consumption of your Trie on this vertex set and compare it with SORT.
 
-``test_trie_workload`` evaluates memory footprints of SORT and vEB tree under different workloads.
+``test_trie_workload`` evaluates memory footprints of SORT and vEB tree under different workloads. It will also output the log file ``workload_<workload_type>_log.txt`` that records the memory footprints during the insertion process. You can plot the footprints by running ``python3 plot_workload_log.py``. Figures will be saved in ``figures/workload_log.pdf``.
 
 ``test_transform_continuous`` randomly generates 10^7 vertex ids within [0, 2^32-1] and tests time costs of transforming SORT when inserting these 10^7 vertex ids. It will also record the memory footprint of SORT during the insertion and transformation process into ``memory_log.txt``. You can plot the footprint by running ``python3 plot_memory_log.py``. Figures will be saved in ``figures/memory_log.pdf``.
 

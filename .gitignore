@@ -19,6 +19,7 @@ test_trie_workload
 test_vertex_index
 test_batch_updates
 workload.txt
+workload_*_log.txt
 results*
 memory_log.txt
 figures

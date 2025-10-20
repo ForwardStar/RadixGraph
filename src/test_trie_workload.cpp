@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     std::cin >> n;
     std::cout << "The bit length of IDs: ";
     std::cin >> bit_length;
-    std::cout << "Which workload to use? (u: uniform; s: skewed) ";
+    std::cout << "Which workload to use? (u: uniform; s: slightly skewed; h: highly skewed) ";
     char workload_type;
     std::cin >> workload_type;
     std::default_random_engine generator(42);
@@ -38,7 +38,17 @@ int main(int argc, char* argv[]) {
                 IDs.push_back(id);
             }
         }
-    } else {
+    } else if (workload_type == 's') {
+        maximum /= 1.5; // reduce range to introduce slight skewness
+        std::unordered_set<uint64_t> vertex_ids;
+        while (IDs.size() < n) {
+            uint64_t id = distribution(generator);
+            if (vertex_ids.find(id) == vertex_ids.end()) {
+                vertex_ids.insert(id);
+                IDs.push_back(id);
+            }
+        }
+    } else if (workload_type == 'h') {
         // Generate skewed IDs using Zipf distribution
         double s = 1.0; // skewness parameter
         std::vector<double> harmonic_series(n + 1, 0.0);
@@ -72,14 +82,20 @@ int main(int argc, char* argv[]) {
     SORT vEB(num_bits);
     // Insert IDs to SORT in original order
     // Print memory usage after 10% insertions
+    std::string filename = "workload_";
+    filename += workload_type;;
+    filename += "_log.txt";
+    std::ofstream f(filename);
     size_t total = IDs.size();
+    int cnt = 0;
     for (size_t i = 0; i < total; ++i) {
         sort.RetrieveVertex(IDs[i], true);
-        if ((i + 1) % (total / 10) == 0)
-            std::cout << "SORT: memory after " << (i + 1) << " insertions is " << sort.Size() * 8 << " bytes" << std::endl;
         vEB.RetrieveVertex(IDs[i], true);
-        if ((i + 1) % (total / 10) == 0)
+        if ((i + 1) % (total / 10) == 0) {
+            std::cout << "SORT: memory after " << (i + 1) << " insertions is " << sort.Size() * 8 << " bytes" << std::endl;
             std::cout << "vEB: memory after " << (i + 1) << " insertions is " << vEB.Size() * 8 << " bytes" << std::endl;
+            f << ++cnt << " " << sort.Size() * 8 << " " << vEB.Size() * 8 << std::endl;
+        }
     }
     return 0;
 }
