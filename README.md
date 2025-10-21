@@ -1,9 +1,9 @@
 # RadixGraph
 RadixGraph is used for **storing and updating weighted graphs in the main memory**.
 
-Key features: RadixGraph is built upon a novel **Space-Optimized Radix Tree (SORT)** as the vertex index to insert or query vertices, which significantly reduces the memory consumption of graph storage compared to existing in-memory graph systems. For edge storage, RadixGraph supports **amortized O(1) time for dynamic graph updates** (insertion, deletion and update of edges).
+Key features: RadixGraph is built upon a novel **Space-Optimized Radix Tree (SORT)** as the vertex index to insert or query vertices. For edge storage, RadixGraph supports **amortized O(1) time for dynamic graph updates** (insertion, deletion and update of edges).
 
-You can incorporate **RadixGraph** to any C++ project requiring dynamic graph storage and updates. Either single-threaded, multi-threaded, or concurrent read-write workloads, RadixGraph can efficiently handle them. We also encourage users to incorporate **SORT** into their own projects for general applications (e.g., key-value stores, document indexing), as it is a space-optimized fundamental data structure.
+You can incorporate **RadixGraph** to any C++ project requiring dynamic graph storage and updates. Either single-threaded, multi-threaded, or concurrent read-write workloads, RadixGraph can efficiently handle them. We also encourage users to incorporate **SORT** into their projects for general applications (e.g., key-value stores, document indexing).
 
 # Compile
 We recommend using compiler ``GCC 11.4.0+``. You need to compile RadixGraph on Linux platform with OpenMP and Intel Thread Building Block (TBB).
