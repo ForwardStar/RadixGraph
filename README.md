@@ -3,6 +3,26 @@ RadixGraph is used for **storing and updating weighted graphs in the main memory
 
 Key features: RadixGraph is built upon a novel **Space-Optimized Radix Tree (SORT)** as the vertex index to insert or query vertices, which significantly reduces the memory consumption of graph storage compared to existing in-memory graph systems. For edge storage, RadixGraph supports **amortized O(1) time for dynamic graph updates** (insertion, deletion and update of edges).
 
+You can incorporate **RadixGraph** to any C++ project requiring dynamic graph storage and updates. Either single-threaded, multi-threaded, or concurrent read-write workloads, RadixGraph can efficiently handle them. We also encourage users to incorporate **SORT** into their own projects for general applications (e.g., key-value stores, document indexing), as it is a space-optimized fundamental data structure.
+
+# Compile
+We recommend using compiler ``GCC 11.4.0+``. You need to compile RadixGraph on Linux platform with OpenMP and Intel Thread Building Block (TBB).
+
+If prerequisites are completed, compile radixgraph by:
+```sh
+git clone https://github.com/ForwardStar/RadixGraph.git
+mkdir build && cd build
+cmake ..
+make -j
+```
+
+This will generate ``libRG.a`` and some test modules in the ``build`` folder.
+
+**Integrate RadixGraph into your project:** (1) include the header file ``src/radixgraph.h`` in your source files; (2) link with the static library ``libRG.a`` when compiling your project. Example:
+```sh
+g++ your_source.cpp -o your_program -I/path_to_radixgraph/src -L/path_to_radixgraph/build -lRG -fopenmp -ltbb -std=c++17 -O3
+```
+
 # APIs
 See example usages in the ``examples`` directory (TODO: we will add this soon). See full APIs with comments from ``src/radixgraph.h``. The ``Vertex`` and ``WeightedEdge`` classes are defined in ``src/utils.h``.
 
@@ -22,26 +42,6 @@ To fully exploit the performance of RadixGraph and ensure correctness, do take c
 - **Concurrent reads and writes:** by default it is disabled. To support concurrent workloads of RadixGraph where reads and writes are executed concurrently, you can: (1) set ``global_info.is_mixed_workloads = true`` before initiating RadixGraph; (2) pause all current workloads, set ``global_info.is_mixed_workloads = true`` and execute ``CreateSnapshots()`` in RadixGraph, after which you can resume workloads. This will enable MVCC components, like creating timestamps and multi-versioned arrays. The cost is that the memory consumption will be slightly higher and the read operations are slightly slower to ensure consistency.
 - **Read-heavy workloads:** if the next workloads are read-heavy, it is suggested to run ``CreateSnapshot()`` of RadixGraph before executing the workload. This will merge all log segments into their snapshot segments and improve read efficiency. This process is exclusive, i.e., reads and writes should be paused during the process.
 - **Maximum number of threads:** the default maximum number of threads is 64; to change this, use ``SetNumThreads()`` function or initialize the RadixGraph with an appropriate ``_num_threads`` parameter. The ``SetNumThreads()`` function is also exclusive.
-
-# Compile and run
-We recommend using compiler ``GCC 11.4.0+``. You need to run RadixGraph on Linux platform with OpenMP and Intel Thread Building Block (TBB). For root users:
-```sh
-sudo apt-get install libtbb-dev
-```
-
-If prerequisites are completed, compile radixgraph by:
-```sh
-git clone https://github.com/ForwardStar/RadixGraph.git
-cmake .
-make -j
-```
-
-For non-root users that can only install TBB locally, replace the cmake step with:
-```sh
-cmake . -DCMAKE_CXX_FLAGS="-I/path/to/tbb/include" -DCMAKE_EXE_LINKER_FLAGS="-L/path/to/tbb/lib"
-```
-
-This will generate ``libRG.a`` and some test modules.
 
 # Test modules
 Test modules contain ``test_radixgraph``, ``test_gapbs``, ``test_analytics``, ``test_batch_updates``, ``test_trie``, ``test_trie_workload``, ``test_transform_continuous``, and ``test_vertex_index``. They are mainly used for testing correctness and case studies for RadixGraph and SORT. For comparison with other systems and experiments on real-world graphs, please refer to [GFE Driver for RadixGraph](https://github.com/ForwardStar/gfe_driver).
@@ -73,9 +73,10 @@ git submodule update --init --recursive
 cd ..
 ```
 
-Then reconfigure RadixGraph with the CMake:
+Then reconfigure RadixGraph with CMake:
 ```sh
-cmake . --fresh -DSTATS=OFF
+rm -rf build && mkdir build && cd build
+cmake .. -DSTATS=OFF
 ```
 
 and set in ``radixgraph.h``:
@@ -84,7 +85,7 @@ and set in ``radixgraph.h``:
 #define USE_ART 1
 ```
 
-Recompile and RadixGraph automatically uses ART as its vertex index. Note: we do not suggest using ART, as it has its own thread management scheme (``Optimistic Lock Coupling (OLC)`` with ``Quiescent State Based Reclamation (QSBR)``), while RadixGraph is mainly designed for ``openMP`` and ``std::thread``. Although we currently did not find problems with the ART integration, we do not guarantee full concurrency correctness when using ART.
+Recompile and RadixGraph automatically uses ART as its vertex index. Note: ART has its own thread management system through ``unodb::qsbr_thread``. It is user's responsibility to create and manage threads when using ART as the vertex index in RadixGraph.
 
 To use vertex array, set both ``USE_SORT`` and ``USE_ART`` as 0:
 ```cpp
