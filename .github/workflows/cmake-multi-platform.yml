@@ -47,7 +47,7 @@ jobs:
         run: cmake --build build --parallel 2
 
       # Run lightweight test programs (using assert)
-      - name: Run example tests
+      - name: Test single thread example
         working-directory: build
         run: |
           echo "Compiling test program..."
@@ -56,3 +56,13 @@ jobs:
             -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
           echo "Running test..."
           ./single-thread
+      
+      - name: Test parallel example
+        working-directory: build
+        run: |
+          echo "Compiling test program..."
+          ${{ matrix.cpp_compiler }} ../examples/parallel.cpp \
+            -o parallel \
+            -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
+          echo "Running test..."
+          ./parallel
