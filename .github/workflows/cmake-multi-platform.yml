@@ -2,9 +2,9 @@ name: CMake (Linux, GCC & Clang, low memory)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -45,7 +45,7 @@ jobs:
         run: cmake --build build --parallel 2
 
       - name: Archive build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.compiler }}
           path: build/
@@ -74,7 +74,7 @@ jobs:
           fi
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-${{ matrix.compiler }}
           path: build/
