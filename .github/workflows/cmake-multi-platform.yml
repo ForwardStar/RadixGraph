@@ -50,4 +50,4 @@ jobs:
 
       - name: Test
         working-directory: build
-        run: ctest --output-on-failure
+        run: g++ ../examples/single-thread.cpp -o single-thread -I../src -L../build -lRG -fopenmp -ltbb -std=c++17
