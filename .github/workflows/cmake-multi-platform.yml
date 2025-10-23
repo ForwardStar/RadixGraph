@@ -1,4 +1,4 @@
-name: CMake (Linux, GCC & Clang)
+name: CMake (Linux, GCC & Clang, low memory)
 
 on:
   push:
@@ -35,23 +35,17 @@ jobs:
             sudo apt-get install -y libomp-dev
           fi
 
-      - name: Add swap to prevent OOM
-        run: |
-          sudo fallocate -l 4G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          free -h
-
-      - name: Configure CMake
+      - name: Configure CMake (optimize for low memory)
         run: |
           cmake -B build \
                 -S . \
                 -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
                 -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG" \
+                -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG"
 
-      - name: Build
+      - name: Build (limited parallelism)
         run: cmake --build build -- -j2
 
       - name: Test
