@@ -17,7 +17,7 @@ int main() {
     G.DeleteEdge(0, 1); // Delete edge: from 0 to 1
     G.InsertEdge(0, 5, 1);
     std::vector<WeightedEdge> neighbors;
-    G.GetNeighbours(0, neighbors);
+    G.GetNeighbours((NodeID)0, neighbors);
     // The only edge from 0 points to 5 with weight 1
     assert(neighbors.size() == 1);
     assert(neighbors[0].weight == 1);
