@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
@@ -21,7 +20,6 @@ jobs:
           - compiler: clang
             c_compiler: clang
             cpp_compiler: clang++
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,27 +41,59 @@ jobs:
                 -DCMAKE_CXX_FLAGS="-O2 -DNDEBUG -pipe -fno-rtti -fno-exceptions" \
                 -DCMAKE_C_FLAGS="-O2 -DNDEBUG -pipe"
 
-      - name: Build (limit parallel jobs to reduce RAM)
+      - name: Build (limit parallel jobs)
         run: cmake --build build --parallel 2
 
-      # Run lightweight test programs (using assert)
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ matrix.compiler }}
+          path: build/
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        include:
+          - compiler: gcc
+            cpp_compiler: g++
+          - compiler: clang
+            cpp_compiler: clang++
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y g++ clang libtbb-dev
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y libomp-dev
+          fi
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ matrix.compiler }}
+          path: build/
+
       - name: Test single thread example
         working-directory: build
         run: |
           echo "Compiling test program..."
           ${{ matrix.cpp_compiler }} ../examples/single-thread.cpp \
-            -o single-thread \
-            -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
+            -o single-thread -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
           echo "Running test..."
           ./single-thread
-      
+
       - name: Test parallel example
         working-directory: build
         run: |
           echo "Compiling test program..."
           ${{ matrix.cpp_compiler }} ../examples/parallel.cpp \
-            -o parallel \
-            -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
+            -o parallel -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
           echo "Running test..."
           ./parallel
 
@@ -72,7 +102,6 @@ jobs:
         run: |
           echo "Compiling test program..."
           ${{ matrix.cpp_compiler }} ../examples/concurrent.cpp \
-            -o concurrent \
-            -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
+            -o concurrent -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
           echo "Running test..."
           ./concurrent
