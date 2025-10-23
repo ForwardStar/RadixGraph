@@ -50,4 +50,6 @@ jobs:
 
       - name: Test
         working-directory: build
-        run: g++ ../examples/single-thread.cpp -o single-thread -I../src -L../build -lRG -fopenmp -ltbb -std=c++17
+        run: |
+          g++ ../examples/single-thread.cpp -o single-thread -I../src -L../build -lRG -fopenmp -ltbb -std=c++17
+          ./single-thread
