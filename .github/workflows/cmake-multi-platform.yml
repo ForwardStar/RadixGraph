@@ -66,3 +66,13 @@ jobs:
             -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
           echo "Running test..."
           ./parallel
+
+      - name: Test concurrent example
+        working-directory: build
+        run: |
+          echo "Compiling test program..."
+          ${{ matrix.cpp_compiler }} ../examples/concurrent.cpp \
+            -o concurrrnt \
+            -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
+          echo "Running test..."
+          ./concurrent
