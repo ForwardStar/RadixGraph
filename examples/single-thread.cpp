@@ -1,4 +1,4 @@
-#include "../radixgraph.h"
+#include "../src/radixgraph.h"
 
 int main() {
     RadixGraph G(4, 5); // 4 vertices, ID range from [0, 2^5-1]
