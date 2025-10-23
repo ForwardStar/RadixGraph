@@ -2,7 +2,7 @@
 
 int main() {
     const int num_threads = 5;
-    global_info.is_mixed_workload = true; // remember to set this
+    global_info.is_mixed_workloads = true; // remember to set this
     RadixGraph G(32, 5, num_threads); // 32 vertices, ID range [0,31]
 
     std::mt19937 rng(42);
