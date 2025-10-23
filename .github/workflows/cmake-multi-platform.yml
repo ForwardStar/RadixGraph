@@ -13,7 +13,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: [Release]
         compiler: [gcc, clang]
         include:
           - compiler: gcc
@@ -29,27 +28,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y cmake g++ clang libtbb-dev
           if [ "${{ matrix.compiler }}" = "clang" ]; then
             sudo apt-get install -y libomp-dev
           fi
 
-      - name: Configure CMake (optimize for low memory)
+      - name: Configure CMake (low-memory mode)
         run: |
-          cmake -B build \
-                -S . \
+          cmake -B build -S . \
+                -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
                 -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
-                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG" \
-                -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG"
+                -DCMAKE_CXX_FLAGS="-O2 -DNDEBUG -pipe -fno-rtti -fno-exceptions" \
+                -DCMAKE_C_FLAGS="-O2 -DNDEBUG -pipe"
 
-      - name: Build (limited parallelism)
-        run: cmake --build build -- -j2
+      - name: Build (limit parallel jobs to reduce RAM)
+        run: cmake --build build --parallel 2
 
-      - name: Test
+      # Run lightweight test programs (using assert)
+      - name: Run example tests
         working-directory: build
         run: |
-          g++ ../examples/single-thread.cpp -o single-thread -I../src -L../build -lRG -fopenmp -ltbb -std=c++17
+          echo "Compiling test program..."
+          ${{ matrix.cpp_compiler }} ../examples/single-thread.cpp \
+            -o single-thread \
+            -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
+          echo "Running test..."
           ./single-thread
