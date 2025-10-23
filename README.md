@@ -24,7 +24,7 @@ g++ your_source.cpp -o your_program -I/path_to_radixgraph/src -L/path_to_radixgr
 ```
 
 # APIs
-See example usages in the ``examples`` directory (TODO: we will add this soon). See full APIs with comments from ``src/radixgraph.h``. The ``Vertex`` and ``WeightedEdge`` classes are defined in ``src/utils.h``.
+See example usages in the ``examples`` directory. See full APIs with comments from ``src/radixgraph.h``. The ``Vertex`` and ``WeightedEdge`` classes are defined in ``src/utils.h``.
 
 RadixGraph API list:
 - ``bool InsertEdge(NodeID src, NodeID des, float weight);``
