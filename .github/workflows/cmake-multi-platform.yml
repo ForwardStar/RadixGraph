@@ -72,7 +72,7 @@ jobs:
         run: |
           echo "Compiling test program..."
           ${{ matrix.cpp_compiler }} ../examples/concurrent.cpp \
-            -o concurrrnt \
+            -o concurrent \
             -I../src -L. -lRG -fopenmp -ltbb -std=c++17 -O2
           echo "Running test..."
           ./concurrent
