@@ -1,7 +1,7 @@
 #include "../src/radixgraph.h"
 
 int main() {
-    const int num_threads = 5;
+    const int num_threads = 8;
     global_info.is_mixed_workloads = true; // remember to set this
     RadixGraph G(32, 5, num_threads); // 32 vertices, ID range [0,31]
 

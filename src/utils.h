@@ -182,7 +182,7 @@ class WeightedEdgeArray {
       WeightedEdgeArray* next_arr = nullptr; // Snapshots are chained together
       int snapshot_timestamp = 0;
       std::atomic<int> snapshot_deg = 0, deg = 0; // The snapshot degree and latest degree
-      std::atomic<int> threads_get_neighbor = 0, threads_analytical = 0; // How many threads reading this snapshot
+      int threads_read = 0; // How many threads reading this snapshot, used in concurrent reads and writes
       WeightedEdgeArray(int m) {
         edge = new WeightedEdge[m];
         cap = m;
@@ -205,16 +205,12 @@ class WeightedEdgeArray {
    - N.idx: the offset (logical ID) of this vertex;
    - N.del_time: the deletion time of this vertex;
    - N.next: the edge array pointer;
-   - t_total, t_compact: timers for measuring the time (unit: s) of total operations and log compaction operations (only used for benchmarking and debugging);
    Note that we do not store ``Size`` since it can be retrieved by next->size; N.idx is stored for practical implementation but can be removed. */
 struct Vertex {
     NodeID node = -1;
     int idx = -1, del_time = -1;
     std::atomic_flag mtx;
     std::atomic<WeightedEdgeArray*> next;
-    #if DEBUG_MODE
-      std::atomic<double> t_total, t_compact;
-    #endif
     ~Vertex() {
       if (next.load()) delete next.load();
     }

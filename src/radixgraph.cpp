@@ -18,10 +18,6 @@
 thread_local int RadixGraph::thread_id_local = -1;
 
 bool RadixGraph::Insert(Vertex* src, int des, float weight, int delta_deg) {
-    #if DEBUG_MODE
-        std::chrono::high_resolution_clock::time_point t1, t2;
-        t1 = std::chrono::high_resolution_clock::now();
-    #endif
     auto next = src->next.load();
     int i = next->size.fetch_add(1);
     while (i >= next->cap) {
@@ -31,10 +27,6 @@ bool RadixGraph::Insert(Vertex* src, int des, float weight, int delta_deg) {
             while (next->physical_size.load() != next->cap) {
                 // Wait for all edges to be written
             }
-            #if DEBUG_MODE
-                std::chrono::high_resolution_clock::time_point t3, t4;
-                t3 = std::chrono::high_resolution_clock::now();
-            #endif
             auto deg = next->deg.load();
             deg = std::max(deg, 0); // Deleting non-existing edges may lead to negative degree (although this should not happen)
             auto new_array = new WeightedEdgeArray(deg * expand_rate + (next->size - next->cap + 1) + 8); // +(next->size -next->cap + 1) to avoid repititive expanding (especially the updates are intensive), +8 to avoid empty edge array
@@ -42,20 +34,16 @@ bool RadixGraph::Insert(Vertex* src, int des, float weight, int delta_deg) {
             new_array->prev_arr = next;
             next->next_arr = new_array;
             src->next.store(new_array);
-            if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0) {
+            if (next->threads_read == 0) {
                 if (next->edge) delete [] next->edge, next->edge = nullptr; // Do not delete next pointer to avoid concurrency issue
                 if (next->timestamp) delete [] next->timestamp, next->timestamp = nullptr;
                 if (next->prev_arr) {
                     auto tmp = next->prev_arr;
-                    if (tmp->threads_analytical.load() == 0 && tmp->threads_get_neighbor.load() == 0) {
+                    if (tmp->threads_read == 0) {
                         delete tmp; // But you can delete the previous version (snapshot) safely
                     }
                 }
             }
-            #if DEBUG_MODE
-                t4 = std::chrono::high_resolution_clock::now();
-                src->t_compact += std::chrono::duration<double>(t4 - t3).count();
-            #endif
         }
         next = src->next.load();
         i = next->size.fetch_add(1);
@@ -67,10 +55,6 @@ bool RadixGraph::Insert(Vertex* src, int des, float weight, int delta_deg) {
     next->deg.fetch_add(delta_deg);
     next->edge[i] = {weight, des};
     next->physical_size.fetch_add(1);
-    #if DEBUG_MODE
-        t2 = std::chrono::high_resolution_clock::now();
-        src->t_total += std::chrono::duration<double>(t2 - t1).count();
-    #endif
     return true;
 }
 
@@ -134,7 +118,7 @@ bool RadixGraph::GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neigh
 }
 
 bool RadixGraph::GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbours, int timestamp) {
-    if (is_mixed_workloads) {
+    if (global_info.is_mixed_workloads) {
         // Before reference counter is updated, no log compactions should be performed
         while (src->mtx.test_and_set()) {}
     }
@@ -145,11 +129,13 @@ bool RadixGraph::GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbour
     }
     if (!next) {
         // Not a valid timestamp
-        if (is_mixed_workloads) src->mtx.clear();
+        if (global_info.is_mixed_workloads) src->mtx.clear();
         return false;
     }
-    next->threads_get_neighbor.fetch_add(1);
-    if (is_mixed_workloads) src->mtx.clear();
+    if (global_info.is_mixed_workloads) {
+        next->threads_read++;
+        src->mtx.clear();
+    }
     int cnt = next->physical_size.load();
     if (cnt > next->snapshot_deg.load()) {
         // Full neighbor list
@@ -177,7 +163,6 @@ bool RadixGraph::GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbour
             int retry_count = 0;
             while (e.idx == -1 && retry_count < 10000) {
                 // Wait for edge to be written
-                // Theoretically this is not necessary, but practically some parallelism like omp may have issues
                 // Use retry_count to avoid deadlocks
                 retry_count++;
             }
@@ -202,16 +187,16 @@ bool RadixGraph::GetNeighbours(Vertex* src, std::vector<WeightedEdge> &neighbour
             neighbours[i] = e;
         }
     }
-    if (is_mixed_workloads) {
+    if (global_info.is_mixed_workloads) {
         // Before reference counter is updated, no log compactions should be performed
         while (src->mtx.test_and_set()) {}
+        next->threads_read--;
+        if (next->threads_read == 0 && next != src->next.load()) {
+            // If array pointer changes, this array has been obseleted, and if no other querying process, then delete this array safely;
+            delete next;
+        }
+        src->mtx.clear();
     }
-    next->threads_get_neighbor.fetch_sub(1);
-    if (next->threads_analytical.load() == 0 && next->threads_get_neighbor.load() == 0 && next != src->next.load()) {
-        // If array pointer changes, this array has been obseleted, and if no other querying process, then delete this array safely;
-        delete next;
-    }
-    if (is_mixed_workloads) src->mtx.clear();
 
     return true;
 }
@@ -229,16 +214,9 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
         int thread_id = thread_id_local == -1 ? omp_get_thread_num() : thread_id_local;
         for (int i = old_arr->physical_size - 1; i >= 0; i--) {
             auto& e = old_arr->edge[i];
-            int retry_count = 0;
-            while (e.idx == -1 && retry_count < 10000) {
-                // Wait for edge to be written
-                // Theoretically this is not necessary, but practically some parallelism like omp may have issues
-                // Use retry_count to avoid deadlocks
-                retry_count++;
-            }
             // Optional: check whether the destination vertex is deleted;
             // Here we defer the check process to get_neighbors (will return false if the vertex is deleted)
-            if (e.idx != -1 && !bitmap[thread_id]->get_bit(e.idx)) {
+            if (!bitmap[thread_id]->get_bit(e.idx)) {
                 if (e.weight != 0) { // Insert or Update
                     // Have not found a previous log for this edge, thus this edge is the latest
                     if (num >= new_arr->cap) {
@@ -257,14 +235,14 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
         }
         for (int i = old_arr->snapshot_deg; i < old_arr->physical_size; i++) {
             auto& e = old_arr->edge[i];
-            if (e.idx != -1) bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
+            bitmap[thread_id]->clear_bit(old_arr->edge[i].idx);
         }
     }
     new_arr->size.store(num);
     new_arr->snapshot_deg.store(num);
     new_arr->deg.store(num);
     new_arr->physical_size.store(num);
-    if (is_mixed_workloads) new_arr->timestamp = new int[new_arr->cap - num];
+    if (global_info.is_mixed_workloads) new_arr->timestamp = new int[new_arr->cap - num];
     new_arr->snapshot_timestamp = GetGlobalTimestamp();
 
     return new_arr;
