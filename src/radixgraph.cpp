@@ -251,14 +251,16 @@ WeightedEdgeArray* RadixGraph::LogCompaction(WeightedEdgeArray* old_arr, Weighte
 int RadixGraph::GetInternalID(NodeID id) {
     Vertex* v = vertex_index->RetrieveVertex(id);
     if (!v || v->del_time != -1) {
-        throw std::out_of_range("Vertex ID not found");
+        // throw std::out_of_range("Vertex ID not found");
+        return -1; // Indicate not found
     }
     return v->idx;
 }
 
 NodeID RadixGraph::GetExternalID(int offset) {
     if (offset >= vertex_index->cnt) {
-        throw std::out_of_range("Internal ID out of range");
+        // throw std::out_of_range("Internal ID out of range");
+        return -1; // Indicate not found
     }
     return vertex_index->vertex_table[offset].node;
 }
@@ -266,7 +268,8 @@ NodeID RadixGraph::GetExternalID(int offset) {
 NodeID RadixGraph::GetExternalID(WeightedEdge& e) {
     int offset = e.idx;
     if (offset >= vertex_index->cnt) {
-        throw std::out_of_range("Internal ID out of range");
+        // throw std::out_of_range("Internal ID out of range");
+        return -1; // Indicate not found
     }
     return vertex_index->vertex_table[offset].node;
 }
