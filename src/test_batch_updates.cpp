@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
             G.CreateSnapshots(); // create snapshots before batch updates
             double avg_insert = 0;
             double avg_delete = 0;
-            int n_trials = 1;
+            int n_trials = 20;
             for (size_t ts = 0; ts < n_trials; ts++) {
                 int n = G.vertex_index->cnt;
                 std::vector<uint32_t> new_srcs(update_size);

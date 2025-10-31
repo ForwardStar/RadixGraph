@@ -36,6 +36,9 @@ RadixGraph API list:
 - ``void CreateSnapshots(bool sort_neighbours=false, bool make_dense=false);``
 - ``int GetGlobalTimestamp();``
 - ``void SetNumThreads(int nth=64);``
+- ``int GetInternalID(NodeID id);``
+- ``NodeID GetExternalID(int offset);``
+- ``NodeID GetExternalID(WeightedEdge& e);``
 - ``int GetNumVertices();``
 
 To fully exploit the performance of RadixGraph and ensure correctness, do take care of following things that may affect the efficiency and space:

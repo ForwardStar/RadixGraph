@@ -2,6 +2,7 @@
 
 int main() {
     RadixGraph G(4, 5, 5); // 4 vertices, ID range from [0, 2^5-1], 5 threads
+
     // Edges to be inserted
     std::vector<std::vector<int>> edges = {
         {0, 1, 1},
@@ -10,9 +11,11 @@ int main() {
         {10, 31, 4},
         {31, 0, 5}
     };
+
     // Parallel insert
     #pragma omp parallel for num_threads(5)
     for (int i = 0; i < 5; i++) G.InsertEdge((NodeID)edges[i][0], (NodeID)edges[i][1], edges[i][2]);
+
     // Parallel get neighbors
     std::atomic<int> total_weight = 0;
     for (NodeID i = 0; i < 32; i++) {
@@ -21,9 +24,11 @@ int main() {
         for (auto e : neighbors) total_weight += e.weight;
     }
     assert(total_weight == 15); // total weight is 15
+
     // Parallel delete
     #pragma omp parallel for num_threads(5)
     for (int i = 0; i < 5; i++) G.DeleteEdge((NodeID)edges[i][0], (NodeID)edges[i][1]);
+    
     // Parallel get neighbors
     total_weight = 0;
     for (NodeID i = 0; i < 32; i++) {

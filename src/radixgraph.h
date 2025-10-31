@@ -75,6 +75,15 @@ class RadixGraph {
             neighbours: neighbour edges of src are stored in this array;
             timestamp: if reading a snapshot, read the latest snapshot at the timestamp. */
         bool GetNeighboursByOffset(int src, std::vector<WeightedEdge> &neighbours, int timestamp=2147483647);
+        /*  GetInternalID(): get the internal ID of a vertex;
+            id: the external vertex ID. */
+        int GetInternalID(NodeID id);
+        /*  GetExternalID(): get the external ID of a vertex;
+            offset: the internal vertex ID. */
+        NodeID GetExternalID(int offset);
+        /*  GetExternalID(): get the external ID of a vertex;
+            e: the WeightedEdge structure containing internal ID. */
+        NodeID GetExternalID(WeightedEdge& e);
         /*  GetNumVertices(): get the number of vertices in the graph;
             Returns the number of vertices. */
         int GetNumVertices() {
