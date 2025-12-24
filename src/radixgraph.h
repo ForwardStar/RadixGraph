@@ -47,7 +47,7 @@ class RadixGraph {
 
         SegmentedBitmap** bitmap = nullptr;
         bool is_sorted = false; // whether the neighbour list of each vertex is sorted
-        double expand_rate = 2; // expand_rate for log compaction
+        double expand_rate = 2.0; // expand_rate for log compaction
         int num_threads = 64; // 64 by default
 
         /*  InsertEdge(): insert an edge to RadixGraph;
@@ -86,10 +86,10 @@ class RadixGraph {
         NodeID GetExternalID(WeightedEdge& e);
         /*  GetNumVertices(): get the number of vertices in the graph;
             Returns the number of vertices. */
-        int GetNumVertices() {
-            return vertex_index->cnt.load();
-        }
-
+        int GetNumVertices();
+        /* SetExpandRate(): set the expand rate for log compaction;
+            ratio: the expand rate (the capacity of edge array will be defined as ratio * snapshot_length). */
+        void SetExpandRate(double ratio);
         /* CreateSnapshots(): log compaction for all vertices;
             sort_neighbours: whether to sort neighbours in increasing internal IDs (useful for some graph analytics tasks requiring ordering);
             make_dense: whether to keep snapshot segment only. */

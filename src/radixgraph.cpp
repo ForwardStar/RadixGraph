@@ -274,6 +274,16 @@ NodeID RadixGraph::GetExternalID(WeightedEdge& e) {
     return vertex_index->vertex_table[offset].node;
 }
 
+int RadixGraph::GetNumVertices()  {
+    return vertex_index->cnt.load();
+}
+
+void RadixGraph::SetExpandRate(double ratio) {
+    if (ratio > 1.0) {
+        expand_rate = ratio;
+    }
+}
+
 void RadixGraph::CreateSnapshots(bool sort_neighbours, bool make_dense) {
     // Should be executed when no updates are performed
     int n = vertex_index->cnt.load();

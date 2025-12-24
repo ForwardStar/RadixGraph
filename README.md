@@ -40,6 +40,7 @@ RadixGraph API list:
 - ``NodeID GetExternalID(int offset);``
 - ``NodeID GetExternalID(WeightedEdge& e);``
 - ``int GetNumVertices();``
+- ``void SetExpandRate(double ratio);``
 
 To fully exploit the performance of RadixGraph and ensure correctness, do take care of following things that may affect the efficiency and space:
 - **Concurrent reads and writes:** by default it is disabled. To support concurrent workloads of RadixGraph where reads and writes are executed concurrently, you can: (1) set ``global_info.is_mixed_workloads = true`` before initiating RadixGraph; (2) pause all current workloads, set ``global_info.is_mixed_workloads = true`` and execute ``CreateSnapshots()`` in RadixGraph, after which you can resume workloads. This will enable MVCC components, like creating timestamps and multi-versioned arrays. The cost is that the memory consumption will be slightly higher and the read operations are slightly slower to ensure consistency.
