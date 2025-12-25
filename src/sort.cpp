@@ -351,21 +351,35 @@ SORT::SORT(int n, int bit_length, int l, bool prune) {
 }
 
 SORT::SORT(int d, int _num_bits[]) {
-    depth = d;
-    num_bits.resize(d), sum_bits.resize(d);
+    depth = 0;
     for (int i = 0; i < d; i++) {
-        num_bits[i] = _num_bits[i];
-        sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
+        if (_num_bits[i] != 0) depth++;
+    }
+    num_bits.resize(depth), sum_bits.resize(depth);
+    int j = 0;
+    for (int i = 0; i < d; i++) {
+        if (_num_bits[i] != 0) {
+            num_bits[j] = _num_bits[i];
+            sum_bits[j] = (j > 0 ? sum_bits[j - 1] : 0) + num_bits[j];
+            j++;
+        }
     }
 }
 
 SORT::SORT(std::vector<int> _num_bits) {
     int d = _num_bits.size();
-    depth = d;
-    num_bits.resize(d), sum_bits.resize(d);
+    depth = 0;
     for (int i = 0; i < d; i++) {
-        num_bits[i] = _num_bits[i];
-        sum_bits[i] = (i > 0 ? sum_bits[i - 1] : 0) + num_bits[i];
+        if (_num_bits[i] != 0) depth++;
+    }
+    num_bits.resize(depth), sum_bits.resize(depth);
+    int j = 0;
+    for (int i = 0; i < d; i++) {
+        if (_num_bits[i] != 0) {
+            num_bits[j] = _num_bits[i];
+            sum_bits[j] = (j > 0 ? sum_bits[j - 1] : 0) + num_bits[j];
+            j++;
+        }
     }
 }
 
