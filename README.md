@@ -111,5 +111,8 @@ g++ optimizer.cpp -o optimizer -std=c++11 -O3
 
 Then run ``./optimizer -h`` for help information.
 
+# Reproducing full experiments in our paper
+We provide the complete reproducing procedures with running examples in ``reproduce.ipynb``. Use jupyter notebook to open the file ``reproduce.ipynb`` to see the full steps and results.
+
 # License
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
