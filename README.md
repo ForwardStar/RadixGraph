@@ -1,5 +1,5 @@
 # RadixGraph
-RadixGraph is used for **storing and updating weighted graphs in the main memory**.
+RadixGraph is used for **storing and updating weighted graphs in the main memory**. Technical report: [http://arxiv.org/abs/2601.01444](http://arxiv.org/abs/2601.01444) (Accepted by SIGMOD 2026)
 
 Key features: RadixGraph is built upon a novel **Space-Optimized Radix Tree (SORT)** as the vertex index to insert or query vertices. For edge storage, RadixGraph supports **amortized O(1) time for dynamic graph updates** (insertion, deletion and update of edges).
 
